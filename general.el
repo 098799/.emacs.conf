@@ -638,6 +638,7 @@ That is, a string used to represent it on the tab bar."
         ("t" projectile-toggle-between-implementation-and-test)
         ("R" projectile-ripgrep)
         ("p" helm-projectile-switch-project)
+        ("[" helm-projectile-recentf)
         ("a" slack-message-add-reaction)
         ("s" helm-projectile-ag)
         ("S" projectile-save-project-buffers)
@@ -646,6 +647,10 @@ That is, a string used to represent it on the tab bar."
         ("g" helm-projectile-grep)
         ("h" helm-projectile)
         ("k" projectile-kill-buffers)
+        ("<left>" projectile-previous-project-buffer)
+        ("<right>" projectile-next-project-buffer)
+        ("!" projectile-run-shell-command-in-root)
+        ("%" projectile-run-async-shell-command-in-root)
          )
    )
 
