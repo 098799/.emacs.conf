@@ -46,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 130 :width normal :foundry "DAMA" :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :foundry "DAMA" :family "Ubuntu Mono")))))
 
 (use-package highlight-symbol
   :ensure t
@@ -311,6 +311,7 @@
   :config
   (global-company-mode)
   ;; (setq company-auto-complete t)
+  (setq company-dabbrev-downcase nil)
   (setq company-idle-delay .1)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
@@ -318,7 +319,7 @@
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   ;; (company-tng-configure-default)
-  )
+ )
 
 (use-package company-jedi
   :ensure t)
@@ -681,7 +682,6 @@ That is, a string used to represent it on the tab bar."
          ("c" save-buffers-kill-terminal)
          ("v" helm-show-kill-ring)
          ("b" helm-mini)
-         ("m" magit-blame)
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)
