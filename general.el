@@ -92,6 +92,9 @@
 (use-package better-defaults
   :ensure t)
 
+(use-package boon
+  :ensure t)  ;; I'm thinking of using some functions from it...
+
 (use-package centered-cursor-mode
   :defer t)
 
@@ -301,8 +304,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package blacken
-  :ensure t
-  )
+  :ensure t)
 
 (use-package company
   :ensure t
@@ -584,13 +586,14 @@ That is, a string used to represent it on the tab bar."
 
   ;; Actions: left hand
   (ryo-modal-keys
+   ("<f1>" blacken-buffer)
    ("q" kill-word)
    ("Q" my-copy-word)
    ("w" backward-kill-word)
    ("W" my-backward-copy-word)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
-   ("r" avy-goto-char-2)
+   ("r" avy-goto-char-timer)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
    ("a" comment-dwim-2)
@@ -604,13 +607,14 @@ That is, a string used to represent it on the tab bar."
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
+   ("<" beginning-of-buffer)
+   (">" end-of-buffer)
    ("!" helm-flycheck)
+   ("%" query-replace)
    ("-" mark-paragraph)
    ("=" er/expand-region)
    ("+" delete-horizontal-space)
    ("SPC" cua-set-mark)
-   ("<" beginning-of-buffer)
-   (">" end-of-buffer)
    )
 
   ;; Params
