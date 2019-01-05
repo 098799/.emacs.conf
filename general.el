@@ -62,6 +62,9 @@
   :config
   (nav-flash-show))
 
+(use-package visual-regexp
+  :ensure t)
+
 (load-theme 'solarized-dark t)
 
 (add-to-list 'load-path "~/.emacs.d/tabbar/")
@@ -215,16 +218,19 @@
   :init
   (setq alert-default-style 'notifier))
 
+(use-package smart-newline
+  :ensure t
+  :config
+  (smart-newline-mode 1)
+  )
+
+(use-package smartparens-config
+  :commands smartparens-mode)
+
 (use-package spaceline
   :ensure t
   :config
   (spaceline-spacemacs-theme)
-  (defun spaceline-highlight-face-god-state ()
-    (if (bound-and-true-p god-local-mode)
-        'spaceline-evil-normal          ;'spaceline-evil-visual
-      'spaceline-evil-emacs             ;'spaceline-evil-insert
-      ))
-  (setq spaceline-highlight-face-func #'spaceline-highlight-face-god-state)
   )
 
 (use-package swiper
@@ -238,6 +244,9 @@
 ;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 ;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
+
+(use-package helm-tramp
+  :ensure t)
 
 (use-package transpose-frame
   :ensure t)
@@ -332,6 +341,10 @@
   :bind
   ("C-c d" . docker)
   )
+
+(use-package docker-tramp
+  :after (docker tramp)
+  :defer 5)
 
 (use-package elpy
   :ensure t
@@ -434,11 +447,12 @@
   ;; ^ will be handled by ryo mode
   )
 
-;; (use-package python-pytest
-;;   :bind
-;;   ("C-c a" . python-pytest-repeat)
-;;   ("C-c C-a" . python-pytest-popup)
-;;   )
+(use-package python-pytest
+  :bind
+  )
+
+(use-package realgud
+  :ensure t)
 
 (use-package virtualenvwrapper
   :ensure t)
@@ -600,7 +614,7 @@ That is, a string used to represent it on the tab bar."
    ("a" comment-dwim-2)
    ("s" swiper)
    ("d" kill-whole-line-or-region)
-   ("D" copy-whole-line-or-region)
+   ("D" delete-char)
    ("f" recenter-top-bottom)
    ("g" keyboard-quit)
    ("h" back-to-indentation)
@@ -652,6 +666,8 @@ That is, a string used to represent it on the tab bar."
         ("g" helm-projectile-grep)
         ("h" helm-projectile)
         ("k" projectile-kill-buffers)
+        ("z" python-pytest-popup)
+        ("x" python-pytest-repeat)
         ("<left>" projectile-previous-project-buffer)
         ("<right>" projectile-next-project-buffer)
         ("!" projectile-run-shell-command-in-root)

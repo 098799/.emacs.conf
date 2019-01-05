@@ -12,14 +12,14 @@
   (forward-line)
   (unless (eolp)
     (end-of-line))
-  (newline-and-indent))
+  (smart-newline))
 
 (defun vi-open-line-below ()
   "Insert a newline below the current line and put point at beginning."
   (interactive)
   (unless (eolp)
     (end-of-line))
-  (newline-and-indent))
+  (smart-newline))
 
 (defun my-copy-word (arg)
   (interactive "P")
