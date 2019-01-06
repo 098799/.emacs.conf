@@ -65,6 +65,9 @@
 (use-package visual-regexp
   :ensure t)
 
+(use-package solarized-theme
+  :ensure t)
+
 (load-theme 'solarized-dark t)
 
 (add-to-list 'load-path "~/.emacs.d/tabbar/")
@@ -321,7 +324,7 @@
   (global-company-mode)
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay .1)
+  (setq company-idle-delay 0)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-minimum-prefix-length 1)
@@ -336,15 +339,23 @@
   (add-to-list 'company-backends 'company-jedi))
 (add-hook 'python-mode-hook 'my/python-mode-hook)
 
+;; (use-package company-lsp
+;;   :ensure t)
+
 (use-package docker
   :ensure t
   :bind
   ("C-c d" . docker)
   )
-
 (use-package docker-tramp
   :after (docker tramp)
   :defer 5)
+
+;; (use-package eglot
+;;   :ensure t
+;;   :config
+;;   (add-hook 'python-mode-hook 'eglot-ensure)
+;;   )
 
 (use-package elpy
   :ensure t
@@ -363,15 +374,12 @@
 ;;   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 ;; ^ will be handled by ryo mode
 
-;; ;; isort
-;; (use-package py-isort
-;;   :ensure t
-;;   :config
-;;   (add-hook 'before-save-hook 'py-isort-before-save)
-;;   (setq py-isort-options '("--lines=100 --project=crwcommon"))
-;;   )
+;; isort
+(use-package py-isort
+  :ensure t)
 
 (use-package jedi
+  :ensure t
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -380,6 +388,15 @@
    jedi:environment-root "jedi"
    python-environment-directory "~/.virtualenvs")
   )
+
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :config
+;;   (require 'lsp-clients)
+;;   (add-hook 'lsp-after-open-hook 'lsp-ui-mode)
+;;   (add-hook 'python-mode-hook 'lsp))
+;; (use-package lsp-ui
+;;   :ensure t)
 
 (use-package magit
   :ensure t
@@ -448,8 +465,7 @@
   )
 
 (use-package python-pytest
-  :bind
-  )
+  :ensure t)
 
 (use-package realgud
   :ensure t)
@@ -559,6 +575,7 @@ That is, a string used to represent it on the tab bar."
 
 
 (use-package ryo-modal
+  :ensure t
   :commands ryo-modal-mode
   :bind ("<escape>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
@@ -589,6 +606,7 @@ That is, a string used to represent it on the tab bar."
    ("L" cua-scroll-down)
    (";" right-word)
    (":" move-end-of-line)
+   ("n" recenter-top-bottom)
    ("m" move-beginning-of-line)
    ("." xref-find-definitions)
    ("," xref-pop-marker-stack)
@@ -615,8 +633,9 @@ That is, a string used to represent it on the tab bar."
    ("s" swiper)
    ("d" kill-whole-line-or-region)
    ("D" delete-char)
-   ("f" recenter-top-bottom)
-   ("g" keyboard-quit)
+   ;; ("f" recenter-top-bottom)
+   ;; ("g" keyboard-quit)
+   ("G" end-of-buffer)
    ("h" back-to-indentation)
    ("z" undo-tree-undo)
    ("c" copy-whole-line-or-region)
@@ -626,10 +645,19 @@ That is, a string used to represent it on the tab bar."
    (">" end-of-buffer)
    ("!" helm-flycheck)
    ("%" query-replace)
-   ("-" mark-paragraph)
+   ("-" delete-horizontal-space)
    ("=" er/expand-region)
-   ("+" delete-horizontal-space)
+   ("+" mark-paragraph)
+   ("]" mark-paragraph)
+   ("\\" er/mark-python-statement)
    ("SPC" cua-set-mark)
+   )
+
+  ;; Actions: g-mode
+  (ryo-modal-key
+   "g" '(
+         ("g" beginning-of-buffer)
+        )
    )
 
   ;; Params
@@ -649,7 +677,7 @@ That is, a string used to represent it on the tab bar."
 
   ;; Additional map
   (ryo-modal-key
-   "["'(
+   "[" '(
         ("q" slack-start)
         ("w" slack-select-rooms)
         ("e" projectile-replace-regexp)
@@ -673,6 +701,42 @@ That is, a string used to represent it on the tab bar."
         ("!" projectile-run-shell-command-in-root)
         ("%" projectile-run-async-shell-command-in-root)
          )
+   )
+
+  ;; Actions: f-mode
+  (ryo-modal-key
+   "f" '(
+        ("q" venv-workon)
+         ("w" python-add-breakpoint)
+         ("e" eval-last-sexp)
+         ("r" helm-recentf)
+         ("t" elpy-multiedit-python-symbol-at-point)
+         ("u" undo-tree-visualize)
+         ("i" change-inner)
+         ("o" change-outer)
+         ("a" goto-last-change)
+         ("s" save-buffer)
+         ("d" dired)
+         ("D" docker)
+         ("f" helm-find-files)
+         ("g" magit-status)
+         ("h" mark-whole-buffer)
+         ("k" kill-buffer)
+         ("x" helm-M-x)
+         ("c" save-buffers-kill-terminal)
+         ("v" helm-show-kill-ring)
+         ("b" helm-mini)
+         ("0" delete-window)
+         ("1" delete-other-windows)
+         ("2" split-window-below)
+         ("3" split-window-right)
+         ("5 0" delete-frame)
+         ("5 1" delete-other-frames)
+         ("5 2" make-frame-command)
+         ("-" er/mark-inside-python-string)
+         ("=" er/mark-outside-python-string)
+         ("SPC" rectangle-mark-mode)
+        )
    )
 
   ;; C-x + C-c mode
