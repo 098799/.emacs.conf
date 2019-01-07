@@ -77,3 +77,59 @@
   (forward-line)
   (cua-paste arg)
   )
+
+(defun my-backward-word (arg)
+  "Go backward by word unless doing so would put you in another line.
+  Then, move to the beginning of the line."
+  (interactive "P")
+  (let ((wrong-flag 0))
+    (let ((line-before-move (line-number-at-pos)))
+      (save-excursion
+        (backward-word)
+        (when (/= line-before-move (line-number-at-pos))
+          (setq-local wrong-flag 1)
+          )
+        )
+      (if (= wrong-flag 1)
+          (progn
+            (let ((column-before-move (current-column)))
+              (defvar column-after-back-to-indentation)
+              (setq-local column-after-back-to-indentation
+                          (save-excursion
+                            (back-to-indentation)
+                            (current-column)
+                            )
+                          )
+              (if (= column-before-move column-after-back-to-indentation)
+                  (backward-word)
+                (back-to-indentation))))
+        (backward-word))))
+  )
+
+(defun my-forward-word (arg)
+  "Go forward by word unless doing so would put you in another line.
+  Then, move to the end of the line."
+  (interactive "P")
+  (let ((wrong-flag 0))
+    (let ((line-before-move (line-number-at-pos)))
+      (save-excursion
+        (forward-word)
+        (when (/= line-before-move (line-number-at-pos))
+          (setq-local wrong-flag 1)
+          )
+        )
+      (if (= wrong-flag 1)
+          (progn
+            (let ((column-before-move (current-column)))
+              (defvar column-after-end-of-line)
+              (setq-local column-after-end-of-line
+                          (save-excursion
+                            (move-end-of-line arg)
+                            (current-column)
+                            )
+                          )
+              (if (= column-before-move column-after-end-of-line)
+                  (forward-word)
+                (move-end-of-line arg))))
+        (forward-word))))
+  )
