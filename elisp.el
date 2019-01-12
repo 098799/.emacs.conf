@@ -6,6 +6,20 @@
   (insert "import ipdb; ipdb.set_trace()")
   (highlight-lines-matching-regexp "^[ ]*import ipdb; ipdb.set_trace()"))
 
+(defun add-correct-start-of-commit (arg)
+  "Copy branch name and insert it at the beginning of commit."
+  (interactive "P")
+  (save-excursion
+    (forward-line 5)
+    (forward-word 3)
+    (forward-char)
+    (cua-set-mark)
+    (forward-word 2)
+    (cua-copy-region arg)
+    )
+  (cua-paste arg)
+  )
+
 (defun vi-open-line-above ()
   "Insert a newline above the current line and put point at beginning."
   (interactive)

@@ -115,6 +115,24 @@
 
 (cua-mode t)
 
+(use-package dired
+  :bind
+  (:map dired-mode-map
+        ("u" . dired-up-directory)
+        ("U" . dired-unmark)
+        ("* u" . dired-unmark-all-files)
+        ("i" . dired-next-line)
+        ("o" . dired-previous-line)
+        ("p" . dired-find-file)
+        ("j" . dired-up-directory)
+        ("k" . dired-next-dirline)
+        ("l" . dired-prev-dirline)
+        (";" . dired-find-file)
+        ("s" . swiper)
+        ("K" . dired-do-kill-lines)
+        )
+  )
+
 (use-package dumb-jump
   :ensure t)
 
@@ -195,26 +213,26 @@
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
-(use-package slack
-  :commands (slack-start)
-  :init
-  (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
-  (setq slack-prefer-current-team t)
-  :config
-  (slack-register-team
-   :name my-slack-name
-   :default t
-   :client-id my-slack-id
-   :client-secret my-slack-secret
-   :token my-slack-token
-   :subscribed-channels '(test-rename crawler)
-   :full-and-display-names t)
-  :bind
-  ("C-c s q" . slack-start)
-  ("C-c s w" . slack-select-rooms)
-  ("C-c s e" . slack-im-open)
-  ("C-c s a" . slack-message-add-reaction)
-  )
+;; (use-package slack
+;;   :commands (slack-start)
+;;   :init
+;;   (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+;;   (setq slack-prefer-current-team t)
+;;   :config
+;;   (slack-register-team
+;;    :name my-slack-name
+;;    :default t
+;;    :client-id my-slack-id
+;;    :client-secret my-slack-secret
+;;    :token my-slack-token
+;;    :subscribed-channels '(test-rename crawler)
+;;    :full-and-display-names t)
+;;   :bind
+;;   ("C-c s q" . slack-start)
+;;   ("C-c s w" . slack-select-rooms)
+;;   ("C-c s e" . slack-im-open)
+;;   ("C-c s a" . slack-message-add-reaction)
+;;   )
 
 (use-package alert
   :commands (alert)
@@ -624,7 +642,7 @@ That is, a string used to represent it on the tab bar."
    ("d" kill-whole-line-or-region)
    ("D" delete-char)
    ;; ("f" recenter-top-bottom)
-   ;; ("g" keyboard-quit)
+   ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" back-to-indentation)
    ("j" my-backward-word)
@@ -661,12 +679,12 @@ That is, a string used to represent it on the tab bar."
    ("SPC" cua-set-mark)
    )
 
-  ;; Actions: g-mode
-  (ryo-modal-key
-   "g" '(
-         ("g" beginning-of-buffer)
-        )
-   )
+  ;; ;; Actions: g-mode
+  ;; (ryo-modal-key
+  ;;  "g" '(
+  ;;        ("g" beginning-of-buffer)
+  ;;       )
+  ;;  )
 
   ;; Params
   (ryo-modal-keys
@@ -686,15 +704,15 @@ That is, a string used to represent it on the tab bar."
   ;; Additional map
   (ryo-modal-key
    "[" '(
-        ("q" slack-start)
-        ("w" slack-select-rooms)
+        ;; ("q" slack-start)
+        ;; ("w" slack-select-rooms)
         ("e" projectile-replace-regexp)
         ("r" projectile-replace)
         ("t" projectile-toggle-between-implementation-and-test)
         ("R" projectile-ripgrep)
         ("p" helm-projectile-switch-project)
         ("[" helm-projectile-recentf)
-        ("a" slack-message-add-reaction)
+        ;; ("a" slack-message-add-reaction)
         ("s" helm-projectile-ag)
         ("S" projectile-save-project-buffers)
         ("d" projectile-dired)
@@ -718,8 +736,10 @@ That is, a string used to represent it on the tab bar."
          ("r" helm-recentf)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
-         ("i" change-inner)
-         ("o" change-outer)
+         ;; ("i" change-inner)
+         ;; ("o" change-outer)
+         ("i" er/mark-inside-python-string)
+         ("o" er/mark-outside-python-string)
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired)
