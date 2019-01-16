@@ -35,12 +35,55 @@
     (end-of-line))
   (smart-newline))
 
+(defun backward-kill-word-or-region (arg)
+  (interactive "P")
+  (save-excursion
+    (if (region-active-p)
+        (cua-cut-region arg)
+      (kill-word
+       (if (boundp 'arg)
+           -1
+         (* -1 arg)))
+      )
+    )
+  )
+
+(defun kill-word-or-region (arg)
+  (interactive "P")
+  (save-excursion
+    (if (region-active-p)
+        (cua-cut-region arg)
+      (kill-word arg)
+      )
+    )
+  )
+
+(defun my-copy-word-or-region (arg)
+  (interactive "P")
+  (save-excursion
+    (if (region-active-p)
+        (cua-copy-region arg)
+      (my-copy-word arg)
+      )
+    )
+  )
+
 (defun my-copy-word (arg)
   (interactive "P")
   (save-excursion
     (cua-set-mark)
     (right-word)
     (cua-copy-region arg)
+    )
+  )
+
+(defun my-backward-copy-word-or-region (arg)
+  (interactive "P")
+  (save-excursion
+    (if (region-active-p)
+        (cua-copy-region arg)
+      (my-backward-copy-word arg)
+      )
     )
   )
 

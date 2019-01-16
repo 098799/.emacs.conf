@@ -98,8 +98,8 @@
 (use-package better-defaults
   :ensure t)
 
-(use-package boon
-  :ensure t)  ;; I'm thinking of using some functions from it...
+;; (use-package boon
+;;   :ensure t)  ;; I'm thinking of using some functions from it...
 
 (use-package centered-cursor-mode
   :defer t)
@@ -133,8 +133,34 @@
         )
   )
 
+(use-package dired-toggle
+  :after dired
+  :ensure t
+  :bind
+  ("<f7>" . dired-toggle)
+  :config
+  (add-hook 'dired-toggle-mode-hook
+          (lambda () (interactive)
+            (visual-line-mode 1)
+            (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
+            (setq-local word-wrap nil)))
+  )
+
+(use-package dired-x
+  :after dired)
+
 (use-package dumb-jump
   :ensure t)
+
+(use-package elfeed
+  :ensure t)
+
+(use-package elfeed-org
+  :ensure t
+  :config
+  (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
+  (setq elfeed-db-directory "~/Dropbox/.elfeed")
+  )
 
 (use-package expand-region
   :ensure t
@@ -392,11 +418,11 @@
 ;;   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 ;; ^ will be handled by ryo mode
 
-;; isort
-(use-package py-isort
-  :ensure t
-  :config
-  (add-hook 'before-save-hook 'py-isort-before-save))
+;; ;; isort
+;; (use-package py-isort
+;;   :ensure t
+;;   :config
+;;   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (use-package jedi
   :ensure t
@@ -487,8 +513,8 @@
 (use-package python-pytest
   :ensure t)
 
-(use-package realgud
-  :ensure t)
+;; (use-package realgud
+;;   :ensure t)
 
 (use-package virtualenvwrapper
   :ensure t)
@@ -498,13 +524,20 @@
 (setq venv-location "~/.virtualenvs/")
 ;; (define-key global-map (kbd "C-c C-q") 'venv-workon)
 ;; ^ will be handled by ryo mode
+
 ;; (use-package auto-virtualenvwrapper
 ;;   :ensure t
 ;;   :config
 ;;   (add-hook 'python-mode-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'window-configuration-change-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate))
-
+(use-package auto-virtualenv
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+  ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
+  ;; (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
@@ -593,6 +626,9 @@ That is, a string used to represent it on the tab bar."
 (tabbar-mode 1)
 
 
+
+
+
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
 (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
@@ -621,13 +657,13 @@ That is, a string used to represent it on the tab bar."
 
   (ryo-modal-keys
    ;; ("," ryo-modal-repeat)
-   ("q" kill-word)
-   ("Q" my-copy-word)
-   ("w" backward-kill-word)
-   ("W" my-backward-copy-word)
+   ("q" kill-word-or-region)
+   ("Q" my-copy-word-or-region)
+   ("w" backward-kill-word-or-region)
+   ("W" my-backward-copy-word-or-region)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
-   ("r" avy-goto-char-timer)
+   ("r" avy-goto-word-1)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
    ("U" move-beginning-of-line)
@@ -639,8 +675,7 @@ That is, a string used to represent it on the tab bar."
 
    ("a" comment-dwim-2)
    ("s" swiper)
-   ("d" kill-whole-line-or-region)
-   ("D" delete-char)
+   ;; ("d" kill-whole-line-or-region)
    ;; ("f" recenter-top-bottom)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
@@ -655,11 +690,13 @@ That is, a string used to represent it on the tab bar."
    (":" move-end-of-line)
 
    ("z" undo-tree-undo)
+   ("Z" undo-tree-redo)
+   ("x" kill-whole-line-or-region)
+   ("X" delete-char)
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
    ("n" recenter-top-bottom)
-   ("m" move-beginning-of-line)
    ("." xref-find-definitions)
    ("," xref-pop-marker-stack)
    ("<" beginning-of-buffer)
@@ -701,43 +738,41 @@ That is, a string used to represent it on the tab bar."
    ("9" "M-9")
    )
 
-  ;; Additional map
   (ryo-modal-key
-   "[" '(
-        ;; ("q" slack-start)
-        ;; ("w" slack-select-rooms)
-        ("e" projectile-replace-regexp)
-        ("r" projectile-replace)
-        ("t" projectile-toggle-between-implementation-and-test)
-        ("R" projectile-ripgrep)
-        ("p" helm-projectile-switch-project)
-        ("[" helm-projectile-recentf)
-        ;; ("a" slack-message-add-reaction)
-        ("s" helm-projectile-ag)
-        ("S" projectile-save-project-buffers)
-        ("d" projectile-dired)
-        ("f" projectile-find-file)
-        ("g" helm-projectile-grep)
-        ("h" helm-projectile)
-        ("k" projectile-kill-buffers)
-        ("z" python-pytest-popup)
-        ("x" python-pytest-repeat)
-        ("!" projectile-run-shell-command-in-root)
-        ("%" projectile-run-async-shell-command-in-root)
+   "d" '(
+         ("q" elfeed)
+         ("w" add-correct-start-of-commit)
+         ("e" projectile-replace-regexp)
+         ("r" projectile-replace)
+         ("R" projectile-ripgrep)
+         ("t" projectile-toggle-between-implementation-and-test)
+         ("i" change-inner)
+         ("o" change-outer)
+         ("p" helm-projectile-switch-project)
+         ("[" helm-projectile-recentf)
+         ("s" helm-projectile-ag)
+         ("S" projectile-save-project-buffers)
+         ("d" kill-whole-line-or-region)
+         ("D" projectile-dired)
+         ("f" projectile-find-file)
+         ("g" helm-projectile-grep)
+         ("h" helm-projectile)
+         ("k" projectile-kill-buffers)
+         ("z" python-pytest-popup)
+         ("x" python-pytest-repeat)
+         ("!" projectile-run-shell-command-in-root)
+         ("%" projectile-run-async-shell-command-in-root)
          )
    )
 
-  ;; Actions: f-mode
   (ryo-modal-key
    "f" '(
-        ("q" venv-workon)
+         ("q" venv-workon)
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
          ("r" helm-recentf)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
-         ;; ("i" change-inner)
-         ;; ("o" change-outer)
          ("i" er/mark-inside-python-string)
          ("o" er/mark-outside-python-string)
          ("a" goto-last-change)
@@ -749,6 +784,7 @@ That is, a string used to represent it on the tab bar."
          ("h" mark-whole-buffer)
          ("j" tabbar-backward-tab)
          ("k" kill-buffer)
+         ("l" helm-mini)
          (";" tabbar-forward-tab)
          ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
@@ -764,40 +800,40 @@ That is, a string used to represent it on the tab bar."
          ("-" er/mark-inside-python-string)
          ("=" er/mark-outside-python-string)
          ("SPC" rectangle-mark-mode)
-        )
-   )
-
-  ;; C-x + C-c mode
-  (ryo-modal-key
-   "x" '(
-         ("q" venv-workon)
-         ("w" python-add-breakpoint)
-         ("e" eval-last-sexp)
-         ("r" helm-recentf)
-         ("t" elpy-multiedit-python-symbol-at-point)
-         ("u" undo-tree-visualize)
-         ("i" change-inner)
-         ("o" change-outer)
-         ("a" goto-last-change)
-         ("s" save-buffer)
-         ("d" dired)
-         ("D" docker)
-         ("f" helm-find-files)
-         ("g" magit-status)
-         ("h" mark-whole-buffer)
-         ("k" kill-buffer)
-         ("x" helm-M-x)
-         ("c" save-buffers-kill-terminal)
-         ("v" helm-show-kill-ring)
-         ("b" helm-mini)
-         ("0" delete-window)
-         ("1" delete-other-windows)
-         ("2" split-window-below)
-         ("3" split-window-right)
-         ("5 0" delete-frame)
-         ("5 1" delete-other-frames)
-         ("5 2" make-frame-command)
-         ("SPC" rectangle-mark-mode)
          )
    )
   )
+
+  ;; ;; C-x + C-c mode
+  ;; (ryo-modal-key
+  ;;  "x" '(
+  ;;        ;; ("q" venv-workon)
+  ;;        ;; ("w" python-add-breakpoint)
+  ;;        ;; ("e" eval-last-sexp)
+  ;;        ;; ("r" helm-recentf)
+  ;;        ;; ("t" elpy-multiedit-python-symbol-at-point)
+  ;;        ;; ("u" undo-tree-visualize)
+  ;;        ("i" change-inner)
+  ;;        ("o" change-outer)
+  ;;        ("a" goto-last-change)
+  ;;        ("s" save-buffer)
+  ;;        ("d" dired)
+  ;;        ("D" docker)
+  ;;        ("f" helm-find-files)
+  ;;        ("g" magit-status)
+  ;;        ("h" mark-whole-buffer)
+  ;;        ("k" kill-buffer)
+  ;;        ("x" helm-M-x)
+  ;;        ("c" save-buffers-kill-terminal)
+  ;;        ("v" helm-show-kill-ring)
+  ;;        ("b" helm-mini)
+  ;;        ("0" delete-window)
+  ;;        ("1" delete-other-windows)
+  ;;        ("2" split-window-below)
+  ;;        ("3" split-window-right)
+  ;;        ("5 0" delete-frame)
+  ;;        ("5 1" delete-other-frames)
+  ;;        ("5 2" make-frame-command)
+  ;;        ("SPC" rectangle-mark-mode)
+  ;;        )
+  ;;  )
