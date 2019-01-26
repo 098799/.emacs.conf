@@ -628,15 +628,12 @@ That is, a string used to represent it on the tab bar."
 
 
 
-
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
 (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
 (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-
 (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
 (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-
 (define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
 (define-key magit-status-mode-map (kbd "o") 'magit-section-backward)
 (define-key magit-status-mode-map (kbd "x") 'delete-other-windows)
@@ -716,13 +713,6 @@ That is, a string used to represent it on the tab bar."
    ("SPC" cua-set-mark)
    )
 
-  ;; ;; Actions: g-mode
-  ;; (ryo-modal-key
-  ;;  "g" '(
-  ;;        ("g" beginning-of-buffer)
-  ;;       )
-  ;;  )
-
   ;; Params
   (ryo-modal-keys
    (:norepeat t)
@@ -746,6 +736,7 @@ That is, a string used to represent it on the tab bar."
          ("r" projectile-replace)
          ("R" projectile-ripgrep)
          ("t" projectile-toggle-between-implementation-and-test)
+         ("u" subword-mode)
          ("i" change-inner)
          ("o" change-outer)
          ("p" helm-projectile-switch-project)
@@ -773,8 +764,8 @@ That is, a string used to represent it on the tab bar."
          ("r" helm-recentf)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
-         ("i" er/mark-inside-python-string)
-         ("o" er/mark-outside-python-string)
+         ("i" mark-inside-or-not)
+         ("o" mark-outside-or-not)
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired)
@@ -783,13 +774,15 @@ That is, a string used to represent it on the tab bar."
          ("g" magit-status)
          ("h" mark-whole-buffer)
          ("j" tabbar-backward-tab)
-         ("k" kill-buffer)
+         ("k" kill-current-buffer)
          ("l" helm-mini)
          (";" tabbar-forward-tab)
          ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
          ("v" helm-show-kill-ring)
+         ("V" paste-from-kill-ring-new-line)
          ("b" helm-mini)
+         ("n" goto-line)
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)
@@ -797,43 +790,7 @@ That is, a string used to represent it on the tab bar."
          ("5 0" delete-frame)
          ("5 1" delete-other-frames)
          ("5 2" make-frame-command)
-         ("-" er/mark-inside-python-string)
-         ("=" er/mark-outside-python-string)
          ("SPC" rectangle-mark-mode)
          )
    )
   )
-
-  ;; ;; C-x + C-c mode
-  ;; (ryo-modal-key
-  ;;  "x" '(
-  ;;        ;; ("q" venv-workon)
-  ;;        ;; ("w" python-add-breakpoint)
-  ;;        ;; ("e" eval-last-sexp)
-  ;;        ;; ("r" helm-recentf)
-  ;;        ;; ("t" elpy-multiedit-python-symbol-at-point)
-  ;;        ;; ("u" undo-tree-visualize)
-  ;;        ("i" change-inner)
-  ;;        ("o" change-outer)
-  ;;        ("a" goto-last-change)
-  ;;        ("s" save-buffer)
-  ;;        ("d" dired)
-  ;;        ("D" docker)
-  ;;        ("f" helm-find-files)
-  ;;        ("g" magit-status)
-  ;;        ("h" mark-whole-buffer)
-  ;;        ("k" kill-buffer)
-  ;;        ("x" helm-M-x)
-  ;;        ("c" save-buffers-kill-terminal)
-  ;;        ("v" helm-show-kill-ring)
-  ;;        ("b" helm-mini)
-  ;;        ("0" delete-window)
-  ;;        ("1" delete-other-windows)
-  ;;        ("2" split-window-below)
-  ;;        ("3" split-window-right)
-  ;;        ("5 0" delete-frame)
-  ;;        ("5 1" delete-other-frames)
-  ;;        ("5 2" make-frame-command)
-  ;;        ("SPC" rectangle-mark-mode)
-  ;;        )
-  ;;  )

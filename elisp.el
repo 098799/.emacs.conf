@@ -20,20 +20,18 @@
   (cua-paste arg)
   )
 
-(defun vi-open-line-above ()
-  "Insert a newline above the current line and put point at beginning."
-  (interactive)
-  (forward-line)
-  (unless (eolp)
-    (end-of-line))
-  (smart-newline))
-
 (defun vi-open-line-below ()
   "Insert a newline below the current line and put point at beginning."
   (interactive)
   (unless (eolp)
     (end-of-line))
   (smart-newline))
+
+(defun vi-open-line-above ()
+  "Insert a newline above the current line and put point at beginning."
+  (interactive)
+  (forward-line -1)
+  (vi-open-line-below))
 
 (defun backward-kill-word-or-region (arg)
   (interactive "P")
@@ -135,6 +133,14 @@
   (cua-paste arg)
   )
 
+(defun paste-from-kill-ring-new-line (arg)
+  "Move to the new line and paste from the kill ring"
+  (interactive "P")
+  (move-beginning-of-line arg)
+  (forward-line)
+  (helm-show-kill-ring)
+  )
+
 (defun my-backward-word (arg)
   "Go backward by word unless doing so would put you in another line.
   Then, move to the beginning of the line."
@@ -189,4 +195,36 @@
                   (forward-word)
                 (move-end-of-line arg))))
         (forward-word))))
+  )
+
+(defun mark-inside-or-not (arg)
+  "Mark inside python string, but if not, just the word."
+  (interactive "P")
+  (er/mark-inside-python-string)
+  (unless (region-active-p)
+    (progn
+      (superword-mode t)
+      (my-forward-word arg)
+      (cua-set-mark)
+      (my-backward-word arg)
+      (superword-mode nil)
+      )
+    )
+  )
+
+(defun mark-outside-or-not (arg)
+  "Mark outside python string, but if not, just the word."
+  (interactive "P")
+  (er/mark-outside-python-string)
+  (unless (region-active-p)
+    (progn
+      (superword-mode t)
+      (my-forward-word arg)
+      (right-char)
+      (cua-set-mark)
+      (my-backward-word arg)
+      (left-char)
+      (superword-mode nil)
+      )
+    )
   )
