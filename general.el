@@ -46,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 130 :width normal :foundry "DAMA" :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :foundry "DAMA" :family "Ubuntu Mono")))))
 
 (use-package highlight-symbol
   :ensure t
@@ -61,6 +61,12 @@
   :ensure t
   :config
   (nav-flash-show))
+
+(use-package visual-regexp
+  :ensure t)
+
+(use-package solarized-theme
+  :ensure t)
 
 (load-theme 'solarized-dark t)
 
@@ -92,6 +98,9 @@
 (use-package better-defaults
   :ensure t)
 
+;; (use-package boon
+;;   :ensure t)  ;; I'm thinking of using some functions from it...
+
 (use-package centered-cursor-mode
   :defer t)
 
@@ -106,8 +115,52 @@
 
 (cua-mode t)
 
+(use-package dired
+  :bind
+  (:map dired-mode-map
+        ("u" . dired-up-directory)
+        ("U" . dired-unmark)
+        ("* u" . dired-unmark-all-files)
+        ("i" . dired-next-line)
+        ("o" . dired-previous-line)
+        ("p" . dired-find-file)
+        ("j" . dired-up-directory)
+        ("k" . dired-next-dirline)
+        ("l" . dired-prev-dirline)
+        (";" . dired-find-file)
+        ("s" . swiper)
+        ("K" . dired-do-kill-lines)
+        )
+  )
+
+(use-package dired-toggle
+  :after dired
+  :ensure t
+  :bind
+  ("<f7>" . dired-toggle)
+  :config
+  (add-hook 'dired-toggle-mode-hook
+          (lambda () (interactive)
+            (visual-line-mode 1)
+            (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
+            (setq-local word-wrap nil)))
+  )
+
+(use-package dired-x
+  :after dired)
+
 (use-package dumb-jump
   :ensure t)
+
+(use-package elfeed
+  :ensure t)
+
+(use-package elfeed-org
+  :ensure t
+  :config
+  (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
+  (setq elfeed-db-directory "~/Dropbox/.elfeed")
+  )
 
 (use-package expand-region
   :ensure t
@@ -186,42 +239,45 @@
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
-(use-package slack
-  :commands (slack-start)
-  :init
-  (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
-  (setq slack-prefer-current-team t)
-  :config
-  (slack-register-team
-   :name my-slack-name
-   :default t
-   :client-id my-slack-id
-   :client-secret my-slack-secret
-   :token my-slack-token
-   :subscribed-channels '(test-rename crawler)
-   :full-and-display-names t)
-  :bind
-  ("C-c s q" . slack-start)
-  ("C-c s w" . slack-select-rooms)
-  ("C-c s e" . slack-im-open)
-  ("C-c s a" . slack-message-add-reaction)
-  )
+;; (use-package slack
+;;   :commands (slack-start)
+;;   :init
+;;   (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
+;;   (setq slack-prefer-current-team t)
+;;   :config
+;;   (slack-register-team
+;;    :name my-slack-name
+;;    :default t
+;;    :client-id my-slack-id
+;;    :client-secret my-slack-secret
+;;    :token my-slack-token
+;;    :subscribed-channels '(test-rename crawler)
+;;    :full-and-display-names t)
+;;   :bind
+;;   ("C-c s q" . slack-start)
+;;   ("C-c s w" . slack-select-rooms)
+;;   ("C-c s e" . slack-im-open)
+;;   ("C-c s a" . slack-message-add-reaction)
+;;   )
 
 (use-package alert
   :commands (alert)
   :init
   (setq alert-default-style 'notifier))
 
+(use-package smart-newline
+  :ensure t
+  :config
+  (smart-newline-mode 1)
+  )
+
+(use-package smartparens-config
+  :commands smartparens-mode)
+
 (use-package spaceline
   :ensure t
   :config
   (spaceline-spacemacs-theme)
-  (defun spaceline-highlight-face-god-state ()
-    (if (bound-and-true-p god-local-mode)
-        'spaceline-evil-normal          ;'spaceline-evil-visual
-      'spaceline-evil-emacs             ;'spaceline-evil-insert
-      ))
-  (setq spaceline-highlight-face-func #'spaceline-highlight-face-god-state)
   )
 
 (use-package swiper
@@ -235,6 +291,9 @@
 ;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 ;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
+
+(use-package helm-tramp
+  :ensure t)
 
 (use-package transpose-frame
   :ensure t)
@@ -301,22 +360,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package blacken
-  :ensure t
-  )
+  :ensure t)
 
 (use-package company
   :ensure t
   :config
   (global-company-mode)
   ;; (setq company-auto-complete t)
-  (setq company-idle-delay .1)
+  (setq company-dabbrev-downcase nil)
+  (setq company-idle-delay 0)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-minimum-prefix-length 1)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   ;; (company-tng-configure-default)
-  )
+ )
 
 (use-package company-jedi
   :ensure t)
@@ -324,11 +383,23 @@
   (add-to-list 'company-backends 'company-jedi))
 (add-hook 'python-mode-hook 'my/python-mode-hook)
 
+;; (use-package company-lsp
+;;   :ensure t)
+
 (use-package docker
   :ensure t
   :bind
   ("C-c d" . docker)
   )
+(use-package docker-tramp
+  :after (docker tramp)
+  :defer 5)
+
+;; (use-package eglot
+;;   :ensure t
+;;   :config
+;;   (add-hook 'python-mode-hook 'eglot-ensure)
+;;   )
 
 (use-package elpy
   :ensure t
@@ -351,11 +422,10 @@
 ;; (use-package py-isort
 ;;   :ensure t
 ;;   :config
-;;   (add-hook 'before-save-hook 'py-isort-before-save)
-;;   (setq py-isort-options '("--lines=100 --project=crwcommon"))
-;;   )
+;;   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (use-package jedi
+  :ensure t
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -364,6 +434,15 @@
    jedi:environment-root "jedi"
    python-environment-directory "~/.virtualenvs")
   )
+
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :config
+;;   (require 'lsp-clients)
+;;   (add-hook 'lsp-after-open-hook 'lsp-ui-mode)
+;;   (add-hook 'python-mode-hook 'lsp))
+;; (use-package lsp-ui
+;;   :ensure t)
 
 (use-package magit
   :ensure t
@@ -431,11 +510,11 @@
   ;; ^ will be handled by ryo mode
   )
 
-;; (use-package python-pytest
-;;   :bind
-;;   ("C-c a" . python-pytest-repeat)
-;;   ("C-c C-a" . python-pytest-popup)
-;;   )
+(use-package python-pytest
+  :ensure t)
+
+;; (use-package realgud
+;;   :ensure t)
 
 (use-package virtualenvwrapper
   :ensure t)
@@ -445,13 +524,20 @@
 (setq venv-location "~/.virtualenvs/")
 ;; (define-key global-map (kbd "C-c C-q") 'venv-workon)
 ;; ^ will be handled by ryo mode
+
 ;; (use-package auto-virtualenvwrapper
 ;;   :ensure t
 ;;   :config
 ;;   (add-hook 'python-mode-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'window-configuration-change-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate))
-
+(use-package auto-virtualenv
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+  ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
+  ;; (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
@@ -541,7 +627,20 @@ That is, a string used to represent it on the tab bar."
 
 
 
+
+(define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
+(define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
+(define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
+(define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
+(define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
+(define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+(define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
+(define-key magit-status-mode-map (kbd "o") 'magit-section-backward)
+(define-key magit-status-mode-map (kbd "x") 'delete-other-windows)
+
+
 (use-package ryo-modal
+  :ensure t
   :commands ryo-modal-mode
   :bind ("<escape>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
@@ -553,64 +652,65 @@ That is, a string used to represent it on the tab bar."
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
   (ryo-modal-mode)
 
-  ;; Movement: right hand
   (ryo-modal-keys
    ;; ("," ryo-modal-repeat)
-   ;; ("q" ryo-modal-mode)
-   ("`" bookmark-jump)
+   ("q" kill-word-or-region)
+   ("Q" my-copy-word-or-region)
+   ("w" backward-kill-word-or-region)
+   ("W" my-backward-copy-word-or-region)
+   ("e" highlight-symbol-next)
+   ("E" highlight-symbol-prev)
+   ("r" avy-goto-word-1)
+   ("t" vi-open-line-below)
+   ("T" vi-open-line-above)
    ("U" move-beginning-of-line)
    ("u" backward-char)
    ("i" next-line)
    ("o" previous-line)
    ("p" forward-char)
    ("P" move-end-of-line)
-   ("j" left-word)
+
+   ("a" comment-dwim-2)
+   ("s" swiper)
+   ;; ("d" kill-whole-line-or-region)
+   ;; ("f" recenter-top-bottom)
+   ("g" keyboard-quit)
+   ("G" end-of-buffer)
+   ("h" back-to-indentation)
+   ("j" my-backward-word)
    ("J" move-beginning-of-line)
    ("k" forward-paragraph)
    ("K" cua-scroll-up)
    ("l" backward-paragraph)
    ("L" cua-scroll-down)
-   (";" right-word)
+   (";" my-forward-word)
    (":" move-end-of-line)
-   ("m" move-beginning-of-line)
-   ("." xref-find-definitions)
-   ("," xref-pop-marker-stack)
-   ;; ("," cua-scroll-up)
-   ;; ("." cua-scroll-down)
-   ("/" dumb-jump-go)
-   ("?" dumb-jump-back)
-   ;; ("/" move-end-of-line)
-   )
 
-  ;; Actions: left hand
-  (ryo-modal-keys
-   ("q" kill-word)
-   ("Q" my-copy-word)
-   ("w" backward-kill-word)
-   ("W" my-backward-copy-word)
-   ("e" highlight-symbol-next)
-   ("E" highlight-symbol-prev)
-   ("r" avy-goto-char-2)
-   ("t" vi-open-line-below)
-   ("T" vi-open-line-above)
-   ("a" comment-dwim-2)
-   ("s" swiper)
-   ("d" kill-whole-line-or-region)
-   ("D" copy-whole-line-or-region)
-   ("f" recenter-top-bottom)
-   ("g" keyboard-quit)
-   ("h" back-to-indentation)
    ("z" undo-tree-undo)
+   ("Z" undo-tree-redo)
+   ("x" kill-whole-line-or-region)
+   ("X" delete-char)
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
-   ("!" helm-flycheck)
-   ("-" mark-paragraph)
-   ("=" er/expand-region)
-   ("+" delete-horizontal-space)
-   ("SPC" cua-set-mark)
+   ("n" recenter-top-bottom)
+   ("." xref-find-definitions)
+   ("," xref-pop-marker-stack)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
+   ("/" dumb-jump-go)
+   ("?" dumb-jump-back)
+
+   ("<f1>" blacken-buffer)
+   ("`" bookmark-jump)
+   ("!" helm-flycheck)
+   ("%" query-replace)
+   ("-" delete-horizontal-space)
+   ("=" er/expand-region)
+   ("+" mark-paragraph)
+   ("]" mark-paragraph)
+   ("\\" er/mark-python-statement)
+   ("SPC" cua-set-mark)
    )
 
   ;; Params
@@ -628,38 +728,44 @@ That is, a string used to represent it on the tab bar."
    ("9" "M-9")
    )
 
-  ;; Additional map
   (ryo-modal-key
-   "["'(
-        ("q" slack-start)
-        ("w" slack-select-rooms)
-        ("e" projectile-replace-regexp)
-        ("r" projectile-replace)
-        ("t" projectile-toggle-between-implementation-and-test)
-        ("R" projectile-ripgrep)
-        ("p" helm-projectile-switch-project)
-        ("a" slack-message-add-reaction)
-        ("s" helm-projectile-ag)
-        ("S" projectile-save-project-buffers)
-        ("d" projectile-dired)
-        ("f" projectile-find-file)
-        ("g" helm-projectile-grep)
-        ("h" helm-projectile)
-        ("k" projectile-kill-buffers)
+   "d" '(
+         ("q" elfeed)
+         ("w" add-correct-start-of-commit)
+         ("e" projectile-replace-regexp)
+         ("r" projectile-replace)
+         ("R" projectile-ripgrep)
+         ("t" projectile-toggle-between-implementation-and-test)
+         ("u" subword-mode)
+         ("i" change-inner)
+         ("o" change-outer)
+         ("p" helm-projectile-switch-project)
+         ("[" helm-projectile-recentf)
+         ("s" helm-projectile-ag)
+         ("S" projectile-save-project-buffers)
+         ("d" kill-whole-line-or-region)
+         ("D" projectile-dired)
+         ("f" projectile-find-file)
+         ("g" helm-projectile-grep)
+         ("h" helm-projectile)
+         ("k" projectile-kill-buffers)
+         ("z" python-pytest-popup)
+         ("x" python-pytest-repeat)
+         ("!" projectile-run-shell-command-in-root)
+         ("%" projectile-run-async-shell-command-in-root)
          )
    )
 
-  ;; C-x + C-c mode
   (ryo-modal-key
-   "x" '(
+   "f" '(
          ("q" venv-workon)
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
          ("r" helm-recentf)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
-         ("i" change-inner)
-         ("o" change-outer)
+         ("i" mark-inside-or-not)
+         ("o" mark-outside-or-not)
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired)
@@ -667,12 +773,16 @@ That is, a string used to represent it on the tab bar."
          ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("k" kill-buffer)
+         ("j" tabbar-backward-tab)
+         ("k" kill-current-buffer)
+         ("l" helm-mini)
+         (";" tabbar-forward-tab)
          ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
          ("v" helm-show-kill-ring)
+         ("V" paste-from-kill-ring-new-line)
          ("b" helm-mini)
-         ("m" magit-blame)
+         ("n" goto-line)
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)
