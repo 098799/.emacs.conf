@@ -1,3 +1,10 @@
+(defun beginning-of-line-or-indentation ()
+  (interactive)
+  (let ((previous-point (point)))
+    (back-to-indentation)
+    (if (equal previous-point (point))
+        (beginning-of-line))))
+
 (defun python-add-breakpoint ()
   "Adding a breakpoint to a python code."
   (interactive)

@@ -46,7 +46,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :foundry "DAMA" :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 
 (use-package highlight-symbol
   :ensure t
@@ -109,7 +109,8 @@
 
 (use-package comment-dwim-2
   :ensure t
-  :bind ("C-a" . comment-dwim-2))
+  ;; :bind ("C-a" . comment-dwim-2)
+  )
 
 (column-number-mode t)
 
@@ -271,6 +272,11 @@
   (smart-newline-mode 1)
   )
 
+(use-package smartparens
+  :config (progn (require 'smartparens-config)
+                 (smartparens-global-mode t))
+  )
+
 (use-package smartparens-config
   :commands smartparens-mode)
 
@@ -287,16 +293,10 @@
 
 (setq tramp-default-method "ssh")
 (use-package helm-tramp
-  :defer t)
+  :ensure t)
 ;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 ;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
-
-(use-package helm-tramp
-  :ensure t)
-
-(use-package transpose-frame
-  :ensure t)
 
 (use-package undo-tree
   :ensure t
@@ -360,7 +360,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package blacken
-  :ensure t)
+  :ensure t
+  :config
+  (setq blacken-skip-string-normalization nil)
+  (setq blacken-line-length 110)
+  (setq blacken-allow-py36 t)
+  )
 
 (use-package company
   :ensure t
@@ -375,7 +380,7 @@
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   ;; (company-tng-configure-default)
- )
+  )
 
 (use-package company-jedi
   :ensure t)
@@ -385,6 +390,9 @@
 
 ;; (use-package company-lsp
 ;;   :ensure t)
+
+(use-package cython-mode
+  :defer t)
 
 (use-package docker
   :ensure t
@@ -451,9 +459,6 @@
   ("C-c m" . magit-blame)
   )
 (setenv "EDITOR" "emacsclient")
-(use-package forge
-  :ensure t
-  )
 
 (use-package neotree
   :ensure t
@@ -510,8 +515,8 @@
   ;; ^ will be handled by ryo mode
   )
 
-(use-package python-pytest
-  :ensure t)
+;; (use-package python-pytest
+;;   :ensure t)
 
 ;; (use-package realgud
 ;;   :ensure t)
@@ -634,10 +639,9 @@ That is, a string used to represent it on the tab bar."
 (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
 (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
 (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-(define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
-(define-key magit-status-mode-map (kbd "o") 'magit-section-backward)
-(define-key magit-status-mode-map (kbd "x") 'delete-other-windows)
-
+;; (define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
+;; (define-key magit-status-mode-map (kbd "o") 'magit-section-backward)
+;; (define-key magit-status-mode-map (kbd "x") 'delete-other-windows)
 
 (use-package ryo-modal
   :ensure t
@@ -676,7 +680,7 @@ That is, a string used to represent it on the tab bar."
    ;; ("f" recenter-top-bottom)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
-   ("h" back-to-indentation)
+   ("h" beginning-of-line-or-indentation)
    ("j" my-backward-word)
    ("J" move-beginning-of-line)
    ("k" forward-paragraph)
@@ -685,6 +689,7 @@ That is, a string used to represent it on the tab bar."
    ("L" cua-scroll-down)
    (";" my-forward-word)
    (":" move-end-of-line)
+   ("'" move-end-of-line)
 
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
@@ -749,8 +754,8 @@ That is, a string used to represent it on the tab bar."
          ("g" helm-projectile-grep)
          ("h" helm-projectile)
          ("k" projectile-kill-buffers)
-         ("z" python-pytest-popup)
-         ("x" python-pytest-repeat)
+         ;; ("z" python-pytest-popup)
+         ;; ("x" python-pytest-repeat)
          ("!" projectile-run-shell-command-in-root)
          ("%" projectile-run-async-shell-command-in-root)
          )
