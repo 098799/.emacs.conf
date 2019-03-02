@@ -119,6 +119,7 @@
 (use-package dired
   :bind
   (:map dired-mode-map
+        ("w" . wdired-change-to-wdired-mode)
         ("u" . dired-up-directory)
         ("U" . dired-unmark)
         ("* u" . dired-unmark-all-files)
@@ -131,6 +132,7 @@
         (";" . dired-find-file)
         ("s" . swiper)
         ("K" . dired-do-kill-lines)
+        ("f" . helm-find-files)
         )
   )
 
@@ -272,13 +274,13 @@
   (smart-newline-mode 1)
   )
 
-(use-package smartparens
-  :config (progn (require 'smartparens-config)
-                 (smartparens-global-mode t))
-  )
+;; (use-package smartparens
+;;   :config (progn (require 'smartparens-config)
+;;                  (smartparens-global-mode t))
+;;   )
 
-(use-package smartparens-config
-  :commands smartparens-mode)
+;; (use-package smartparens-config
+;;   :commands smartparens-mode)
 
 (use-package spaceline
   :ensure t
@@ -290,6 +292,10 @@
   :ensure t)
 (use-package swiper-helm
   :ensure t)
+
+(use-package switch-buffer-functions
+  :ensure t
+  )
 
 (setq tramp-default-method "ssh")
 (use-package helm-tramp
@@ -456,7 +462,7 @@
   :ensure t
   :bind
   ("C-x g" . magit-status)
-  ("C-c m" . magit-blame)
+  ("C-c m" . magit-blame-addition)
   )
 (setenv "EDITOR" "emacsclient")
 
@@ -631,8 +637,6 @@ That is, a string used to represent it on the tab bar."
 (tabbar-mode 1)
 
 
-
-
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
 (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
@@ -690,6 +694,7 @@ That is, a string used to represent it on the tab bar."
    (";" my-forward-word)
    (":" move-end-of-line)
    ("'" move-end-of-line)
+   ("\"" mark-until-end-of-line)
 
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
@@ -707,6 +712,7 @@ That is, a string used to represent it on the tab bar."
    ("?" dumb-jump-back)
 
    ("<f1>" blacken-buffer)
+   ("<f2>" blacken-region)
    ("`" bookmark-jump)
    ("!" helm-flycheck)
    ("%" query-replace)
@@ -718,7 +724,6 @@ That is, a string used to represent it on the tab bar."
    ("SPC" cua-set-mark)
    )
 
-  ;; Params
   (ryo-modal-keys
    (:norepeat t)
    ("0" "M-0")
@@ -744,7 +749,7 @@ That is, a string used to represent it on the tab bar."
          ("u" subword-mode)
          ("i" change-inner)
          ("o" change-outer)
-         ("p" helm-projectile-switch-project)
+         ("p" ace-window)
          ("[" helm-projectile-recentf)
          ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
@@ -753,6 +758,7 @@ That is, a string used to represent it on the tab bar."
          ("f" projectile-find-file)
          ("g" helm-projectile-grep)
          ("h" helm-projectile)
+         ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)
          ;; ("z" python-pytest-popup)
          ;; ("x" python-pytest-repeat)
@@ -771,6 +777,7 @@ That is, a string used to represent it on the tab bar."
          ("u" undo-tree-visualize)
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
+         ("p" other-window)
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired)
@@ -799,3 +806,7 @@ That is, a string used to represent it on the tab bar."
          )
    )
   )
+
+(add-hook 'switch-buffer-functions
+          (lambda (prev cur) (ryo-modal--cursor-color-update))
+          )

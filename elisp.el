@@ -235,3 +235,31 @@
       )
     )
   )
+
+(defun mark-until-end-of-line (arg)
+  "Mark from point until eol."
+  (interactive "P")
+  (cua-set-mark)
+  (move-end-of-line arg)
+  )
+
+(defun blacken-region (arg)
+  "Select a black-able piece of code"
+  (interactive "P")
+  (let* (
+         (original-point (point))
+         )
+    (er/expand-region 10)
+    (er/expand-region -1)
+    (cua-cut-region arg)
+    (generate-new-buffer "new_buffer.py")
+    (switch-to-buffer "new_buffer.py")
+    (cua-paste arg)
+    (blacken-buffer arg)
+    (mark-whole-buffer)
+    (cua-cut-region arg)
+    (kill-buffer)
+    (cua-paste arg)
+    (goto-char original-point)
+    )
+  )
