@@ -32,6 +32,7 @@
   (horizontal-scroll-bar-mode -1))
 
 (use-package all-the-icons :ensure t)
+(use-package all-the-icons-dired :ensure t)
 
 (global-auto-revert-mode 1)
 
@@ -47,6 +48,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+
+
+(global-prettify-symbols-mode t)
 
 (use-package highlight-symbol
   :ensure t
@@ -218,10 +222,12 @@
   (keyfreq-autosave-mode 1)
   )
 
-(line-number-mode t)
+(global-display-line-numbers-mode 1)
 
-(global-linum-mode t)
-(add-hook 'shell-mode-hook (lambda () (linum-mode -1)))
+;; (line-number-mode t)
+
+;; (global-linum-mode t)
+(add-hook 'shell-mode-hook (lambda () (display-line-number-mode -1)))
 
 (setq org-support-shift-select t)
 ;; (set-default 'truncate-lines t)
@@ -282,10 +288,21 @@
 ;; (use-package smartparens-config
 ;;   :commands smartparens-mode)
 
-(use-package spaceline
+(use-package spaceline-config
+  :ensure spaceline
+  :config
+  (spaceline-helm-mode 1)
+  (spaceline-emacs-theme)
+  (spaceline-toggle-python-pyvenv-on)
+  (spaceline-toggle-python-env-on)
+  (spaceline-toggle-python-pyenv-on)
+  (spaceline-toggle-version-control-on)
+  )
+
+(use-package fancy-battery
   :ensure t
   :config
-  (spaceline-spacemacs-theme)
+  (fancy-battery-mode)
   )
 
 (use-package swiper
@@ -393,6 +410,13 @@
 (defun my/python-mode-hook ()
   (add-to-list 'company-backends 'company-jedi))
 (add-hook 'python-mode-hook 'my/python-mode-hook)
+
+(use-package company-quickhelp
+  :ensure t
+  :config
+  (company-quickhelp-mode)
+  (setq company-quickhelp-delay 0)
+  )
 
 ;; (use-package company-lsp
 ;;   :ensure t)
@@ -722,6 +746,7 @@ That is, a string used to represent it on the tab bar."
    ("]" mark-paragraph)
    ("\\" er/mark-python-statement)
    ("SPC" cua-set-mark)
+   ("RET" smart-newline)
    )
 
   (ryo-modal-keys
@@ -789,6 +814,8 @@ That is, a string used to represent it on the tab bar."
          ("k" kill-current-buffer)
          ("l" helm-mini)
          (";" tabbar-forward-tab)
+         ("z" avy-zap-up-to-char-dwim)
+         ("Z" avy-zap-to-char-dwim)
          ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
          ("v" helm-show-kill-ring)

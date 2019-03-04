@@ -32,13 +32,15 @@
   (interactive)
   (unless (eolp)
     (end-of-line))
-  (smart-newline))
+  (newline)
+  )
 
 (defun vi-open-line-above ()
   "Insert a newline above the current line and put point at beginning."
   (interactive)
   (forward-line -1)
-  (vi-open-line-below))
+  (vi-open-line-below)
+  )
 
 (defun backward-kill-word-or-region (arg)
   (interactive "P")
@@ -138,6 +140,7 @@
   (move-beginning-of-line arg)
   (forward-line)
   (cua-paste arg)
+  (forward-line -1)
   )
 
 (defun paste-from-kill-ring-new-line (arg)
@@ -146,6 +149,7 @@
   (move-beginning-of-line arg)
   (forward-line)
   (helm-show-kill-ring)
+  (forward-line -1)
   )
 
 (defun my-backward-word (arg)
@@ -247,6 +251,7 @@
   "Select a black-able piece of code"
   (interactive "P")
   (let* (
+         (original-buffer (current-buffer))
          (original-point (point))
          )
     (er/expand-region 10)
