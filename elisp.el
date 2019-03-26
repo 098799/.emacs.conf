@@ -32,7 +32,7 @@
   (interactive)
   (unless (eolp)
     (end-of-line))
-  (newline)
+  (newline-and-indent)
   )
 
 (defun vi-open-line-above ()

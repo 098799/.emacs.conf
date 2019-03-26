@@ -75,9 +75,12 @@
 (load-theme 'solarized-dark t)
 
 (add-to-list 'load-path "~/.emacs.d/tabbar/")
-(load "tabbar")
-(global-set-key (kbd "<C-tab>") 'tabbar-forward-tab)
-(global-set-key (kbd "<C-iso-lefttab>") 'tabbar-backward-tab)
+(add-to-list 'load-path "~/.emacs.d/awesome-tab/")
+;; (load "tabbar")
+(require 'awesome-tab)
+(awesome-tab-mode t)
+(global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
+(global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
 
 ;;;;;;;;;;;;;;;
 ;;; GENERAL ;;;
@@ -201,6 +204,7 @@
   :config
   (helm-mode 1)
   (helm-adaptive-mode t)
+  (awesome-tab-build-helm-source)
   :bind
   ("C-c p s g" . helm-do-ag-project-root)
   ("M-x" . helm-M-x)
@@ -244,6 +248,12 @@
 ;; (setq org-ref-pdf-directory "~/Documents/Mendeley Desktop")
 ;; (setq bibtex-completion-bibliography reftex-default-bibliography)
 ;; (setq bibtex-completion-library-path "~/Documents/Mendeley Desktop/")
+
+(use-package persistent-scratch
+  :ensure t
+  :config
+  (persistent-scratch-setup-default)
+  )
 
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
@@ -604,62 +614,62 @@
   (require 'yaml-mode)
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
   )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; EXPERIMENTAL TABBAR TWEAKS ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; https://gist.github.com/3demax/1264635#file-tabbar-tweak-el
 ;; Tabbar settings
-(set-face-attribute
- 'tabbar-default nil
- :background "#002b36"
- :foreground "#002b36"
- :underline nil
- :box nil)
-(set-face-attribute
- 'tabbar-unselected nil
- :background "#002b36"
- :foreground "#aaaaaa"
- :underline nil
- :box nil)
-(set-face-attribute
- 'tabbar-selected nil
- :background "#aaaaaa"
- :foreground "#002b36"
- :underline nil
- :box nil)
-(set-face-attribute
- 'tabbar-highlight nil
- :background "#aaaaaa"
- :foreground "#002b36"
- :underline nil
- :box nil)
-(set-face-attribute
- 'tabbar-button nil
- :underline nil
- :box nil)
-(set-face-attribute
- 'tabbar-separator nil
- :underline nil
- :background "#002b36em"
- :height 0.6)
-;; adding spaces
-(defun tabbar-buffer-tab-label (tab)
-  "Return a label for TAB.
-That is, a string used to represent it on the tab bar."
-  (let ((label  (if tabbar--buffer-show-groups
-                    (format "[%s]  " (tabbar-tab-tabset tab))
-                  (format "%s  " (tabbar-tab-value tab)))))
-    ;; Unless the tab bar auto scrolls to keep the selected tab
-    ;; visible, shorten the tab label to keep as many tabs as possible
-    ;; in the visible area of the tab bar.
-    (if tabbar-auto-scroll-flag
-        label
-      (tabbar-shorten
-       label (max 1 (/ (window-width)
-                       (length (tabbar-view
-                                (tabbar-current-tabset)))))))))
-(tabbar-mode 1)
-
+;; (set-face-attribute
+;;  'tabbar-default nil
+;;  :background "#002b36"
+;;  :foreground "#002b36"
+;;  :underline nil
+;;  :box nil)
+;; (set-face-attribute
+;;  'tabbar-unselected nil
+;;  :background "#002b36"
+;;  :foreground "#aaaaaa"
+;;  :underline nil
+;;  :box nil)
+;; (set-face-attribute
+;;  'tabbar-selected nil
+;;  :background "#aaaaaa"
+;;  :foreground "#002b36"
+;;  :underline nil
+;;  :box nil)
+;; (set-face-attribute
+;;  'tabbar-highlight nil
+;;  :background "#aaaaaa"
+;;  :foreground "#002b36"
+;;  :underline nil
+;;  :box nil)
+;; (set-face-attribute
+;;  'tabbar-button nil
+;;  :underline nil
+;;  :box nil)
+;; (set-face-attribute
+;;  'tabbar-separator nil
+;;  :underline nil
+;;  :background "#002b36em"
+;;  :height 0.6)
+;; ;; adding spaces
+;; (defun tabbar-buffer-tab-label (tab)
+;;   "Return a label for TAB.
+;; That is, a string used to represent it on the tab bar."
+;;   (let ((label  (if tabbar--buffer-show-groups
+;;                     (format "[%s]  " (tabbar-tab-tabset tab))
+;;                   (format "%s  " (tabbar-tab-value tab)))))
+;;     ;; Unless the tab bar auto scrolls to keep the selected tab
+;;     ;; visible, shorten the tab label to keep as many tabs as possible
+;;     ;; in the visible area of the tab bar.
+;;     (if tabbar-auto-scroll-flag
+;;         label
+;;       (tabbar-shorten
+;;        label (max 1 (/ (window-width)
+;;                        (length (tabbar-view
+;;                                 (tabbar-current-tabset)))))))))
+;; (tabbar-mode 1)
 
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
@@ -704,8 +714,6 @@ That is, a string used to represent it on the tab bar."
 
    ("a" comment-dwim-2)
    ("s" swiper)
-   ;; ("d" kill-whole-line-or-region)
-   ;; ("f" recenter-top-bottom)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" beginning-of-line-or-indentation)
@@ -771,9 +779,12 @@ That is, a string used to represent it on the tab bar."
          ("r" projectile-replace)
          ("R" projectile-ripgrep)
          ("t" projectile-toggle-between-implementation-and-test)
+         ("y" string-inflection-python-style-cycle)
          ("u" subword-mode)
-         ("i" change-inner)
-         ("o" change-outer)
+         ("i" copy-inner)
+         ("I" change-inner)
+         ("o" copy-outer)
+         ("O" change-outer)
          ("p" ace-window)
          ("[" helm-projectile-recentf)
          ("s" helm-projectile-ag)
@@ -785,10 +796,20 @@ That is, a string used to represent it on the tab bar."
          ("h" helm-projectile)
          ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)
+         ("l" awesome-tab-switch-group)
          ;; ("z" python-pytest-popup)
          ;; ("x" python-pytest-repeat)
          ("!" projectile-run-shell-command-in-root)
          ("%" projectile-run-async-shell-command-in-root)
+         )
+   )
+
+  (ryo-modal-key
+   "D" '(
+         ("R" projectile-ripgrep)
+         ("I" change-inner)
+         ("O" change-outer)
+         ("D" projectile-dired)
          )
    )
 
@@ -810,10 +831,10 @@ That is, a string used to represent it on the tab bar."
          ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("j" tabbar-backward-tab)
+         ("j" awesome-tab-backward-tab)
          ("k" kill-current-buffer)
          ("l" helm-mini)
-         (";" tabbar-forward-tab)
+         (";" awesome-tab-forward-tab)
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" helm-M-x)
@@ -830,6 +851,12 @@ That is, a string used to represent it on the tab bar."
          ("5 1" delete-other-frames)
          ("5 2" make-frame-command)
          ("SPC" rectangle-mark-mode)
+         )
+   )
+
+  (ryo-modal-key
+   "F" '(
+         ("D" docker)
          )
    )
   )
