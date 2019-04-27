@@ -74,7 +74,10 @@
 
 (load-theme 'solarized-dark t)
 
-(add-to-list 'load-path "~/.emacs.d/tabbar/")
+;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
+
+(setq awesome-tab-background-color "#002B36")
+(setq awesome-tab-style "bar")
 (add-to-list 'load-path "~/.emacs.d/awesome-tab/")
 ;; (load "tabbar")
 (require 'awesome-tab)
