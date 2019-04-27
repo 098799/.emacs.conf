@@ -67,7 +67,7 @@
   (nav-flash-show))
 
 (use-package visual-regexp
-  :ensure t)
+  :defer t)
 
 (use-package solarized-theme
   :ensure t)
@@ -163,10 +163,10 @@
   :ensure t)
 
 (use-package elfeed
-  :ensure t)
+  :defer t)
 
 (use-package elfeed-org
-  :ensure t
+  :defer t
   :config
   (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
   (setq elfeed-db-directory "~/Dropbox/.elfeed")
@@ -177,11 +177,10 @@
   :bind ("C-=" . er/expand-region))
 
 (use-package find-file-in-project
-  :ensure t)
+  :defer t)
 
 (use-package goto-last-change
-  :ensure t
-  )
+  :ensure t)
 
 (use-package helm-config
   :config
@@ -227,7 +226,7 @@
   )
 
 (use-package ivy-youtube
-  :ensure t
+  :defer t
   :config
   (autoload 'ivy-youtube "ivy-youtube" nil t)
   )
@@ -315,15 +314,7 @@
   (spaceline-toggle-version-control-on)
   )
 
-(use-package fancy-battery
-  :ensure t
-  :config
-  (fancy-battery-mode)
-  )
-
 (use-package swiper
-  :ensure t)
-(use-package swiper-helm
   :ensure t)
 
 (use-package switch-buffer-functions
@@ -332,7 +323,7 @@
 
 (setq tramp-default-method "ssh")
 (use-package helm-tramp
-  :ensure t)
+  :defer t)
 ;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 ;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
@@ -340,7 +331,10 @@
 (use-package undo-tree
   :ensure t
   :config
-  (global-undo-tree-mode))
+  (global-undo-tree-mode)
+  (setq undo-tree-auto-save-history 1)
+  (setq undo-tree-visualizer-timestamps 1)
+  )
 
 (use-package which-key
   :ensure t
@@ -348,11 +342,14 @@
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
   :config
-  (which-key-mode 1))
+  (which-key-mode 1)
+  )
 
 (use-package whitespace-cleanup-mode
   :ensure t
-  :config (global-whitespace-cleanup-mode))
+  :config (global-whitespace-cleanup-mode)
+  )
+
 (winner-mode 1)
 
 
@@ -399,7 +396,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package blacken
-  :ensure t
+  :defer t
   :config
   (setq blacken-skip-string-normalization nil)
   (setq blacken-line-length 110)
@@ -422,7 +419,9 @@
   )
 
 (use-package company-jedi
-  :ensure t)
+  :defer t
+  )
+
 (defun my/python-mode-hook ()
   (add-to-list 'company-backends 'company-jedi))
 (add-hook 'python-mode-hook 'my/python-mode-hook)
@@ -438,16 +437,18 @@
 ;;   :ensure t)
 
 (use-package cython-mode
-  :defer t)
+  :defer t
+  )
 
 (use-package docker
-  :ensure t
+  :defer t
   :bind
   ("C-c d" . docker)
   )
 (use-package docker-tramp
   :after (docker tramp)
-  :defer 5)
+  :defer t
+  )
 
 ;; (use-package eglot
 ;;   :ensure t
@@ -463,9 +464,11 @@
   )
 
 (use-package flycheck
-  :ensure t
+  :defer t
   :init
-  (global-flycheck-mode))
+  (global-flycheck-mode)
+  )
+
 ;; (eval-after-load 'flycheck
 ;;   '(define-key flycheck-mode-map (kbd "C-c C-! C-h") 'helm-flycheck))
 ;; (eval-after-load 'flycheck
@@ -479,7 +482,7 @@
 ;;   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (use-package jedi
-  :ensure t
+  :defer t
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -507,7 +510,7 @@
 (setenv "EDITOR" "emacsclient")
 
 (use-package neotree
-  :ensure t
+  :defer t
   :init
   (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
   (defun neotree-project-dir ()
@@ -562,7 +565,15 @@
   )
 
 (use-package ibuffer-projectile
-  :ensure t)
+  :ensure t
+  :config
+  (add-hook
+   'ibuffer-hook
+   (lambda ()
+     (ibuffer-projectile-set-filter-groups)
+     (unless (eq ibuffer-sorting-mode 'alphabetic)
+       (ibuffer-do-sort-by-alphabetic))))
+  )
 
 ;; (use-package python-pytest
 ;;   :ensure t)
@@ -571,7 +582,9 @@
 ;;   :ensure t)
 
 (use-package virtualenvwrapper
-  :ensure t)
+  :ensure t
+  )
+
 (venv-initialize-interactive-shells)
 (defvar python-environment-directory)
 (setq python-environment-directory "~/.virtualenvs/")
@@ -585,6 +598,7 @@
 ;;   (add-hook 'python-mode-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'window-configuration-change-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate))
+
 (use-package auto-virtualenv
   :ensure t
   :config
@@ -597,28 +611,30 @@
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
 (use-package csv-mode
-  :ensure t
+  :defer t
   :mode "\\.csv\\'")
 (use-package dockerfile-mode
-  :ensure t
+  :defer t
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 (use-package web-mode
-  :ensure t
+  :defer t
   :mode ("\\.html\\'" "\\.jinja\\'")
   :config (setq web-mode-markup-indent-offset 2
                 web-mode-code-indent-offset 2)
   )
 (use-package markdown-mode
-  :ensure t)
+  :defer t
+  )
 (use-package markdown-mode+
-  :ensure t)
+  :defer t
+  )
 (use-package auto-complete-rst
-  :ensure t
+  :defer t
   )
 (use-package yaml-mode
-  :ensure t
+  :defer t
   :config
   (require 'yaml-mode)
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -800,7 +816,7 @@
          ("[" helm-projectile-recentf)
          ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
-         ("D" projectile-dired)
+         ("d" projectile-dired)
          ("f" projectile-find-file)
          ("g" helm-projectile-grep)
          ("h" helm-projectile)
@@ -819,7 +835,6 @@
          ("R" projectile-ripgrep)
          ("I" copy-inner)
          ("O" copy-outer)
-         ("D" projectile-dired)
          )
    )
 
@@ -834,6 +849,7 @@
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
          ("p" other-window)
+         ("[" ace-window)
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired)
