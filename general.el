@@ -226,6 +226,12 @@
   (keyfreq-autosave-mode 1)
   )
 
+(use-package ivy-youtube
+  :ensure t
+  :config
+  (autoload 'ivy-youtube "ivy-youtube" nil t)
+  )
+
 (global-display-line-numbers-mode 1)
 
 ;; (line-number-mode t)
@@ -555,6 +561,9 @@
   ;; ^ will be handled by ryo mode
   )
 
+(use-package ibuffer-projectile
+  :ensure t)
+
 ;; (use-package python-pytest
 ;;   :ensure t)
 
@@ -671,10 +680,12 @@
 ;;                                 (tabbar-current-tabset)))))))))
 ;; (tabbar-mode 1)
 
+(define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
 (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
 (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
+(define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
 (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
 ;; (define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
@@ -781,15 +792,14 @@
          ("t" projectile-toggle-between-implementation-and-test)
          ("y" string-inflection-python-style-cycle)
          ("u" subword-mode)
-         ("i" copy-inner)
-         ("I" change-inner)
-         ("o" copy-outer)
-         ("O" change-outer)
+         ("i" change-inner)
+         ("I" copy-inner)
+         ("o" change-outer)
+         ("O" copy-outer)
          ("p" ace-window)
          ("[" helm-projectile-recentf)
          ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
-         ("d" kill-whole-line-or-region)
          ("D" projectile-dired)
          ("f" projectile-find-file)
          ("g" helm-projectile-grep)
@@ -807,8 +817,8 @@
   (ryo-modal-key
    "D" '(
          ("R" projectile-ripgrep)
-         ("I" change-inner)
-         ("O" change-outer)
+         ("I" copy-inner)
+         ("O" copy-outer)
          ("D" projectile-dired)
          )
    )
