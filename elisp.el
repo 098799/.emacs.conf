@@ -148,7 +148,8 @@
   (interactive "P")
   (move-beginning-of-line arg)
   (forward-line)
-  (helm-show-kill-ring)
+  (counsel-yank-pop)
+  ;; (helm-show-kill-ring)
   (forward-line -1)
   )
 
@@ -268,3 +269,17 @@
     (goto-char original-point)
     )
   )
+
+(defun ivy-with-thing-at-point (cmd)
+  (let ((ivy-initial-inputs-alist
+         (list
+          (cons cmd (thing-at-point 'symbol)))))
+    (funcall cmd)))
+
+(defun counsel-projectile-ag-at-point ()
+  (interactive)
+  (ivy-with-thing-at-point 'counsel-projectile-ag))
+
+(defun swiper-thing-at-point ()
+  (interactive)
+  (ivy-with-thing-at-point 'swiper))

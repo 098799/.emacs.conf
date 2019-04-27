@@ -33,6 +33,11 @@
 
 (use-package all-the-icons :ensure t)
 (use-package all-the-icons-dired :ensure t)
+(use-package all-the-icons-ivy
+  :ensure t
+  :config
+  (all-the-icons-ivy-setup)
+  )
 
 (global-auto-revert-mode 1)
 
@@ -124,6 +129,21 @@
 
 (column-number-mode t)
 
+(use-package counsel
+  :after ivy
+  :ensure t
+  )
+
+(use-package counsel-projectile
+  :after counsel
+  :ensure t
+  )
+
+(use-package counsel-tramp
+  :after counsel
+  :ensure t
+  )
+
 (cua-mode t)
 
 (use-package dired
@@ -142,7 +162,7 @@
         (";" . dired-find-file)
         ("s" . swiper)
         ("K" . dired-do-kill-lines)
-        ("f" . helm-find-files)
+        ;; ("f" . helm-find-files)
         )
   )
 
@@ -166,7 +186,7 @@
   :ensure t)
 
 (use-package elfeed
-  :defer t)
+  :ensure t)
 
 (use-package elfeed-org
   :defer t
@@ -191,7 +211,7 @@
   )
 
 (use-package helm
-  :defer t
+  :ensure t
   :init
   (setq
    helm-M-x-fuzzy-match t
@@ -218,20 +238,28 @@
 (use-package helm-flycheck
   :ensure t)
 
-(use-package helm-projectile
-  :ensure t)
+;; (use-package helm-projectile
+;;   :ensure t)
 
-(use-package keyfreq
+(use-package ivy
   :ensure t
   :config
-  (keyfreq-mode 1)
-  (keyfreq-autosave-mode 1)
+  (setq ivy-height 30)
+  (setq ivy-fixed-height-minibuffer t)
+  (setq ivy-mode 1)
   )
 
 (use-package ivy-youtube
   :defer t
   :config
   (autoload 'ivy-youtube "ivy-youtube" nil t)
+  )
+
+(use-package keyfreq
+  :ensure t
+  :config
+  (keyfreq-mode 1)
+  (keyfreq-autosave-mode 1)
   )
 
 (global-display-line-numbers-mode 1)
@@ -309,7 +337,7 @@
 (use-package spaceline-config
   :ensure spaceline
   :config
-  (spaceline-helm-mode 1)
+  ;; (spaceline-helm-mode 1)
   (spaceline-emacs-theme)
   (spaceline-toggle-python-pyvenv-on)
   (spaceline-toggle-python-env-on)
@@ -331,7 +359,7 @@
 
 (setq tramp-default-method "ssh")
 (use-package helm-tramp
-  :defer t)
+  :ensure t)
 ;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 ;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
@@ -478,7 +506,7 @@
   )
 
 ;; (eval-after-load 'flycheck
-;;   '(define-key flycheck-mode-map (kbd "C-c C-! C-h") 'helm-flycheck))
+  ;; '(define-key flycheck-mode-map (kbd "C-c C-! C-h") 'helm-flycheck))
 ;; (eval-after-load 'flycheck
 ;;   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 ;; ^ will be handled by ryo mode
@@ -542,8 +570,8 @@
   :init
   :config
   (projectile-mode)
-  (setq projectile-completion-system 'helm)
-  (helm-projectile-on)
+  (setq projectile-completion-system 'ivy)
+  ;; (helm-projectile-on)
   ;; :bind
   ;; ("C-c C-p C-p" . projectile-switch-project)
   ;; ("C-c C-p C-h" . helm-projectile)
@@ -704,17 +732,21 @@
 ;;                                 (tabbar-current-tabset)))))))))
 ;; (tabbar-mode 1)
 
-(define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
-(define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
-(define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
-(define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
-(define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-(define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
-(define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
-(define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-;; (define-key magit-status-mode-map (kbd "i") 'magit-section-forward)
-;; (define-key magit-status-mode-map (kbd "o") 'magit-section-backward)
-;; (define-key magit-status-mode-map (kbd "x") 'delete-other-windows)
+;; (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
+;; (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
+;; (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
+;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
+;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
+;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
+;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
+;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+(define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
+(define-key ivy-minibuffer-map (kbd "C-j") 'counsel-up-directory)
+(define-key ivy-minibuffer-map (kbd "C-u") 'counsel-up-directory)
+(define-key ivy-minibuffer-map (kbd "<right>") 'ivy-alt-done)
+(define-key ivy-minibuffer-map (kbd "C-p") 'ivy-alt-done)
+(define-key ivy-minibuffer-map (kbd "C-;") 'ivy-alt-done)
+(define-key ivy-minibuffer-map (kbd "<RET>") 'ivy-alt-done)
 
 (use-package ryo-modal
   :ensure t
@@ -821,14 +853,19 @@
          ("o" change-outer)
          ("O" copy-outer)
          ("p" ace-window)
-         ("[" helm-projectile-recentf)
-         ("s" helm-projectile-ag)
+         ;; ("[" helm-projectile-recentf)
+         ("s" counsel-projectile-ag)
+         ;; ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
          ("d" projectile-dired)
-         ("f" projectile-find-file)
-         ("g" helm-projectile-grep)
-         ("h" helm-projectile)
-         ("j" helm-projectile-switch-project)
+         ("f" counsel-projectile-find-file-dwim)
+         ;; ("f" projectile-find-file)
+         ("g" counsel-projectile-ag-at-point)
+         ;; ("g" helm-projectile-grep)
+         ("h" counsel-projectile)
+         ;; ("h" helm-projectile)
+         ("j" counsel-projectile-switch-project)
+         ;; ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)
          ("l" awesome-tab-switch-group)
          ;; ("z" python-pytest-popup)
@@ -851,7 +888,8 @@
          ("q" venv-workon)
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
-         ("r" helm-recentf)
+         ("r" ivy-recentf)
+         ;; ("r" helm-recentf)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
          ("i" mark-inside-or-not)
@@ -862,20 +900,23 @@
          ("s" save-buffer)
          ("d" dired)
          ("D" docker)
-         ("f" helm-find-files)
+         ("f" counsel-find-file)
+         ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
          ("j" awesome-tab-backward-tab)
          ("k" kill-current-buffer)
-         ("l" helm-mini)
+         ("l" ivy-switch-buffer)
+         ;; ("l" helm-mini)
          (";" awesome-tab-forward-tab)
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
-         ("x" helm-M-x)
+         ("x" counsel-M-x)
+         ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
-         ("v" helm-show-kill-ring)
+         ("v" counsel-yank-pop)
+         ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
-         ("b" helm-mini)
          ("n" goto-line)
          ("0" delete-window)
          ("1" delete-other-windows)
