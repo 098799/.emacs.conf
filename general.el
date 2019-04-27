@@ -314,8 +314,13 @@
   (spaceline-toggle-version-control-on)
   )
 
+(use-package string-inflection
+  :ensure t
+  )
+
 (use-package swiper
-  :ensure t)
+  :ensure t
+  )
 
 (use-package switch-buffer-functions
   :ensure t
