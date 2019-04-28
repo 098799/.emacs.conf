@@ -238,8 +238,8 @@
 (use-package helm-flycheck
   :ensure t)
 
-;; (use-package helm-projectile
-;;   :ensure t)
+(use-package helm-projectile
+  :ensure t)
 
 (use-package ivy
   :ensure t
@@ -781,6 +781,7 @@
 
    ("a" comment-dwim-2)
    ("s" swiper)
+   ("S" swiper-thing-at-point)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" beginning-of-line-or-indentation)
@@ -847,21 +848,20 @@
          ("R" projectile-ripgrep)
          ("t" projectile-toggle-between-implementation-and-test)
          ("y" string-inflection-python-style-cycle)
-         ("u" subword-mode)
+         ;; ("u" subword-mode)
+         ("u" copy-inner)
          ("i" change-inner)
-         ("I" copy-inner)
          ("o" change-outer)
-         ("O" copy-outer)
-         ("p" ace-window)
+         ("p" copy-outer)
          ;; ("[" helm-projectile-recentf)
-         ("s" counsel-projectile-ag)
-         ;; ("s" helm-projectile-ag)
+         ;; ("s" counsel-projectile-ag)
+         ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
          ("d" projectile-dired)
          ("f" counsel-projectile-find-file-dwim)
          ;; ("f" projectile-find-file)
-         ("g" counsel-projectile-ag-at-point)
-         ;; ("g" helm-projectile-grep)
+         ;; ("g" counsel-projectile-ag-at-point)
+         ("g" helm-projectile-grep)
          ("h" counsel-projectile)
          ;; ("h" helm-projectile)
          ("j" counsel-projectile-switch-project)

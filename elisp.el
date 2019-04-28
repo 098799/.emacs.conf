@@ -283,3 +283,74 @@
 (defun swiper-thing-at-point ()
   (interactive)
   (ivy-with-thing-at-point 'swiper))
+
+(defun change-inner-with-fixed-arg* (argument yank? search-forward-char)
+  "My fork for change-inner. Will be used for parens."
+  (let* ((expand-region-fast-keys-enabled nil)
+         (char (or search-forward-char argument))
+         (q-char (regexp-quote char))
+         (starting-point (point)))
+    (when search-forward-char
+      (search-forward char (point-at-eol)))
+    (flet ((message (&rest args) nil))
+      (er--expand-region-1)
+      (er--expand-region-1)
+      (while (and (not (= (point) (point-min)))
+                  (not (looking-at q-char)))
+        (er--expand-region-1))
+      (if (not (looking-at q-char))
+          (if search-forward-char
+              (error "Couldn't find any expansion starting with %S" char)
+            (goto-char starting-point)
+            (setq mark-active nil)
+            (change-inner* yank? char))
+        (er/contract-region 1)
+        (if yank?
+            (progn
+              (copy-region-as-kill (region-beginning) (region-end))
+              (ci--flash-region (region-beginning) (region-end))
+              (goto-char starting-point))
+          (kill-region (region-beginning) (region-end)))))))
+
+(defun change-inner (arg)
+  (interactive "P")
+  (change-inner-with-fixed-arg* "(" arg nil))
+
+(defun copy-inner ()
+  (interactive)
+  (change-inner-with-fixed-arg* "(" t nil))
+
+(defun change-outer-with-fixed-arg* (argument yank? search-forward-char)
+  "My fork for change-outer. Will be used for parens."
+  (let* ((expand-region-fast-keys-enabled nil)
+         (char (or search-forward-char argument))
+         (q-char (regexp-quote char))
+         (starting-point (point)))
+    (when search-forward-char
+      (search-forward char (point-at-eol)))
+    (flet ((message (&rest args) nil))
+      (when (looking-at q-char)
+        (er/expand-region 1))
+      (while (and (not (= (point) (point-min)))
+                  (not (looking-at q-char)))
+        (er/expand-region 1))
+      (if (not (looking-at q-char))
+          (if search-forward-char
+              (error "Couldn't find any expansion starting with %S" char)
+            (goto-char starting-point)
+            (setq mark-active nil)
+            (change-outer* yank? char))
+        (if yank?
+            (progn
+              (copy-region-as-kill (region-beginning) (region-end))
+              (ci--flash-region (region-beginning) (region-end))
+              (goto-char starting-point))
+          (kill-region (region-beginning) (region-end)))))))
+
+(defun change-outer (arg)
+  (interactive "P")
+  (change-outer-with-fixed-arg* "(" arg nil))
+
+(defun copy-outer ()
+  (interactive)
+  (change-outer-with-fixed-arg* "(" t nil))
