@@ -132,6 +132,8 @@
 (use-package counsel
   :after ivy
   :ensure t
+  :config
+  (setq counsel-find-file-ignore-regexp "~undo-tree~")
   )
 
 (use-package counsel-projectile
@@ -243,10 +245,11 @@
 
 (use-package ivy
   :ensure t
+  :after helm
   :config
-  (setq ivy-height 30)
+  (setq ivy-height 25)
   (setq ivy-fixed-height-minibuffer t)
-  (setq ivy-mode 1)
+  (ivy-mode t)
   )
 
 (use-package ivy-youtube
@@ -906,7 +909,7 @@
          ("h" mark-whole-buffer)
          ("j" awesome-tab-backward-tab)
          ("k" kill-current-buffer)
-         ("l" ivy-switch-buffer)
+         ("l" projectile-switch-to-buffer)
          ;; ("l" helm-mini)
          (";" awesome-tab-forward-tab)
          ("z" avy-zap-up-to-char-dwim)

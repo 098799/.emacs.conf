@@ -11,7 +11,8 @@
   (move-end-of-line 1)
   (newline-and-indent)
   (insert "import ipdb; ipdb.set_trace()")
-  (highlight-lines-matching-regexp "^[ ]*import ipdb; ipdb.set_trace()"))
+  (highlight-lines-matching-regexp "ipdb.set_trace()")
+  (highlight-lines-matching-regexp "^[ ]*import ipdb"))
 
 (defun add-correct-start-of-commit (arg)
   "Copy branch name and insert it at the beginning of commit."
@@ -354,3 +355,22 @@
 (defun copy-outer ()
   (interactive)
   (change-outer-with-fixed-arg* "(" t nil))
+
+(defun awesome-tab-switch-group (&optional groupname)
+  "Fork of awesome-tab's function to use ivy, not ido"
+  (interactive)
+  (let* ((tab-buffer-list (mapcar
+                           #'(lambda (b)
+                               (with-current-buffer b
+                                 (list (current-buffer)
+                                       (buffer-name)
+                                       (funcall awesome-tab-buffer-groups-function) )))
+                           (funcall awesome-tab-buffer-list-function)))
+         (groups (awesome-tab-get-groups))
+         (group-name (or groupname (completing-read "Groups: " groups))) )
+    (catch 'done
+      (mapc
+       #'(lambda (group)
+           (when (equal group-name (car (car (cdr (cdr group)))))
+             (throw 'done (switch-to-buffer (car (cdr group))))))
+       tab-buffer-list) )))
