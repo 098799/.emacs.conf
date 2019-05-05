@@ -250,6 +250,8 @@
   (setq ivy-height 25)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
+  (historian-mode +1)
+  (ivy-historian-mode +1)
   )
 
 (use-package ivy-youtube
