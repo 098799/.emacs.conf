@@ -1,6 +1,7 @@
 (require 'package)
 (setq package-enable-at-startup nil)
-(setq package-archives '(("melpa" . "http://melpa.milkbox.net/packages/")
+(setq package-archives '(
+                         ("melpa" . "http://melpa.milkbox.net/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
                          ("marmalade" . "https://marmalade-repo.org/packages/")
                          ))
@@ -31,13 +32,13 @@
 (when (fboundp 'horizontal-scroll-bar-mode)
   (horizontal-scroll-bar-mode -1))
 
-(use-package all-the-icons :ensure t)
-(use-package all-the-icons-dired :ensure t)
-(use-package all-the-icons-ivy
-  :ensure t
-  :config
-  (all-the-icons-ivy-setup)
-  )
+;; (use-package all-the-icons :ensure t)
+;; (use-package all-the-icons-dired :ensure t)
+;; (use-package all-the-icons-ivy
+;;   :ensure t
+;;   :config
+;;   (all-the-icons-ivy-setup)
+;;   )
 
 (global-auto-revert-mode 1)
 
@@ -55,7 +56,7 @@
  '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 
 
-(global-prettify-symbols-mode t)
+;; (global-prettify-symbols-mode t)
 
 (use-package highlight-symbol
   :ensure t
@@ -71,8 +72,8 @@
   :config
   (nav-flash-show))
 
-(use-package visual-regexp
-  :defer t)
+;; (use-package visual-regexp
+;;   :defer t)
 
 (use-package solarized-theme
   :ensure t)
@@ -116,8 +117,8 @@
 ;; (use-package boon
 ;;   :ensure t)  ;; I'm thinking of using some functions from it...
 
-(use-package centered-cursor-mode
-  :defer t)
+;; (use-package centered-cursor-mode
+;;   :defer t)
 
 (use-package change-inner
   :ensure t)
@@ -187,22 +188,22 @@
 (use-package dumb-jump
   :ensure t)
 
-(use-package elfeed
-  :ensure t)
+;; (use-package elfeed
+;;   :ensure t)
 
-(use-package elfeed-org
-  :defer t
-  :config
-  (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
-  (setq elfeed-db-directory "~/Dropbox/.elfeed")
-  )
+;; (use-package elfeed-org
+;;   :defer t
+;;   :config
+;;   (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
+;;   (setq elfeed-db-directory "~/Dropbox/.elfeed")
+;;   )
 
 (use-package expand-region
   :ensure t
   :bind ("C-=" . er/expand-region))
 
-(use-package find-file-in-project
-  :defer t)
+;; (use-package find-file-in-project
+;;   :defer t)
 
 (use-package goto-last-change
   :ensure t)
@@ -243,15 +244,28 @@
 (use-package helm-projectile
   :ensure t)
 
+(use-package prescient
+  :ensure t)
+
+(use-package ivy-prescient
+  :ensure t)
+
+(use-package company-prescient
+  :ensure t)
+
+(use-package ivy-historian
+  :ensure t)
+
 (use-package ivy
   :ensure t
   :after helm
+  :init
+  (historian-mode +1)
   :config
-  (setq ivy-height 25)
+  (setq ivy-height 15)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
-  (historian-mode +1)
-  (ivy-historian-mode +1)
+  (ivy-prescient-mode)
   )
 
 (use-package ivy-youtube
@@ -320,10 +334,10 @@
 ;;   ("C-c s a" . slack-message-add-reaction)
 ;;   )
 
-(use-package alert
-  :commands (alert)
-  :init
-  (setq alert-default-style 'notifier))
+;; (use-package alert
+;;   :commands (alert)
+;;   :init
+;;   (setq alert-default-style 'notifier))
 
 (use-package smart-newline
   :ensure t
@@ -377,14 +391,14 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
-(use-package which-key
-  :ensure t
-  :init
-  (setq which-key-separator " ")
-  (setq which-key-prefix-prefix "+")
-  :config
-  (which-key-mode 1)
-  )
+;; (use-package which-key
+;;   :ensure t
+;;   :init
+;;   (setq which-key-separator " ")
+;;   (setq which-key-prefix-prefix "+")
+;;   :config
+;;   (which-key-mode 1)
+;;   )
 
 (use-package whitespace-cleanup-mode
   :ensure t
@@ -437,7 +451,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (use-package blacken
-  :defer t
+  :ensure t
   :config
   (setq blacken-skip-string-normalization nil)
   (setq blacken-line-length 110)
@@ -467,12 +481,12 @@
   (add-to-list 'company-backends 'company-jedi))
 (add-hook 'python-mode-hook 'my/python-mode-hook)
 
-(use-package company-quickhelp
-  :ensure t
-  :config
-  (company-quickhelp-mode)
-  (setq company-quickhelp-delay 0)
-  )
+;; (use-package company-quickhelp
+;;   :ensure t
+;;   :config
+;;   (company-quickhelp-mode)
+;;   (setq company-quickhelp-delay 0)
+;;   )
 
 ;; (use-package company-lsp
 ;;   :ensure t)
@@ -550,25 +564,25 @@
   )
 (setenv "EDITOR" "emacsclient")
 
-(use-package neotree
-  :defer t
-  :init
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-  (defun neotree-project-dir ()
-  "Open NeoTree using the git root."
-  (interactive)
-  (let ((project-dir (projectile-project-root))
-        (file-name (buffer-file-name)))
-    (neotree-toggle)
-    (if project-dir
-        (if (neo-global--window-exists-p)
-            (progn
-              (neotree-dir project-dir)
-              (neotree-find file-name)))
-      (message "Could not find git project root."))))
-  :bind
-  ("<f8>" . neotree-project-dir)
-  )
+;; (use-package neotree
+;;   :defer t
+;;   :init
+;;   (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+;;   (defun neotree-project-dir ()
+;;   "Open NeoTree using the git root."
+;;   (interactive)
+;;   (let ((project-dir (projectile-project-root))
+;;         (file-name (buffer-file-name)))
+;;     (neotree-toggle)
+;;     (if project-dir
+;;         (if (neo-global--window-exists-p)
+;;             (progn
+;;               (neotree-dir project-dir)
+;;               (neotree-find file-name)))
+;;       (message "Could not find git project root."))))
+;;   :bind
+;;   ("<f8>" . neotree-project-dir)
+;;   )
 
 (use-package projectile
   :ensure t
@@ -643,9 +657,10 @@
 (use-package auto-virtualenv
   :ensure t
   :config
-  (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+  (setq auto-virtualenv-dir "~/.virtualenvs")
+  ;; (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
   ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
-  ;; (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
+  (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -745,6 +760,8 @@
 ;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
 ;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
 ;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+(define-key ivy-minibuffer-map (kbd "C-i") 'ivy-next-line)
+(define-key ivy-minibuffer-map (kbd "C-o") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
 (define-key ivy-minibuffer-map (kbd "C-j") 'counsel-up-directory)
 (define-key ivy-minibuffer-map (kbd "C-u") 'counsel-up-directory)
@@ -777,12 +794,14 @@
    ("r" avy-goto-word-1)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
-   ("U" move-beginning-of-line)
+   ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
+   ("I" elpy-nav-forward-block)
    ("o" previous-line)
+   ("O" elpy-nav-backward-block)
    ("p" forward-char)
-   ("P" move-end-of-line)
+   ("P" nav-forward-indent)
 
    ("a" comment-dwim-2)
    ("s" swiper)
@@ -846,7 +865,7 @@
 
   (ryo-modal-key
    "d" '(
-         ("q" elfeed)
+         ;; ("q" elfeed)
          ("w" add-correct-start-of-commit)
          ("e" projectile-replace-regexp)
          ("r" projectile-replace)
@@ -923,6 +942,7 @@
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("n" goto-line)
+         ("m" counsel-switch-buffer)
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)

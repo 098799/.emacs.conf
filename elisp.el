@@ -387,3 +387,23 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
           (delete-file filename)
           (message "Deleted file %s" filename)
           (kill-buffer))))))
+
+(defun nav-backward-indent (arg)
+  "Move backward to the previous indent level."
+  (interactive "P")
+  (setq current (current-column))
+  (setq modulo (mod (current-column) 4))
+  (when (= modulo 0)
+    (setq modulo 4))
+  (move-to-column (- current modulo))
+  )
+
+(defun nav-forward-indent (arg)
+  "Move backward to the previous indent level."
+  (interactive "P")
+  (setq current (current-column))
+  (setq modulo (mod (current-column) 4))
+  (when (= modulo 0)
+    (setq modulo 4))
+  (move-to-column (+ current modulo))
+  )
