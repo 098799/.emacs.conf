@@ -22,7 +22,7 @@
     (forward-word 3)
     (forward-char)
     (cua-set-mark)
-    (forward-word 2)
+    (move-end-of-line arg)
     (cua-copy-region arg)
     )
   (cua-paste arg)

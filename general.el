@@ -107,8 +107,6 @@
 
 (use-package avy-zap
   :ensure t
-  :bind
-  ("M-z" . avy-zap-up-to-char-dwim)
   )
 
 (use-package better-defaults
@@ -262,7 +260,7 @@
   :init
   (historian-mode +1)
   :config
-  (setq ivy-height 15)
+  (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
   (ivy-prescient-mode)
@@ -287,6 +285,17 @@
 
 ;; (global-linum-mode t)
 (add-hook 'shell-mode-hook (lambda () (display-line-number-mode -1)))
+
+(use-package multiple-cursors
+  :ensure t
+  :bind
+  (
+   ("M-." . mc/mark-next-like-this)
+   ("M->" . mc/mark-next-word-like-this)
+   ("M-," . mc/unmark-next-like-this)
+   ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+   )
+  )
 
 (setq org-support-shift-select t)
 ;; (set-default 'truncate-lines t)
@@ -461,7 +470,7 @@
 (use-package company
   :ensure t
   :config
-  (global-company-mode)
+  ;; (global-company-mode)
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
   (setq company-idle-delay 0)
@@ -478,9 +487,11 @@
   )
 
 (defun my/python-mode-hook ()
-  (add-to-list 'company-backends 'company-jedi))
-(add-hook 'python-mode-hook 'my/python-mode-hook)
+  (add-to-list 'company-backends 'company-jedi)
+  (company-mode)
+  )
 
+(add-hook 'python-mode-hook 'my/python-mode-hook)
 ;; (use-package company-quickhelp
 ;;   :ensure t
 ;;   :config
@@ -537,7 +548,7 @@
 ;;   (add-hook 'before-save-hook 'py-isort-before-save))
 
 (use-package jedi
-  :defer t
+  :ensure t
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -666,11 +677,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
+(use-package json-mode
+  :ensure t)
 (use-package csv-mode
   :defer t
   :mode "\\.csv\\'")
 (use-package dockerfile-mode
-  :defer t
+  :ensure t
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
@@ -690,7 +703,7 @@
   :defer t
   )
 (use-package yaml-mode
-  :defer t
+  :ensure t
   :config
   (require 'yaml-mode)
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
@@ -765,8 +778,10 @@
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
 (define-key ivy-minibuffer-map (kbd "C-j") 'counsel-up-directory)
 (define-key ivy-minibuffer-map (kbd "C-u") 'counsel-up-directory)
+(define-key ivy-minibuffer-map (kbd "C-k") 'ivy-next-line)
+(define-key ivy-minibuffer-map (kbd "C-l") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<right>") 'ivy-alt-done)
-(define-key ivy-minibuffer-map (kbd "C-p") 'ivy-alt-done)
+;; (define-key ivy-minibuffer-map (kbd "C-p") 'ivy-alt-done)
 (define-key ivy-minibuffer-map (kbd "C-;") 'ivy-alt-done)
 (define-key ivy-minibuffer-map (kbd "<RET>") 'ivy-alt-done)
 
@@ -922,7 +937,7 @@
          ("[" ace-window)
          ("a" goto-last-change)
          ("s" save-buffer)
-         ("d" dired)
+         ("d" dired-jump)
          ("D" docker)
          ("f" counsel-find-file)
          ;; ("f" helm-find-files)
