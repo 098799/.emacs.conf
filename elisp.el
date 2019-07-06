@@ -408,3 +408,15 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
     (setq modulo 4))
   (move-to-column (+ current modulo))
   )
+
+(defun scroll-down-and-recenter (arg)
+  (interactive "P")
+  (cua-scroll-down)
+  (recenter)
+  )
+
+(defun scroll-up-and-recenter (arg)
+  (interactive "P")
+  (cua-scroll-up)
+  (recenter)
+  )

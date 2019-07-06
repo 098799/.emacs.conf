@@ -32,14 +32,6 @@
 (when (fboundp 'horizontal-scroll-bar-mode)
   (horizontal-scroll-bar-mode -1))
 
-;; (use-package all-the-icons :ensure t)
-;; (use-package all-the-icons-dired :ensure t)
-;; (use-package all-the-icons-ivy
-;;   :ensure t
-;;   :config
-;;   (all-the-icons-ivy-setup)
-;;   )
-
 (global-auto-revert-mode 1)
 
 (use-package beacon
@@ -204,15 +196,8 @@
 (use-package dumb-jump
   :ensure t)
 
-;; (use-package elfeed
-;;   :ensure t)
-
-;; (use-package elfeed-org
-;;   :defer t
-;;   :config
-;;   (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org"))
-;;   (setq elfeed-db-directory "~/Dropbox/.elfeed")
-;;   )
+(use-package eshell-toggle
+  :ensure t)
 
 (use-package expand-region
   :ensure t
@@ -754,6 +739,8 @@
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+(use-package json-mode
+  :ensure t)
 (use-package web-mode
   :ensure t
   :mode ("\\.html\\'" "\\.jinja\\'")
@@ -876,6 +863,7 @@
    ("r" avy-goto-word-1)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
+   ("y" eshell-toggle)
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
@@ -890,13 +878,14 @@
    ("S" swiper-thing-at-point)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
-   ("h" beginning-of-line-or-indentation)
+   ("h" move-beginning-of-line)
+   ;; ("h" beginning-of-line-or-indentation)
    ("j" my-backward-word)
    ("J" move-beginning-of-line)
    ("k" forward-paragraph)
-   ("K" cua-scroll-up)
+   ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
-   ("L" cua-scroll-down)
+   ("L" scroll-down-and-recenter)
    (";" my-forward-word)
    (":" move-end-of-line)
    ("'" move-end-of-line)
@@ -1006,7 +995,6 @@
          ("a" goto-last-change)
          ("s" save-buffer)
          ("d" dired-jump)
-         ("D" docker)
          ("f" counsel-find-file)
          ;; ("f" helm-find-files)
          ("g" magit-status)
@@ -1025,7 +1013,7 @@
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("n" goto-line)
-         ;; ("m" counsel-switch-buffer)
+         ("m" counsel-switch-buffer)
          ("m" ivy-switch-buffer)
          ("0" delete-window)
          ("1" delete-other-windows)
