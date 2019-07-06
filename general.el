@@ -48,13 +48,25 @@
   (beacon-mode 1)
   )
 
+(use-package doom-modeline
+  :ensure t
+  :hook (after-init . doom-modeline-mode)
+  :config
+  (setq doom-modeline-height 25)
+  (setq doom-modeline-bar-width 3)
+  (setq doom-modeline-icon t)
+  (setq doom-modeline-major-mode-icon t)
+  (setq doom-modeline-major-mode-color-icon t)
+  (setq doom-modeline-env-enable-python t)
+  (setq doom-modeline-vcs-max-length 20)
+  )
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
-
 
 ;; (global-prettify-symbols-mode t)
 
@@ -78,7 +90,11 @@
 (use-package solarized-theme
   :ensure t)
 
-(load-theme 'solarized-dark t)
+(use-package rainbow-delimiters
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
+  )
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
@@ -163,8 +179,10 @@
         (";" . dired-find-file)
         ("s" . swiper)
         ("K" . dired-do-kill-lines)
-        ;; ("f" . helm-find-files)
+        ("f" . counsel-find-file)
         )
+  :config
+  (setq dired-dwim-target t)
   )
 
 (use-package dired-toggle
@@ -263,6 +281,7 @@
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
+  (ivy-rich-mode t)
   (ivy-prescient-mode)
   )
 
@@ -270,6 +289,13 @@
   :defer t
   :config
   (autoload 'ivy-youtube "ivy-youtube" nil t)
+  )
+
+(use-package key-chord
+  :ensure t
+  :config
+  (key-chord-mode +1)
+  (key-chord-define-global "jk" 'ryo-modal-mode)
   )
 
 (use-package keyfreq
@@ -296,6 +322,9 @@
    ("C-S-<mouse-1>" . mc/add-cursor-on-click)
    )
   )
+
+(use-package ace-mc
+  :ensure t) ;; please review this
 
 (setq org-support-shift-select t)
 ;; (set-default 'truncate-lines t)
@@ -362,16 +391,22 @@
 ;; (use-package smartparens-config
 ;;   :commands smartparens-mode)
 
-(use-package spaceline-config
-  :ensure spaceline
-  :config
-  ;; (spaceline-helm-mode 1)
-  (spaceline-emacs-theme)
-  (spaceline-toggle-python-pyvenv-on)
-  (spaceline-toggle-python-env-on)
-  (spaceline-toggle-python-pyenv-on)
-  (spaceline-toggle-version-control-on)
-  )
+(use-package smex
+  :ensure t)
+
+(use-package helm-smex
+  :ensure t)
+
+;; (use-package spaceline-config
+;;   :ensure spaceline
+;;   :config
+;;   ;; (spaceline-helm-mode 1)
+;;   (spaceline-emacs-theme)
+;;   (spaceline-toggle-python-pyvenv-on)
+;;   (spaceline-toggle-python-env-on)
+;;   (spaceline-toggle-python-pyenv-on)
+;;   (spaceline-toggle-version-control-on)
+;;   )
 
 (use-package string-inflection
   :ensure t
@@ -473,34 +508,30 @@
   ;; (global-company-mode)
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay 0)
+  (setq company-idle-delay 0.1)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
-  (setq company-minimum-prefix-length 1)
+  (setq company-tooltip-limit 20)
+  (setq company-minimum-prefix-length 2)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   ;; (company-tng-configure-default)
+  (define-key company-active-map (kbd "C-n") 'company-select-next)
+  (define-key company-active-map (kbd "C-p") 'company-select-previous)
+  (define-key company-active-map (kbd "M-/") 'company-other-backend)
+  (define-key company-active-map (kbd "<tab>") 'company-complete)
   )
 
 (use-package company-jedi
-  :defer t
+  :ensure t
   )
 
-(defun my/python-mode-hook ()
-  (add-to-list 'company-backends 'company-jedi)
-  (company-mode)
-  )
-
-(add-hook 'python-mode-hook 'my/python-mode-hook)
-;; (use-package company-quickhelp
-;;   :ensure t
-;;   :config
-;;   (company-quickhelp-mode)
-;;   (setq company-quickhelp-delay 0)
+;; I think the following makes autocompletion slow:
+;; (defun my/python-mode-hook ()
+;;   (add-to-list 'company-backends 'company-jedi)
+;;   (company-mode)
 ;;   )
-
-;; (use-package company-lsp
-;;   :ensure t)
+;; (add-hook 'python-mode-hook 'my/python-mode-hook)
 
 (use-package cython-mode
   :defer t
@@ -530,7 +561,7 @@
   )
 
 (use-package flycheck
-  :defer t
+  :ensure t
   :init
   (global-flycheck-mode)
   )
@@ -557,6 +588,38 @@
    jedi:environment-root "jedi"
    python-environment-directory "~/.virtualenvs")
   )
+
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :commands lsp
+;;   :init
+;;   (setq lsp-auto-guess-root t)
+;;   (setq lsp-prefer-flymake nil)
+;;   :config
+;;   (require 'lsp-clients)
+;;   (add-hook 'prog-mode-hook (lambda () (flymake-mode -1)))
+;;   (define-key lsp-mode-map (kbd "S-<f6>") 'lsp-rename)
+;;   (defun wcx/activate-lsp ()
+;;     (ycmd-mode -1)
+;;     (lsp))
+;;   :hook ((python-mode bash-mode lua-mode ruby-mode) . wcx/activate-lsp))
+
+;; (use-package lsp-ui
+;;   :ensure t
+;;   :commands lsp-ui-mode)
+
+;; (use-package company-lsp
+;;   :ensure t
+;;   :commands company-lsp)
+
+;; (push 'company-lsp company-backends)
+
+;; (use-package dap-mode
+;;   :ensure t
+;;   :config
+;;   (dap-mode 1)
+;;   (dap-ui-mode 1)
+;;   (require 'dap-python))
 
 ;; (use-package lsp-mode
 ;;   :ensure t
@@ -595,12 +658,17 @@
 ;;   ("<f8>" . neotree-project-dir)
 ;;   )
 
+(use-package pip-requirements
+  :hook ((pip-requirements-mode . company-mode))
+  :ensure t)
+
 (use-package projectile
   :ensure t
   :init
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
+  (setq projectile-enable-caching t)
   ;; (helm-projectile-on)
   ;; :bind
   ;; ("C-c C-p C-p" . projectile-switch-project)
@@ -655,15 +723,14 @@
 (defvar python-environment-directory)
 (setq python-environment-directory "~/.virtualenvs/")
 (setq venv-location "~/.virtualenvs/")
-;; (define-key global-map (kbd "C-c C-q") 'venv-workon)
-;; ^ will be handled by ryo mode
 
 ;; (use-package auto-virtualenvwrapper
 ;;   :ensure t
 ;;   :config
 ;;   (add-hook 'python-mode-hook #'auto-virtualenvwrapper-activate)
 ;;   (add-hook 'window-configuration-change-hook #'auto-virtualenvwrapper-activate)
-;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate))
+;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate)
+;;   )
 
 (use-package auto-virtualenv
   :ensure t
@@ -688,7 +755,7 @@
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
 (use-package web-mode
-  :defer t
+  :ensure t
   :mode ("\\.html\\'" "\\.jinja\\'")
   :config (setq web-mode-markup-indent-offset 2
                 web-mode-code-indent-offset 2)
@@ -888,10 +955,10 @@
          ("t" projectile-toggle-between-implementation-and-test)
          ("y" string-inflection-python-style-cycle)
          ;; ("u" subword-mode)
-         ("u" copy-inner)
-         ("i" change-inner)
-         ("o" change-outer)
-         ("p" copy-outer)
+         ("u" copy-inner-with-paren)
+         ("i" change-inner-with-paren)
+         ("o" change-outer-with-paren)
+         ("p" copy-outer-with-paren)
          ;; ("[" helm-projectile-recentf)
          ;; ("s" counsel-projectile-ag)
          ("s" helm-projectile-ag)
@@ -917,8 +984,10 @@
   (ryo-modal-key
    "D" '(
          ("R" projectile-ripgrep)
-         ("I" copy-inner)
-         ("O" copy-outer)
+         ("U" copy-inner)
+         ("I" change-inner)
+         ("O" change-outer)
+         ("P" copy-outer)
          )
    )
 
@@ -927,9 +996,8 @@
          ("q" venv-workon)
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
-         ("r" ivy-recentf)
+         ("r" avy-goto-line)
          ;; ("r" helm-recentf)
-         ("t" elpy-multiedit-python-symbol-at-point)
          ("u" undo-tree-visualize)
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
@@ -945,7 +1013,7 @@
          ("h" mark-whole-buffer)
          ("j" awesome-tab-backward-tab)
          ("k" kill-current-buffer)
-         ("l" projectile-switch-to-buffer)
+         ("l" counsel-projectile-switch-to-buffer)
          ;; ("l" helm-mini)
          (";" awesome-tab-forward-tab)
          ("z" avy-zap-up-to-char-dwim)
@@ -957,7 +1025,8 @@
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("n" goto-line)
-         ("m" counsel-switch-buffer)
+         ;; ("m" counsel-switch-buffer)
+         ("m" ivy-switch-buffer)
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)

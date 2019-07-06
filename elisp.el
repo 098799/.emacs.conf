@@ -18,9 +18,10 @@
   "Copy branch name and insert it at the beginning of commit."
   (interactive "P")
   (save-excursion
-    (forward-line 5)
-    (forward-word 3)
-    (forward-char)
+    (search-forward "On branch ")
+    ;; (forward-line 5)
+    ;; (forward-word 3)
+    ;; (forward-char)
     (cua-set-mark)
     (move-end-of-line arg)
     (cua-copy-region arg)
@@ -313,11 +314,11 @@
               (goto-char starting-point))
           (kill-region (region-beginning) (region-end)))))))
 
-(defun change-inner (arg)
+(defun change-inner-with-paren (arg)
   (interactive "P")
   (change-inner-with-fixed-arg* "(" arg nil))
 
-(defun copy-inner ()
+(defun copy-inner-with-paren ()
   (interactive)
   (change-inner-with-fixed-arg* "(" t nil))
 
@@ -348,11 +349,11 @@
               (goto-char starting-point))
           (kill-region (region-beginning) (region-end)))))))
 
-(defun change-outer (arg)
+(defun change-outer-with-paren (arg)
   (interactive "P")
   (change-outer-with-fixed-arg* "(" arg nil))
 
-(defun copy-outer ()
+(defun copy-outer-with-paren ()
   (interactive)
   (change-outer-with-fixed-arg* "(" t nil))
 
