@@ -322,6 +322,22 @@
   (interactive)
   (change-inner-with-fixed-arg* "(" t nil))
 
+(defun change-inner-with-square (arg)
+  (interactive "P")
+  (change-inner-with-fixed-arg* "[" arg nil))
+
+(defun copy-inner-with-square ()
+  (interactive)
+  (change-inner-with-fixed-arg* "[" t nil))
+
+(defun change-inner-with-curly (arg)
+  (interactive "P")
+  (change-inner-with-fixed-arg* "{" arg nil))
+
+(defun copy-inner-with-curly ()
+  (interactive)
+  (change-inner-with-fixed-arg* "{" t nil))
+
 (defun change-outer-with-fixed-arg* (argument yank? search-forward-char)
   "My fork for change-outer. Will be used for parens."
   (let* ((expand-region-fast-keys-enabled nil)
@@ -356,6 +372,22 @@
 (defun copy-outer-with-paren ()
   (interactive)
   (change-outer-with-fixed-arg* "(" t nil))
+
+(defun change-outer-with-square (arg)
+  (interactive "P")
+  (change-outer-with-fixed-arg* "[" arg nil))
+
+(defun copy-outer-with-square ()
+  (interactive)
+  (change-outer-with-fixed-arg* "[" t nil))
+
+(defun change-outer-with-curly (arg)
+  (interactive "P")
+  (change-outer-with-fixed-arg* "{" arg nil))
+
+(defun copy-outer-with-curly ()
+  (interactive)
+  (change-outer-with-fixed-arg* "{" t nil))
 
 (defun awesome-tab-switch-group (&optional groupname)
   "Fork of awesome-tab's function to use ivy, not ido"
@@ -411,12 +443,12 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
 
 (defun scroll-down-and-recenter (arg)
   (interactive "P")
-  (cua-scroll-down)
+  (forward-line -30)
   (recenter)
   )
 
 (defun scroll-up-and-recenter (arg)
   (interactive "P")
-  (cua-scroll-up)
+  (forward-line 30)
   (recenter)
   )
