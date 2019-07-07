@@ -142,6 +142,9 @@
   (move-beginning-of-line arg)
   (forward-line)
   (cua-paste arg)
+  (if (/= (current-column) 0)
+      (newline)
+      )
   (forward-line -1)
   )
 
@@ -224,6 +227,22 @@
       (superword-mode nil)
       )
     )
+  )
+
+(defun kill-inside-or-not (arg)
+  "Kill inside python string, but if not, just the word."
+  (interactive "P")
+  (er/mark-inside-python-string)
+  (unless (region-active-p)
+    (progn
+      (superword-mode t)
+      (my-forward-word arg)
+      (cua-set-mark)
+      (my-backward-word arg)
+      (superword-mode nil)
+      )
+    )
+  (kill-whole-line-or-region arg)
   )
 
 (defun mark-outside-or-not (arg)
@@ -451,4 +470,33 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
   (interactive "P")
   (forward-line 30)
   (recenter)
+  )
+
+(defun is-last-char-in-line (arg)
+  (interactive "P")
+  (save-excursion
+    (let ((line-first (current-line)))
+      (right-char)
+      (listp
+       (= line-first (current-line))
+       )
+      )
+    )
+  )
+
+(defun delete-horizontal-and-vertical-space (arg)
+  (interactive "P")
+  (delete-horizontal-space)
+  (if (= (current-column) 0)
+      (progn
+        (backward-delete-char-untabify 1)
+        (delete-horizontal-and-vertical-space arg)
+        )
+    )
+  (if (is-last-char-in-line 1)
+      (progn
+        (delete-char 1)
+        (delete-horizontal-and-vertical-space arg)
+        )
+    )
   )
