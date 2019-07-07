@@ -839,6 +839,10 @@
 (define-key ivy-minibuffer-map (kbd "C-;") 'ivy-alt-done)
 (define-key ivy-minibuffer-map (kbd "<RET>") 'ivy-alt-done)
 
+(global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
+(global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
+
+
 (use-package ryo-modal
   :ensure t
   :commands ryo-modal-mode
@@ -854,16 +858,16 @@
 
   (ryo-modal-keys
    ;; ("," ryo-modal-repeat)
-   ("q" kill-word-or-region)  ;; thing about it
+   ("q" kill-word-or-region)  ;; think about it
    ("Q" my-copy-word-or-region)
-   ("w" backward-kill-word-or-region)  ;; thing about it
+   ("w" backward-kill-word-or-region)  ;; think about it
    ("W" my-backward-copy-word-or-region)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
    ("r" avy-goto-word-1)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
-   ("y" eshell-toggle)  ;; thing about it
+   ("y" eshell-toggle)  ;; think about it
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
@@ -872,8 +876,8 @@
    ("O" elpy-nav-backward-block)
    ("p" forward-char)
    ("P" nav-forward-indent)
-   ;; ("[" )  ;; thing about it
-   ;; ("]" )  ;; thing about it
+   ;; ("[" )  ;; think about it
+   ;; ("]" )  ;; think about it
 
    ("a" comment-dwim-2)
    ("s" swiper)
@@ -883,27 +887,27 @@
    ("h" move-beginning-of-line)
    ;; ("h" beginning-of-line-or-indentation)
    ("j" my-backward-word)
-   ("J" move-beginning-of-line)  ;; thing about it
+   ("J" move-beginning-of-line)  ;; think about it
    ("k" forward-paragraph)
    ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
    ("L" scroll-down-and-recenter)
    (";" my-forward-word)
-   (":" move-end-of-line)  ;; thing about it
+   (":" move-end-of-line)  ;; think about it
    ("'" move-end-of-line)
-   ("\"" mark-until-end-of-line)  ;; thing about it
+   ("\"" mark-until-end-of-line)  ;; think about it
 
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
    ("x" kill-whole-line-or-region)
-   ("X" delete-char)  ;; thing about it
+   ("X" delete-char)  ;; think about it
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
-   ;; ("b" )  ;; thing about it
+   ;; ("b" )  ;; think about it
    ("n" recenter-top-bottom)
-   ("." xref-find-definitions)
-   ("," xref-pop-marker-stack)
+   ("." awesome-tab-backward-tab)
+   ("," awesome-tab-forward-tab)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" dumb-jump-go)
@@ -912,7 +916,7 @@
    ("<f1>" blacken-buffer)
    ("<f2>" blacken-region)
    ("`" bookmark-jump)
-   ;; ("~" )  ;; thing about it
+   ;; ("~" )  ;; think about it
    ("!" helm-flycheck)
    ("%" query-replace)
    ("-" delete-horizontal-and-vertical-space)
@@ -940,15 +944,15 @@
 
   (ryo-modal-key
    "d" '(
-         ;; ("q" elfeed)
+         ;; ("q" elfeed)  ;; think about it
          ("w" add-correct-start-of-commit)
          ("e" projectile-replace-regexp)
          ("r" projectile-replace)
          ("R" projectile-ripgrep)
          ("t" projectile-toggle-between-implementation-and-test)
          ("y" string-inflection-python-style-cycle)
-         ;; ("u" subword-mode)
          ("u" change-inner-with-paren)
+         ;; ("u" subword-mode)
          ("i" change-inner-with-square)
          ("o" change-inner-with-curly)
          ("p" copy-inner-with-paren)
@@ -960,22 +964,33 @@
          ("P" copy-outer-with-paren)
          ("{" copy-outer-with-square)
          ("}" copy-outer-with-curly)
-         ;; ("[" helm-projectile-recentf)
+         ;; ("a" )  ;; think about it
          ;; ("s" counsel-projectile-ag)
          ("s" helm-projectile-ag)
          ("S" projectile-save-project-buffers)
          ("d" projectile-dired)
          ("f" counsel-projectile-find-file-dwim)
          ;; ("f" projectile-find-file)
-         ;; ("g" counsel-projectile-ag-at-point)
          ("g" helm-projectile-grep)
+         ;; ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
          ;; ("h" helm-projectile)
          ("j" counsel-projectile-switch-project)
          ;; ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)
          ("l" awesome-tab-switch-group)
-         ("'" kill-inside-or-not)
+         (";" kill-inside-or-not)
+         ;; ("'" )  ;; think about it
+         ;; ("z" )  ;; think about it
+         ;; ("x" )  ;; think about it
+         ;; ("c" )  ;; think about it
+         ;; ("v" )  ;; think about it
+         ;; ("b" )  ;; think about it
+         ;; ("n" )  ;; think about it
+         ;; ("m" )  ;; think about it
+         ;; ("," )  ;; think about it
+         ;; ("." )  ;; think about it
+         ;; ("/" )  ;; think about it
          ("!" projectile-run-shell-command-in-root)
          ("%" projectile-run-async-shell-command-in-root)
          )
@@ -999,24 +1014,25 @@
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
-         ;; ("r" helm-recentf)
+         ("t" helm-recentf)
+         ;; ("y" )  ;; think about it
          ("u" undo-tree-visualize)
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
          ("p" other-window)
          ("[" ace-window)
-         ("a" goto-last-change)
+         ("a" goto-last-change)  ;; think about it
          ("s" save-buffer)
          ("d" dired-jump)
          ("f" counsel-find-file)
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("j" awesome-tab-backward-tab)
+         ;; ("j" awesome-tab-backward-tab)  ;; think about it
          ("k" kill-current-buffer)
          ("l" counsel-projectile-switch-to-buffer)
          ;; ("l" helm-mini)
-         (";" awesome-tab-forward-tab)
+         ;; (";" awesome-tab-forward-tab)  ;; think about it
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
@@ -1026,8 +1042,10 @@
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("n" goto-line)
-         ("m" counsel-switch-buffer)
          ("m" ivy-switch-buffer)
+         ("." xref-find-definitions)
+         ("," xref-pop-marker-stack)
+         ;; ("/" )  ;; think about it
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)
