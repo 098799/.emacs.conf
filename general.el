@@ -864,7 +864,8 @@
    ("W" my-backward-copy-word-or-region)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
-   ("r" avy-goto-word-1)
+   ("r" avy-goto-word-1-below)
+   ("R" avy-goto-word-1-above)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
    ("y" eshell-toggle)  ;; think about it
@@ -904,7 +905,7 @@
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
-   ;; ("b" )  ;; think about it
+   ("b" er-switch-to-previous-buffer)
    ("n" recenter-top-bottom)
    ("." awesome-tab-backward-tab)
    ("," awesome-tab-forward-tab)
@@ -1028,11 +1029,11 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ;; ("j" awesome-tab-backward-tab)  ;; think about it
+         ("j" awesome-tab-backward-tab)  ;; think about it
          ("k" kill-current-buffer)
          ("l" counsel-projectile-switch-to-buffer)
          ;; ("l" helm-mini)
-         ;; (";" awesome-tab-forward-tab)  ;; think about it
+         (";" awesome-tab-forward-tab)  ;; think about it
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
@@ -1041,6 +1042,7 @@
          ("v" counsel-yank-pop)
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
+         ("b" imenu)
          ("n" goto-line)
          ("m" ivy-switch-buffer)
          ("." xref-find-definitions)
