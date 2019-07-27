@@ -90,14 +90,29 @@
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
-(setq awesome-tab-background-color "#002B36")
-(setq awesome-tab-style "bar")
-(add-to-list 'load-path "~/.emacs.d/awesome-tab/")
-;; (load "tabbar")
-(require 'awesome-tab)
-(awesome-tab-mode t)
-(global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-(global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+;; (setq awesome-tab-background-color "#002B36")
+;; (setq awesome-tab-style "bar")
+;; (add-to-list 'load-path "~/.emacs.d/awesome-tab/")
+;; ;; (load "tabbar")
+;; (require 'awesome-tab)
+;; (awesome-tab-mode t)
+;; (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
+;; (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+
+(use-package centaur-tabs
+  :demand
+  :config
+  (centaur-tabs-mode t)
+  (setq centaur-tabs-set-bar 'alternate)
+  ;; (setq centaur-tabs-style "wave")
+  ;; (centaur-tabs-group-by-projectile-project)
+  (centaur-tabs-inherit-tabbar-faces)
+  (setq centaur-tabs-set-icons t)
+  (setq centaur-tabs-gray-out-icons 'buffer)
+  :bind
+  ("C-<tab>" . centaur-tabs-forward-tab)
+  ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
+  )
 
 ;;;;;;;;;;;;;;;
 ;;; GENERAL ;;;
@@ -230,7 +245,6 @@
   :config
   (helm-mode 1)
   (helm-adaptive-mode t)
-  (awesome-tab-build-helm-source)
   :bind
   ("C-c p s g" . helm-do-ag-project-root)
   ("M-x" . helm-M-x)
@@ -270,18 +284,21 @@
   (ivy-prescient-mode)
   )
 
+(use-package ivy-rich
+  :ensure t)
+
 (use-package ivy-youtube
   :defer t
   :config
   (autoload 'ivy-youtube "ivy-youtube" nil t)
   )
 
-(use-package key-chord
-  :ensure t
-  :config
-  (key-chord-mode +1)
-  (key-chord-define-global "jk" 'ryo-modal-mode)
-  )
+;; (use-package key-chord
+;;   :ensure t
+;;   :config
+;;   (key-chord-mode +1)
+;;   (key-chord-define-global "jk" 'ryo-modal-mode)
+;;   )
 
 (use-package keyfreq
   :ensure t
@@ -854,6 +871,7 @@
   (add-hook 'fundamental-mode-hook #'ryo-modal-mode)
   ;; (add-hook 'special-mode-hook #'ryo-modal-mode)
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
+  (setq ryo-modal-default-cursor-color "#839496")
   (ryo-modal-mode)
 
   (ryo-modal-keys
@@ -907,8 +925,8 @@
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)
    ("n" recenter-top-bottom)
-   ("." awesome-tab-backward-tab)
-   ("," awesome-tab-forward-tab)
+   ("." centaur-tabs-forward-tab)
+   ("," centaur-tabs-backward-tab)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" dumb-jump-go)
@@ -979,7 +997,8 @@
          ("j" counsel-projectile-switch-project)
          ;; ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)
-         ("l" awesome-tab-switch-group)
+         ("l" centaur-tabs-counsel-switch-group)
+         ;; ("l" awesome-tab-switch-group)
          (";" kill-inside-or-not)
          ;; ("'" )  ;; think about it
          ;; ("z" )  ;; think about it
@@ -1029,11 +1048,11 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("j" awesome-tab-backward-tab)  ;; think about it
+         ;; ("j" awesome-tab-backward-tab)  ;; think about it
          ("k" kill-current-buffer)
          ("l" counsel-projectile-switch-to-buffer)
          ;; ("l" helm-mini)
-         (";" awesome-tab-forward-tab)  ;; think about it
+         ;; (";" awesome-tab-forward-tab)  ;; think about it
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
