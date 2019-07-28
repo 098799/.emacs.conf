@@ -218,6 +218,23 @@
   :ensure t
   :bind ("C-=" . er/expand-region))
 
+(use-package eyebrowse
+  :ensure t
+  :config
+  (eyebrowse-mode t)
+  (global-set-key (kbd "s-<del>") 'eyebrowse-close-window-config)
+  (global-set-key (kbd "s-<f10>") 'eyebrowse-switch-to-window-config-0)
+  (global-set-key (kbd "s-<f1>") 'eyebrowse-switch-to-window-config-1)
+  (global-set-key (kbd "s-<f2>") 'eyebrowse-switch-to-window-config-2)
+  (global-set-key (kbd "s-<f3>") 'eyebrowse-switch-to-window-config-3)
+  (global-set-key (kbd "s-<f4>") 'eyebrowse-switch-to-window-config-4)
+  (global-set-key (kbd "s-<f5>") 'eyebrowse-switch-to-window-config-5)
+  (global-set-key (kbd "s-<f6>") 'eyebrowse-switch-to-window-config-6)
+  (global-set-key (kbd "s-<f7>") 'eyebrowse-switch-to-window-config-7)
+  (global-set-key (kbd "s-<f8>") 'eyebrowse-switch-to-window-config-8)
+  (global-set-key (kbd "s-<f9>") 'eyebrowse-switch-to-window-config-9)
+  )
+
 ;; (use-package find-file-in-project
 ;;   :defer t)
 
@@ -293,12 +310,13 @@
   (autoload 'ivy-youtube "ivy-youtube" nil t)
   )
 
-;; (use-package key-chord
-;;   :ensure t
-;;   :config
-;;   (key-chord-mode +1)
-;;   (key-chord-define-global "jk" 'ryo-modal-mode)
-;;   )
+(use-package key-chord
+  :ensure t
+  :config
+  (key-chord-mode +1)
+  (key-chord-define-global "jk" 'ryo-modal-on)
+  (key-chord-define-global "fk" 'kill-current-buffer)
+  )
 
 (use-package keyfreq
   :ensure t
@@ -437,14 +455,14 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
-;; (use-package which-key
-;;   :ensure t
-;;   :init
-;;   (setq which-key-separator " ")
-;;   (setq which-key-prefix-prefix "+")
-;;   :config
-;;   (which-key-mode 1)
-;;   )
+(use-package which-key
+  :ensure t
+  :init
+  (setq which-key-separator " ")
+  (setq which-key-prefix-prefix "+")
+  :config
+  (which-key-mode 1)
+  )
 
 (use-package whitespace-cleanup-mode
   :ensure t
@@ -863,13 +881,14 @@
 (use-package ryo-modal
   :ensure t
   :commands ryo-modal-mode
-  :bind ("<escape>" . ryo-modal-mode)
+  :bind ("<escape>" . ryo-modal-off)
   :bind ("C-c C-r" . ryo-modal-mode)
   :config
   (add-hook 'text-mode-hook #'ryo-modal-mode)
   (add-hook 'prog-mode-hook #'ryo-modal-mode)
   (add-hook 'fundamental-mode-hook #'ryo-modal-mode)
-  ;; (add-hook 'special-mode-hook #'ryo-modal-mode)
+  (add-hook 'special-mode-hook #'ryo-modal-mode)
+  (add-hook 'magit-status-mode-hook #'ryo-modal-off)
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
   (setq ryo-modal-default-cursor-color "#839496")
   (ryo-modal-mode)
@@ -1084,6 +1103,8 @@
          )
    )
   )
+
+
 
 (add-hook 'switch-buffer-functions
           (lambda (prev cur) (ryo-modal--cursor-color-update))
