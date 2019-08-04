@@ -101,6 +101,7 @@
 
 (use-package centaur-tabs
   :demand
+  :ensure t
   :config
   (centaur-tabs-mode t)
   (setq centaur-tabs-set-bar 'alternate)
@@ -316,6 +317,7 @@
   (key-chord-mode +1)
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
+  (key-chord-define-global "fs" 'save-and-enter-ryo)
   )
 
 (use-package keyfreq
@@ -876,12 +878,13 @@
 
 (global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
 (global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
+(global-set-key (kbd "C-M-<return>") 'newline)
 
 
 (use-package ryo-modal
   :ensure t
   :commands ryo-modal-mode
-  :bind ("<escape>" . ryo-modal-off)
+  :bind ("<escape>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
   :config
   (add-hook 'text-mode-hook #'ryo-modal-mode)
@@ -958,6 +961,7 @@
    ("!" helm-flycheck)
    ("%" query-replace)
    ("-" delete-horizontal-and-vertical-space)
+   ("_" delete-horizontal-and-vertical-space-but-leave-one-space)
    ("=" er/expand-region)
    ("+" mark-paragraph)
    ("]" mark-paragraph)
@@ -1026,7 +1030,7 @@
          ;; ("v" )  ;; think about it
          ;; ("b" )  ;; think about it
          ;; ("n" )  ;; think about it
-         ;; ("m" )  ;; think about it
+         ("m" go-to-119)
          ;; ("," )  ;; think about it
          ;; ("." )  ;; think about it
          ;; ("/" )  ;; think about it
@@ -1053,7 +1057,7 @@
          ("w" python-add-breakpoint)
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
-         ("t" helm-recentf)
+         ("t" elpy-multiedit-python-symbol-at-point)
          ;; ("y" )  ;; think about it
          ("u" undo-tree-visualize)
          ("i" mark-inside-or-not)

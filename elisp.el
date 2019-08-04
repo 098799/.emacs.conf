@@ -476,13 +476,19 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
   (recenter)
   )
 
+(defun what-line ()
+  (save-excursion
+    (beginning-of-line)
+    ;; (message "%d"
+    (1+ (count-lines 1 (point)))))
+
 (defun is-last-char-in-line (arg)
   (interactive "P")
   (save-excursion
-    (let ((line-first (current-line)))
+    (let ((line-first (what-line)))
       (right-char)
       (listp
-       (= line-first (current-line))
+       (= line-first (what-line))
        )
       )
     )
@@ -505,6 +511,25 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
     )
   )
 
+(defun delete-horizontal-and-vertical-space-but-leave-one-space (arg)
+  (interactive "P")
+  (delete-horizontal-space)
+  (if (= (current-column) 0)
+      (progn
+        (backward-delete-char-untabify 1)
+        (delete-horizontal-and-vertical-space arg)
+        )
+    )
+  (if (is-last-char-in-line 1)
+      (progn
+        (delete-char 1)
+        (delete-horizontal-and-vertical-space arg)
+        )
+    )
+  (insert " ")
+  (backward-char 1)
+  )
+
 (defun er-switch-to-previous-buffer ()
   "Switch to previously open buffer.
 Repeated invocations toggle between the two most recently open buffers."
@@ -522,3 +547,36 @@ Repeated invocations toggle between the two most recently open buffers."
   (when (bound-and-true-p ryo-modal-mode)
     (ryo-modal-mode 0))
   )
+
+(defun save-and-enter-ryo ()
+  (interactive)
+  (save-buffer)
+  (ryo-modal-on)
+  )
+
+(defun go-to-column (column)
+  (interactive "nColumn: ")
+  (move-to-column column t))
+
+(defun go-to-119 ()
+  (interactive)
+  (move-to-column 119 t))
+
+(defun wrap-python-string (arg)
+  (interactive "P")
+  (mark-inside-or-not arg)
+  (let ((end-of-string (region-end)))
+    (go-to-column (- fill-column 1))
+    (while (> end-of-string (point))
+      (insert "'")
+      (smart-newline)
+      (insert "'")
+      (go-to-column (- fill-column 1))
+      )
+    )
+  )
+
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
