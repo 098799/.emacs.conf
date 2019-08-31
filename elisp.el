@@ -10,9 +10,8 @@
   (interactive)
   (move-end-of-line 1)
   (newline-and-indent)
-  (insert "import ipdb; ipdb.set_trace()")
-  (highlight-lines-matching-regexp "ipdb.set_trace()")
-  (highlight-lines-matching-regexp "^[ ]*import ipdb"))
+  (insert "breakpoint()")
+  (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
 
 (defun add-correct-start-of-commit (arg)
   "Copy branch name and insert it at the beginning of commit."

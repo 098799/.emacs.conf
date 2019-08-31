@@ -520,9 +520,18 @@
   :ensure t
   :config
   (setq blacken-skip-string-normalization nil)
-  (setq blacken-line-length 110)
+  (setq blacken-line-length 120)
   (setq blacken-allow-py36 t)
+  (add-hook 'python-mode-hook 'blacken-mode)
   )
+
+;; (use-package python-black
+;;   :demand t
+;;   :ensure t
+;;   :after python
+;;   :config
+;;   (python-black-on-save-mode)
+;;   )
 
 (use-package company
   :ensure t
@@ -745,6 +754,7 @@
 (defvar python-environment-directory)
 (setq python-environment-directory "~/.virtualenvs/")
 (setq venv-location "~/.virtualenvs/")
+(venv-initialize-eshell)
 
 ;; (use-package auto-virtualenvwrapper
 ;;   :ensure t
@@ -856,14 +866,20 @@
 ;;                                 (tabbar-current-tabset)))))))))
 ;; (tabbar-mode 1)
 
-;; (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
-;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+(define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
+(define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
+(define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
+(define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
+(define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
+(define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
+(define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
+(define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+(define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
+(define-key helm-read-file-map (kbd "C-u") 'helm-find-files-up-one-level)
+(define-key helm-read-file-map (kbd "C-i") 'helm-next-line)
+(define-key helm-read-file-map (kbd "C-o") 'helm-previous-line)
+(define-key helm-read-file-map (kbd "C-p") 'helm-execute-persistent-action)
+(define-key helm-read-file-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key ivy-minibuffer-map (kbd "C-i") 'ivy-next-line)
 (define-key ivy-minibuffer-map (kbd "C-o") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
@@ -894,6 +910,9 @@
   (add-hook 'magit-status-mode-hook #'ryo-modal-off)
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
   (setq ryo-modal-default-cursor-color "#839496")
+  ;; (setq-default cursor-type 'bar)
+  (setq ryo-modal-cursor-type 'hbar)
+  ;; (setq ryo-modal-cursor-color nil)
   (ryo-modal-mode)
 
   (ryo-modal-keys
@@ -1110,6 +1129,6 @@
 
 
 
-(add-hook 'switch-buffer-functions
-          (lambda (prev cur) (ryo-modal--cursor-color-update))
-          )
+;; (add-hook 'switch-buffer-functions
+;;           (lambda (prev cur) (ryo-modal--cursor-color-update))
+;;           )
