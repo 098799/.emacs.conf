@@ -13,6 +13,20 @@
   (insert "breakpoint()")
   (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
 
+(defun ci--flash-region (start end)
+  "This time with a different face"
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'shadow)
+    (overlay-put overlay 'priority 100)
+    (run-with-timer 0.2 nil 'delete-overlay overlay)))
+
+(defun my-copy-region (arg)
+  "Copy with a flash"
+  (interactive "P")
+  (ci--flash-region (region-beginning) (region-end))
+  (cua-copy-region arg)
+  )
+
 (defun add-correct-start-of-commit (arg)
   "Copy branch name and insert it at the beginning of commit."
   (interactive "P")
@@ -23,7 +37,7 @@
     ;; (forward-char)
     (cua-set-mark)
     (move-end-of-line arg)
-    (cua-copy-region arg)
+    (my-copy-region arg)
     )
   (cua-paste arg)
   )
@@ -70,7 +84,7 @@
   (interactive "P")
   (save-excursion
     (if (region-active-p)
-        (cua-copy-region arg)
+        (my-copy-region arg)
       (my-copy-word arg)
       )
     )
@@ -81,7 +95,7 @@
   (save-excursion
     (cua-set-mark)
     (right-word)
-    (cua-copy-region arg)
+    (my-copy-region arg)
     )
   )
 
@@ -89,7 +103,7 @@
   (interactive "P")
   (save-excursion
     (if (region-active-p)
-        (cua-copy-region arg)
+        (my-copy-region arg)
       (my-backward-copy-word arg)
       )
     )
@@ -100,7 +114,7 @@
   (save-excursion
     (cua-set-mark)
     (left-word)
-    (cua-copy-region arg)
+    (my-copy-region arg)
     )
   )
 
@@ -111,7 +125,7 @@
     (move-beginning-of-line arg)
     (cua-set-mark)
     (forward-line)
-    (cua-copy-region arg)
+    (my-copy-region arg)
     )
   )
 
@@ -120,7 +134,7 @@
   (interactive "P")
   (save-excursion
     (if (region-active-p)
-        (cua-copy-region arg)
+        (my-copy-region arg)
       (copy-whole-line arg)
       )
     )
@@ -228,6 +242,16 @@
     )
   )
 
+(defun copy-inside-or-not (arg)
+  "Copy inside python string, but if not, just the word."
+  (interactive "P")
+  (save-excursion
+    (mark-inside-or-not arg)
+    (ci--flash-region (region-beginning) (region-end))
+    (copy-whole-line-or-region arg)
+    )
+  )
+
 (defun kill-inside-or-not (arg)
   "Kill inside python string, but if not, just the word."
   (interactive "P")
@@ -259,6 +283,35 @@
       (superword-mode nil)
       )
     )
+  )
+
+(defun copy-outside-or-not (arg)
+  "Copy outsize python string, but if not, just the word."
+  (interactive "P")
+  (save-excursion
+    (mark-outside-or-not arg)
+    (let ((overlay (make-overlay (region-beginning) (region-end))))
+      (overlay-put overlay 'face 'shadow)
+      (overlay-put overlay 'priority 100)
+      (run-with-timer 0.2 nil 'delete-overlay overlay))
+    (copy-whole-line-or-region arg)
+    )
+  )
+
+(defun kill-outside-or-not (arg)
+  "Kill outside python string, but if not, just the word."
+  (interactive "P")
+  (er/mark-outside-python-string)
+  (unless (region-active-p)
+    (progn
+      (superword-mode t)
+      (my-forward-word arg)
+      (cua-set-mark)
+      (my-backward-word arg)
+      (superword-mode nil)
+      )
+    )
+  (kill-whole-line-or-region arg)
   )
 
 (defun mark-until-end-of-line (arg)
@@ -578,4 +631,5 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
+  (switch-to-buffer "*scratch*")
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))

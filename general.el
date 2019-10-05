@@ -13,12 +13,44 @@
 (eval-when-compile
   (require 'use-package))
 
-(use-package auto-package-update
-   :ensure t
-   :config
-   (setq auto-package-update-delete-old-versions t
-         auto-package-update-interval 4)
-   (auto-package-update-maybe))
+;; (use-package auto-package-update
+;;    :ensure t
+;;    :config
+;;    (setq auto-package-update-delete-old-versions t
+;;          auto-package-update-interval 4)
+;;    (auto-package-update-maybe))
+
+;; (defvar bootstrap-version)
+;; (let ((bootstrap-file
+;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+;;       (bootstrap-version 5))
+;;   (unless (file-exists-p bootstrap-file)
+;;     (with-current-buffer
+;;         (url-retrieve-synchronously
+;;          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+;;          'silent 'inhibit-cookies)
+;;       (goto-char (point-max))
+;;       (eval-print-last-sexp)))
+;;   (load bootstrap-file nil 'nomessage))
+
+;; (use-package prescient
+;;   :straight t
+;;   :ensure t
+;;   )
+
+;; (use-package ivy-prescient
+;;   :straight t
+;;   :ensure t
+;;   :config
+;;   (ivy-prescient-mode t)
+;;   )
+
+;; (use-package company-prescient
+;;   :straight t
+;;   :ensure t
+;;   :config
+;;   (company-prescient-mode t)
+;;   )
 
 ;;;;;;;;;;;;;;;
 ;;; VISUALS ;;;
@@ -38,6 +70,7 @@
   :ensure t
   :config
   (beacon-mode 1)
+  (global-hl-line-mode +1)
   )
 
 (use-package doom-modeline
@@ -318,6 +351,8 @@
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
+  (key-chord-define-global "qw" 'my-copy-word-or-region)
+  (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
   )
 
 (use-package keyfreq
@@ -326,6 +361,8 @@
   (keyfreq-mode 1)
   (keyfreq-autosave-mode 1)
   )
+
+(setq kill-ring-max 500)
 
 (global-display-line-numbers-mode 1)
 
@@ -987,6 +1024,8 @@
    ("\\" er/mark-python-statement)
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
+
+
    )
 
   (ryo-modal-keys
@@ -1041,7 +1080,7 @@
          ("k" projectile-kill-buffers)
          ("l" centaur-tabs-counsel-switch-group)
          ;; ("l" awesome-tab-switch-group)
-         (";" kill-inside-or-not)
+         ;; (";" kill-inside-or-not)  ;; think about it
          ;; ("'" )  ;; think about it
          ;; ("z" )  ;; think about it
          ;; ("x" )  ;; think about it
@@ -1077,12 +1116,14 @@
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
-         ;; ("y" )  ;; think about it
-         ("u" undo-tree-visualize)
+         ("y" kill-inside-or-not)
+         ("u" copy-inside-or-not)
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
-         ("p" other-window)
-         ("[" ace-window)
+         ("p" copy-outside-or-not)
+         ;; ("p" other-window)
+         ("[" kill-outside-or-not)
+         ;; ("[" ace-window)
          ("a" goto-last-change)  ;; think about it
          ("s" save-buffer)
          ("d" dired-jump)
@@ -1117,6 +1158,8 @@
          ("5 1" delete-other-frames)
          ("5 2" make-frame-command)
          ("SPC" rectangle-mark-mode)
+         ("M-o" elpy-nav-move-line-or-region-up)
+         ("M-i" elpy-nav-move-line-or-region-down)
          )
    )
 
