@@ -119,6 +119,7 @@
   :ensure t
   :config
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
   )
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
@@ -143,9 +144,9 @@
   (centaur-tabs-inherit-tabbar-faces)
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-gray-out-icons 'buffer)
-  :bind
-  ("C-<tab>" . centaur-tabs-forward-tab)
-  ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
+  ;; :bind
+  ;; ("C-<tab>" . centaur-tabs-forward-tab)
+  ;; ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
   )
 
 ;;;;;;;;;;;;;;;
@@ -272,6 +273,9 @@
 ;; (use-package find-file-in-project
 ;;   :defer t)
 
+(use-package gif-screencast
+  :ensure t)
+
 (use-package goto-last-change
   :ensure t)
 
@@ -365,6 +369,11 @@
 (setq kill-ring-max 500)
 
 (global-display-line-numbers-mode 1)
+(setq display-line-numbers-type 'relative)
+(setq-default display-line-numbers-type 'visual
+              display-line-numbers-current-absolute t
+              display-line-numbers-width 4
+              display-line-numbers-widen t)
 
 ;; (line-number-mode t)
 
@@ -573,7 +582,7 @@
 (use-package company
   :ensure t
   :config
-  ;; (global-company-mode)
+  (global-company-mode)
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
   (setq company-idle-delay 0.1)
@@ -660,43 +669,59 @@
 ;; (use-package lsp-mode
 ;;   :ensure t
 ;;   :commands lsp
-;;   :init
-;;   (setq lsp-auto-guess-root t)
-;;   (setq lsp-prefer-flymake nil)
-;;   :config
-;;   (require 'lsp-clients)
-;;   (add-hook 'prog-mode-hook (lambda () (flymake-mode -1)))
-;;   (define-key lsp-mode-map (kbd "S-<f6>") 'lsp-rename)
-;;   (defun wcx/activate-lsp ()
-;;     (ycmd-mode -1)
-;;     (lsp))
-;;   :hook ((python-mode bash-mode lua-mode ruby-mode) . wcx/activate-lsp))
+;;   :custom
+;;   (lsp-auto-guess-root nil)
+;;   (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+;;   (lsp-enable-snippet t)
+;;   :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
+;;   :hook ((python-mode c-mode c++-mode) . lsp))
+
 
 ;; (use-package lsp-ui
+;;   :after lsp-mode
+;;   :diminish
+;;   :commands lsp-ui-mode
+;;   :custom-face
+;;   (lsp-ui-doc-background ((t (:background nil))))
+;;   (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
+;;   :bind (:map lsp-ui-mode-map
+;;               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
+;;               ([remap xref-find-references] . lsp-ui-peek-find-references)
+;;               ("C-c u" . lsp-ui-imenu))
+;;   :custom
+;;   (lsp-ui-doc-enable t)
+;;   (lsp-ui-doc-header t)
+;;   (lsp-ui-doc-include-signature t)
+;;   (lsp-ui-doc-position 'top)
+;;   (lsp-ui-doc-border (face-foreground 'default))
+;;   (lsp-ui-sideline-enable nil)
+;;   (lsp-ui-sideline-ignore-duplicate t)
+;;   (lsp-ui-sideline-show-code-actions nil)
+;;   :config
+;;   ;; Use lsp-ui-doc-webkit only in GUI
+;;   (setq lsp-ui-doc-use-webkit t)
+;;   ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
+;;   ;; https://github.com/emacs-lsp/lsp-ui/issues/243
+;;   (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
+;;     (setq mode-line-format nil)))
+
+;; (use-package company
 ;;   :ensure t
-;;   :commands lsp-ui-mode)
+;;   :config
+;;   (setq company-idle-delay 0)
+;;   (setq company-minimum-prefix-length 3)
+
+;;   (global-company-mode t)
+;;   )
+
+;; (venv-workon "crwcommon")
+;; (setq lsp-python-executable-cmd "python")
 
 ;; (use-package company-lsp
 ;;   :ensure t
-;;   :commands company-lsp)
-
-;; (push 'company-lsp company-backends)
-
-;; (use-package dap-mode
-;;   :ensure t
 ;;   :config
-;;   (dap-mode 1)
-;;   (dap-ui-mode 1)
-;;   (require 'dap-python))
-
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :config
-;;   (require 'lsp-clients)
-;;   (add-hook 'lsp-after-open-hook 'lsp-ui-mode)
-;;   (add-hook 'python-mode-hook 'lsp))
-;; (use-package lsp-ui
-;;   :ensure t)
+;;  (push 'company-lsp company-backends)
+;; )
 
 (use-package magit
   :ensure t
@@ -777,8 +802,8 @@
        (ibuffer-do-sort-by-alphabetic))))
   )
 
-;; (use-package python-pytest
-;;   :ensure t)
+(use-package python-pytest
+  :ensure t)
 
 ;; (use-package realgud
 ;;   :ensure t)
@@ -978,7 +1003,7 @@
 
    ("a" comment-dwim-2)
    ("s" swiper)
-   ("S" swiper-thing-at-point)
+   ("S" swiper-thing-at-point) ;; thing about it
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" move-beginning-of-line)
@@ -1001,7 +1026,7 @@
    ("c" copy-whole-line-or-region)
    ("v" cua-paste)
    ("V" paste-in-new-line)
-   ("b" er-switch-to-previous-buffer)
+   ("b" er-switch-to-previous-buffer)  ;; think about it
    ("n" recenter-top-bottom)
    ("." centaur-tabs-forward-tab)
    ("," centaur-tabs-backward-tab)
@@ -1024,8 +1049,6 @@
    ("\\" er/mark-python-statement)
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
-
-
    )
 
   (ryo-modal-keys
@@ -1081,11 +1104,11 @@
          ("l" centaur-tabs-counsel-switch-group)
          ;; ("l" awesome-tab-switch-group)
          ;; (";" kill-inside-or-not)  ;; think about it
-         ;; ("'" )  ;; think about it
-         ;; ("z" )  ;; think about it
-         ;; ("x" )  ;; think about it
-         ;; ("c" )  ;; think about it
-         ;; ("v" )  ;; think about it
+         ("'" kill-all-buffers-but-scratch)
+         ("z" python-pytest-popup)  ;; think about it
+         ("x" python-pytest-function-dwim)  ;; think about it
+         ("c" python-pytest-file-dwim)  ;; think about it
+         ("v" python-pytest-repeat)  ;; think about it
          ;; ("b" )  ;; think about it
          ;; ("n" )  ;; think about it
          ("m" go-to-119)

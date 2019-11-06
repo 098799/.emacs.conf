@@ -145,7 +145,7 @@
   (interactive "P")
   (if (region-active-p)
       (cua-cut-region arg)
-    (kill-whole-line)
+    (kill-whole-line arg)
     )
   )
 
@@ -628,8 +628,8 @@ Repeated invocations toggle between the two most recently open buffers."
     )
   )
 
-(defun kill-other-buffers ()
-  "Kill all other buffers."
+(defun kill-all-buffers-but-scratch ()
+  "Kill all buffers."
   (interactive)
   (switch-to-buffer "*scratch*")
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
