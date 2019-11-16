@@ -206,6 +206,7 @@
 (cua-mode t)
 
 (use-package dired
+  :hook (dired-mode . dired-hide-details-mode)
   :bind
   (:map dired-mode-map
         ("w" . wdired-change-to-wdired-mode)
@@ -225,6 +226,14 @@
         )
   :config
   (setq dired-dwim-target t)
+  (use-package diredfl
+    :ensure t
+    :config
+    (diredfl-global-mode 1))
+  (use-package dired-git-info
+    :ensure t
+    :bind (:map dired-mode-map
+                (")" . dired-git-info-mode)))
   )
 
 (use-package dired-toggle
