@@ -73,6 +73,12 @@
   (global-hl-line-mode +1)
   )
 
+(use-package default-text-scale
+  :ensure t
+  :config
+  (default-text-scale-mode t)
+  )
+
 (use-package doom-modeline
   :ensure t
   :hook (after-init . doom-modeline-mode)
@@ -141,7 +147,7 @@
   (setq centaur-tabs-set-bar 'alternate)
   ;; (setq centaur-tabs-style "wave")
   ;; (centaur-tabs-group-by-projectile-project)
-  (centaur-tabs-inherit-tabbar-faces)
+  (setq centaur-tabs-set-close-button nil)
   (setq centaur-tabs-set-icons t)
   (setq centaur-tabs-gray-out-icons 'buffer)
   ;; :bind
@@ -344,12 +350,14 @@
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
-  (ivy-rich-mode t)
   (ivy-prescient-mode)
   )
 
 (use-package ivy-rich
-  :ensure t)
+  :ensure t
+  :config
+  (ivy-rich-mode t)
+  )
 
 (use-package ivy-youtube
   :defer t
@@ -594,10 +602,10 @@
   (global-company-mode)
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay 0.1)
+  (setq company-idle-delay 0.0)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
-  (setq company-tooltip-limit 20)
+  (setq company-tooltip-limit 10)
   (setq company-minimum-prefix-length 2)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
@@ -657,6 +665,9 @@
 ;; (eval-after-load 'flycheck
 ;;   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
 ;; ^ will be handled by ryo mode
+
+;; (use-package hy-mode
+;;   :ensure t)
 
 ;; ;; isort
 ;; (use-package py-isort
@@ -1002,9 +1013,9 @@
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
-   ("I" elpy-nav-forward-block)
+   ("I" magic-elpy-nav-forward-block)
    ("o" previous-line)
-   ("O" elpy-nav-backward-block)
+   ("O" magic-elpy-nav-backward-block)
    ("p" forward-char)
    ("P" nav-forward-indent)
    ;; ("[" )  ;; think about it
@@ -1037,8 +1048,8 @@
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; think about it
    ("n" recenter-top-bottom)
-   ("." centaur-tabs-forward-tab)
-   ("," centaur-tabs-backward-tab)
+   ("." centaur-tabs-forward)
+   ("," centaur-tabs-backward)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" dumb-jump-go)
