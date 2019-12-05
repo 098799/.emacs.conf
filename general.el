@@ -99,7 +99,37 @@
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 
-;; (global-prettify-symbols-mode t)
+(global-prettify-symbols-mode t)
+(add-hook 'prog-mode-hook
+          (lambda ()
+            (push '("<=" . ?≤) prettify-symbols-alist)
+            (push '("->" . ?→) prettify-symbols-alist)
+            (push '("<->" . ?↔) prettify-symbols-alist)
+            (push '("->>" . ?↠) prettify-symbols-alist)
+            (push '("=>" . ?⇒) prettify-symbols-alist)
+            (push '("map" . ?↦) prettify-symbols-alist)
+            (push '("/=" . ?≠) prettify-symbols-alist)
+            (push '("!=" . ?≠) prettify-symbols-alist)
+            (push '("==" . ?≡) prettify-symbols-alist)
+            (push '("<=" . ?≤) prettify-symbols-alist)
+            (push '(">=" . ?≥) prettify-symbols-alist)
+            (push '("<=<" . ?↢) prettify-symbols-alist)
+            (push '(">=>" . ?↣) prettify-symbols-alist)
+            (push '("&&" . ?∧) prettify-symbols-alist)
+            (push '("||" . ?∨) prettify-symbols-alist)
+            (push '("not" . ?¬) prettify-symbols-alist)
+            (push '("<=" . ?≤) prettify-symbols-alist)
+            (push '("+-" . ?±) prettify-symbols-alist)
+            (push '("sum" . ?∑) prettify-symbols-alist)
+            (push '("all" . ?∀) prettify-symbols-alist)
+            (push '("any" . ?∃) prettify-symbols-alist)
+            (push '("def" . ?▷) prettify-symbols-alist)
+            (push '("class" . ?◼) prettify-symbols-alist)
+            (push '("in" . ?∈) prettify-symbols-alist)
+            (push '("set()" . ?∅) prettify-symbols-alist)
+            ;; (push '(" in" . (? (Br . Bl) ?∈)) prettify-symbols-alist)
+            ))
+
 
 (use-package highlight-symbol
   :ensure t
@@ -1212,9 +1242,3 @@
          )
    )
   )
-
-
-
-;; (add-hook 'switch-buffer-functions
-;;           (lambda (prev cur) (ryo-modal--cursor-color-update))
-;;           )
