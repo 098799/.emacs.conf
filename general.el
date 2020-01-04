@@ -365,6 +365,35 @@
 (use-package ivy-prescient
   :ensure t)
 
+(use-package ivy-posframe
+  :ensure t
+  :config
+  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+  (setq ivy-posframe-parameters
+      '((left-fringe . 10)
+        (right-fringe . 10)))
+  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left))
+        ivy-posframe-height-alist '((swiper . 20)
+                                    (t      . 20))
+        ivy-posframe-parameters '((internal-border-width . 1)))
+  (ivy-posframe-mode 1)
+  (defun posframe-poshandler-frame-bottom-left-corner (info)
+  "Posframe's position handler.
+
+Get a position which let posframe stay onto its parent-frame's
+bottom left corner.  The structure of INFO can be found
+in docstring of `posframe-show'."
+  (cons 10 (- 0
+             (plist-get info :mode-line-height)
+             (plist-get info :minibuffer-height))))
+  )
+
+(use-package company-posframe
+  :ensure t
+  :config
+  (company-posframe-mode 1)
+  )
+
 (use-package company-prescient
   :ensure t)
 
@@ -427,16 +456,16 @@
 ;; (global-linum-mode t)
 (add-hook 'shell-mode-hook (lambda () (display-line-number-mode -1)))
 
-(use-package multiple-cursors
-  :ensure t
-  :bind
-  (
-   ("M-." . mc/mark-next-like-this)
-   ("M->" . mc/mark-next-word-like-this)
-   ("M-," . mc/unmark-next-like-this)
-   ("C-S-<mouse-1>" . mc/add-cursor-on-click)
-   )
-  )
+;; (use-package multiple-cursors
+;;   :ensure t
+;;   :bind
+;;   (
+;;    ("M-." . mc/mark-next-like-this)
+;;    ("M->" . mc/mark-next-word-like-this)
+;;    ("M-," . mc/unmark-next-like-this)
+;;    ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+;;    )
+;;   )
 
 (use-package ace-mc
   :ensure t) ;; please review this
@@ -550,6 +579,10 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
+(use-package vterm
+    :ensure t
+    )
+
 (use-package which-key
   :ensure t
   :init
@@ -616,6 +649,7 @@
   (setq blacken-line-length 120)
   (setq blacken-allow-py36 t)
   (add-hook 'python-mode-hook 'blacken-mode)
+  ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
 
 ;; (use-package python-black
@@ -629,10 +663,14 @@
 (use-package company
   :ensure t
   :config
-  (global-company-mode)
+  (setq company-backends '((company-capf)))
+  (global-company-mode 1)
+  ;; (add-hook 'python-mode
+  ;;           (lambda ()
+  ;;             (setq company-backends '())))
   ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay 0.0)
+  (setq company-idle-delay 0.01)
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
@@ -668,7 +706,7 @@
   )
 (use-package docker-tramp
   :after (docker tramp)
-  :defer t
+  :ensure t
   )
 
 ;; (use-package eglot
@@ -841,19 +879,19 @@
   ;; ^ will be handled by ryo mode
   )
 
-(use-package ibuffer-projectile
-  :ensure t
-  :config
-  (add-hook
-   'ibuffer-hook
-   (lambda ()
-     (ibuffer-projectile-set-filter-groups)
-     (unless (eq ibuffer-sorting-mode 'alphabetic)
-       (ibuffer-do-sort-by-alphabetic))))
-  )
+;; (use-package ibuffer-projectile
+;;   :ensure t
+;;   :config
+;;   (add-hook
+;;    'ibuffer-hook
+;;    (lambda ()
+;;      (ibuffer-projectile-set-filter-groups)
+;;      (unless (eq ibuffer-sorting-mode 'alphabetic)
+;;        (ibuffer-do-sort-by-alphabetic))))
+;;   )
 
-(use-package python-pytest
-  :ensure t)
+;; (use-package python-pytest
+;;   :ensure t)
 
 ;; (use-package realgud
 ;;   :ensure t)
@@ -907,13 +945,16 @@
                 web-mode-code-indent-offset 2)
   )
 (use-package markdown-mode
-  :defer t
+  :ensure t
   )
 (use-package markdown-mode+
-  :defer t
+  :ensure t
   )
 (use-package auto-complete-rst
   :defer t
+  )
+(use-package uml-mode
+  :ensure t
   )
 (use-package yaml-mode
   :ensure t
@@ -1008,6 +1049,8 @@
 (global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
 
+(define-key vterm-mode-map (kbd "<escape>") #'ryo-modal-mode)
+
 
 (use-package ryo-modal
   :ensure t
@@ -1086,7 +1129,7 @@
    ("?" dumb-jump-back)
 
    ("<f1>" blacken-buffer)
-   ("<f2>" blacken-region)
+   ;; ("<f2>" blacken-region)
    ("`" bookmark-jump)
    ;; ("~" )  ;; think about it
    ("!" helm-flycheck)
@@ -1131,12 +1174,12 @@
          ("p" copy-inner-with-paren)
          ("[" copy-inner-with-square)
          ("]" copy-inner-with-curly)
-         ("U" change-outer-with-paren)
-         ("I" change-outer-with-square)
-         ("O" change-outer-with-curly)
-         ("P" copy-outer-with-paren)
-         ("{" copy-outer-with-square)
-         ("}" copy-outer-with-curly)
+         ("U" copy-inner-with-paren)
+         ("I" copy-inner-with-square)
+         ("O" copy-outer-with-curly)
+         ;; ("P" copy-outer-with-paren)
+         ;; ("{" copy-outer-with-square)
+         ;; ("}" copy-outer-with-curly)
          ;; ("a" )  ;; think about it
          ;; ("s" counsel-projectile-ag)
          ("s" helm-projectile-ag)
@@ -1162,8 +1205,8 @@
          ;; ("b" )  ;; think about it
          ;; ("n" )  ;; think about it
          ("m" go-to-119)
-         ;; ("," )  ;; think about it
-         ;; ("." )  ;; think about it
+         ("," string-inflection-camelcase)  ;; think about it
+         ("." string-inflection-python-style-cycle)  ;; think about it
          ;; ("/" )  ;; think about it
          ("!" projectile-run-shell-command-in-root)
          ("%" projectile-run-async-shell-command-in-root)
@@ -1173,12 +1216,12 @@
   (ryo-modal-key
    "D" '(
          ("R" projectile-ripgrep)
-         ("U" change-outer-with-paren)
-         ("I" change-outer-with-square)
-         ("O" change-outer-with-curly)
-         ("P" copy-outer-with-paren)
-         ("{" copy-outer-with-square)
-         ("}" copy-outer-with-curly)
+         ("U" change-inner-with-paren)
+         ("I" change-inner-with-square)
+         ("O" change-inner-with-curly)
+         ;; ("P" copy-outer-with-paren)
+         ;; ("{" copy-outer-with-square)
+         ;; ("}" copy-outer-with-curly)
          )
    )
 

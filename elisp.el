@@ -13,13 +13,6 @@
   (insert "breakpoint()")
   (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
 
-(defun ci--flash-region (start end)
-  "This time with a different face"
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face 'shadow)
-    (overlay-put overlay 'priority 100)
-    (run-with-timer 0.2 nil 'delete-overlay overlay)))
-
 (defun my-copy-region (arg)
   "Copy with a flash"
   (interactive "P")
@@ -319,28 +312,6 @@
   (interactive "P")
   (cua-set-mark)
   (move-end-of-line arg)
-  )
-
-(defun blacken-region (arg)
-  "Select a black-able piece of code"
-  (interactive "P")
-  (let* (
-         (original-buffer (current-buffer))
-         (original-point (point))
-         )
-    (er/expand-region 10)
-    (er/expand-region -1)
-    (cua-cut-region arg)
-    (generate-new-buffer "new_buffer.py")
-    (switch-to-buffer "new_buffer.py")
-    (cua-paste arg)
-    (blacken-buffer arg)
-    (mark-whole-buffer)
-    (cua-cut-region arg)
-    (kill-buffer)
-    (cua-paste arg)
-    (goto-char original-point)
-    )
   )
 
 (defun ivy-with-thing-at-point (cmd)
