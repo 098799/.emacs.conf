@@ -196,6 +196,12 @@
 (use-package ace-window
   :ensure t)
 
+(use-package amx
+  :ensure t
+  :config
+  (amx-mode t)
+  )
+
 (use-package avy
   :ensure t)
 
@@ -534,9 +540,6 @@ in docstring of `posframe-show'."
 
 ;; (use-package smartparens-config
 ;;   :commands smartparens-mode)
-
-(use-package smex
-  :ensure t)
 
 (use-package helm-smex
   :ensure t)
