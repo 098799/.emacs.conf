@@ -70,6 +70,7 @@
   :ensure t
   :config
   (beacon-mode 1)
+  ;; (set-face-background hl-line "gray13")
   (global-hl-line-mode +1)
   )
 
@@ -93,11 +94,11 @@
   )
 
 (custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#002b36" :foreground "#839496" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 
 (global-prettify-symbols-mode t)
 (add-hook 'prog-mode-hook
@@ -148,8 +149,19 @@
 ;; (use-package visual-regexp
 ;;   :defer t)
 
-(use-package solarized-theme
-  :ensure t)
+(load-theme 'doom-solarized-dark t)
+
+;; (use-package faff-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'faff-theme t)
+;;   )
+
+;; (use-package solarized-theme
+;;   :ensure t)
+
+;; (use-package zenburn-theme
+;;       :ensure t)
 
 (use-package rainbow-delimiters
   :ensure t
@@ -1190,7 +1202,7 @@ in docstring of `posframe-show'."
          ("d" projectile-dired)
          ("f" counsel-projectile-find-file-dwim)
          ;; ("f" projectile-find-file)
-         ("g" helm-projectile-grep)
+         ("g" helm-projectile-rg)
          ;; ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
          ;; ("h" helm-projectile)
