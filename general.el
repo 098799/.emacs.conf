@@ -93,6 +93,8 @@
   (setq doom-modeline-vcs-max-length 20)
   )
 
+(setq echo-keystrokes 0.5)
+
 (custom-set-faces
 ;;  ;; custom-set-faces was added by Custom.
 ;;  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -100,36 +102,36 @@
 ;;  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 
-(global-prettify-symbols-mode t)
-(add-hook 'prog-mode-hook
-          (lambda ()
-            (push '("<=" . ?≤) prettify-symbols-alist)
-            (push '("->" . ?→) prettify-symbols-alist)
-            (push '("<->" . ?↔) prettify-symbols-alist)
-            (push '("->>" . ?↠) prettify-symbols-alist)
-            (push '("=>" . ?⇒) prettify-symbols-alist)
-            (push '("map" . ?↦) prettify-symbols-alist)
-            (push '("/=" . ?≠) prettify-symbols-alist)
-            (push '("!=" . ?≠) prettify-symbols-alist)
-            (push '("==" . ?≡) prettify-symbols-alist)
-            (push '("<=" . ?≤) prettify-symbols-alist)
-            (push '(">=" . ?≥) prettify-symbols-alist)
-            (push '("<=<" . ?↢) prettify-symbols-alist)
-            (push '(">=>" . ?↣) prettify-symbols-alist)
-            (push '("&&" . ?∧) prettify-symbols-alist)
-            (push '("||" . ?∨) prettify-symbols-alist)
-            (push '("not" . ?¬) prettify-symbols-alist)
-            (push '("<=" . ?≤) prettify-symbols-alist)
-            (push '("+-" . ?±) prettify-symbols-alist)
-            (push '("sum" . ?∑) prettify-symbols-alist)
-            (push '("all" . ?∀) prettify-symbols-alist)
-            (push '("any" . ?∃) prettify-symbols-alist)
-            (push '("def" . ?▷) prettify-symbols-alist)
-            (push '("class" . ?◼) prettify-symbols-alist)
-            (push '("in" . ?∈) prettify-symbols-alist)
-            (push '("set()" . ?∅) prettify-symbols-alist)
-            ;; (push '(" in" . (? (Br . Bl) ?∈)) prettify-symbols-alist)
-            ))
+;; (global-prettify-symbols-mode t)
+;; (add-hook 'prog-mode-hook
+;;           (lambda ()
+;;             (push '("<=" . ?≤) prettify-symbols-alist)
+;;             (push '("->" . ?→) prettify-symbols-alist)
+;;             (push '("<->" . ?↔) prettify-symbols-alist)
+;;             (push '("->>" . ?↠) prettify-symbols-alist)
+;;             (push '("=>" . ?⇒) prettify-symbols-alist)
+;;             (push '("map" . ?↦) prettify-symbols-alist)
+;;             (push '("/=" . ?≠) prettify-symbols-alist)
+;;             (push '("!=" . ?≠) prettify-symbols-alist)
+;;             (push '("==" . ?≡) prettify-symbols-alist)
+;;             (push '("<=" . ?≤) prettify-symbols-alist)
+;;             (push '(">=" . ?≥) prettify-symbols-alist)
+;;             (push '("<=<" . ?↢) prettify-symbols-alist)
+;;             (push '(">=>" . ?↣) prettify-symbols-alist)
+;;             (push '("&&" . ?∧) prettify-symbols-alist)
+;;             (push '("||" . ?∨) prettify-symbols-alist)
+;;             (push '("not" . ?¬) prettify-symbols-alist)
+;;             (push '("<=" . ?≤) prettify-symbols-alist)
+;;             (push '("+-" . ?±) prettify-symbols-alist)
+;;             (push '("sum" . ?∑) prettify-symbols-alist)
+;;             (push '("all" . ?∀) prettify-symbols-alist)
+;;             (push '("any" . ?∃) prettify-symbols-alist)
+;;             (push '("def" . ?▷) prettify-symbols-alist)
+;;             (push '("class" . ?◼) prettify-symbols-alist)
+;;             (push '("in" . ?∈) prettify-symbols-alist)
+;;             (push '("set()" . ?∅) prettify-symbols-alist)
+;;             ;; (push '(" in" . (? (Br . Bl) ?∈)) prettify-symbols-alist)
+;;             ))
 
 
 (use-package highlight-symbol
@@ -149,7 +151,11 @@
 ;; (use-package visual-regexp
 ;;   :defer t)
 
-(load-theme 'doom-solarized-dark t)
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-solarized-dark t)
+  )
 
 ;; (use-package faff-theme
 ;;   :ensure t
@@ -169,6 +175,9 @@
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
   )
+
+(use-package rainbow-mode
+  :ensure t)
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
@@ -226,6 +235,8 @@
 
 ;; (use-package boon
 ;;   :ensure t)  ;; I'm thinking of using some functions from it...
+
+(setq calendar-week-start-day 1)
 
 ;; (use-package centered-cursor-mode
 ;;   :defer t)
@@ -336,6 +347,8 @@
 ;; (use-package find-file-in-project
 ;;   :defer t)
 
+(setq gc-cons-threshold 50000000)
+
 (use-package gif-screencast
   :ensure t)
 
@@ -371,6 +384,12 @@
   ("C-x C-r" . helm-recentf)
   )
 
+(use-package helm-ag
+  :ensure t)
+
+(use-package helm-rg
+  :ensure t)
+
 (use-package helm-flycheck
   :ensure t)
 
@@ -405,15 +424,6 @@ in docstring of `posframe-show'."
              (plist-get info :mode-line-height)
              (plist-get info :minibuffer-height))))
   )
-
-(use-package company-posframe
-  :ensure t
-  :config
-  (company-posframe-mode 1)
-  )
-
-(use-package company-prescient
-  :ensure t)
 
 (use-package ivy-historian
   :ensure t)
@@ -556,6 +566,12 @@ in docstring of `posframe-show'."
 (use-package helm-smex
   :ensure t)
 
+(setq savehist-file "~/.emacs.d/savehist"
+      history-length 150)
+
+(setq-default save-place t)
+(setq save-place-file "~/.emacs.d/saveplace")
+
 ;; (use-package spaceline-config
 ;;   :ensure spaceline
 ;;   :config
@@ -689,7 +705,7 @@ in docstring of `posframe-show'."
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
-  (setq company-minimum-prefix-length 2)
+  (setq company-minimum-prefix-length 3)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   ;; (company-tng-configure-default)
@@ -702,6 +718,19 @@ in docstring of `posframe-show'."
 (use-package company-jedi
   :ensure t
   )
+
+(use-package company-posframe
+  :ensure t
+  :config
+  (company-posframe-mode nil)
+  )
+
+(use-package company-prescient
+  :ensure t
+  :config
+  (company-prescient-mode 1)
+  )
+
 
 ;; I think the following makes autocompletion slow:
 ;; (defun my/python-mode-hook ()
@@ -735,6 +764,7 @@ in docstring of `posframe-show'."
   :config
   (elpy-enable)
   (setq elpy-rpc-backend "jedi")
+  (add-hook 'python-mode-hook 'hs-minor-mode)
   )
 
 (use-package flycheck
@@ -938,6 +968,12 @@ in docstring of `posframe-show'."
   (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
   )
 
+(use-package yasnippet-snippets
+  :ensure t
+  :config
+  (setq yas-snippet-dirs '("~/.emacs.conf/snippets"))
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -964,6 +1000,11 @@ in docstring of `posframe-show'."
   )
 (use-package markdown-mode+
   :ensure t
+  )
+(use-package nov
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
   )
 (use-package auto-complete-rst
   :defer t
@@ -1063,6 +1104,7 @@ in docstring of `posframe-show'."
 (global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
 (global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
+(global-set-key (kbd "<S-iso-lefttab>") 'elpy-folding-toggle-at-point)
 
 (define-key vterm-mode-map (kbd "<escape>") #'ryo-modal-mode)
 
@@ -1097,7 +1139,7 @@ in docstring of `posframe-show'."
    ("R" avy-goto-word-1-above)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
-   ("y" eshell-toggle)  ;; think about it
+   ("y" ivy-resume)  ;; think about it
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
@@ -1191,7 +1233,7 @@ in docstring of `posframe-show'."
          ("]" copy-inner-with-curly)
          ("U" copy-inner-with-paren)
          ("I" copy-inner-with-square)
-         ("O" copy-outer-with-curly)
+         ("O" copy-inner-with-curly)
          ;; ("P" copy-outer-with-paren)
          ;; ("{" copy-outer-with-square)
          ;; ("}" copy-outer-with-curly)
@@ -1272,8 +1314,8 @@ in docstring of `posframe-show'."
          ("x" counsel-M-x)
          ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
-         ("v" counsel-yank-pop)
-         ;; ("v" helm-show-kill-ring)
+         ;; ("v" counsel-yank-pop)
+         ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("b" imenu)
          ("n" goto-line)

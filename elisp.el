@@ -159,8 +159,8 @@
   (interactive "P")
   (move-beginning-of-line arg)
   (forward-line)
-  (counsel-yank-pop)
-  ;; (helm-show-kill-ring)
+  ;; (counsel-yank-pop)
+  (helm-show-kill-ring)
   (forward-line -1)
   )
 

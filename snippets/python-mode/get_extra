@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: get_extra
+# key: get_extra
+# --
+def get_extra_info(self, page, patterns):
+    super().get_extra_info(page, patterns)
