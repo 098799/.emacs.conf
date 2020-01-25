@@ -286,7 +286,9 @@
         ("l" . dired-prev-dirline)
         (";" . dired-find-file)
         ("s" . swiper)
-        ("K" . dired-do-kill-lines)
+        ;; ("K" . dired-do-kill-lines)
+        ("K" . scroll-up-and-recenter)
+        ("L" . scroll-down-and-recenter)
         ("f" . counsel-find-file)
         )
   :config
@@ -459,8 +461,13 @@
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
+  (key-chord-define-global "qq" 'kill-word-or-region)
+  (key-chord-define-global "ww" 'backward-kill-word-or-region)
   (key-chord-define-global "qw" 'my-copy-word-or-region)
   (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
+  (key-chord-define-global "dw" 'add-correct-start-of-commit)
+  (key-chord-define-global "fq" 'venv-workon)
+  (key-chord-define-global "zz" 'undo-tree-undo)
   )
 
 (use-package keyfreq
@@ -981,6 +988,7 @@
   :ensure t
   :config
   (setq yas-snippet-dirs '("~/.emacs.conf/snippets"))
+  (yas-reload-all)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -1271,7 +1279,7 @@
          ;; ("b" )  ;; think about it
          ;; ("n" )  ;; think about it
          ("m" go-to-119)
-         ("," string-inflection-camelcase)  ;; think about it
+         ("," string-inflection-all-cycle)  ;; think about it
          ("." string-inflection-python-style-cycle)  ;; think about it
          ;; ("/" )  ;; think about it
          ("!" projectile-run-shell-command-in-root)
@@ -1282,9 +1290,9 @@
   (ryo-modal-key
    "D" '(
          ("R" projectile-ripgrep)
-         ("U" change-inner-with-paren)
-         ("I" change-inner-with-square)
-         ("O" change-inner-with-curly)
+         ("U" change-outer-with-paren)
+         ("I" change-outer-with-square)
+         ("O" change-outer-with-curly)
          ;; ("P" copy-outer-with-paren)
          ;; ("{" copy-outer-with-square)
          ;; ("}" copy-outer-with-curly)
