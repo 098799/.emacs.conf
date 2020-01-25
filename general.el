@@ -460,6 +460,8 @@
   (key-chord-mode +1)
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
+  (key-chord-define-global "fm" 'ivy-switch-buffer)
+  (key-chord-define-global "dl" 'centaur-tabs-counsel-switch-group)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
   (key-chord-define-global "qq" 'kill-word-or-region)
   (key-chord-define-global "ww" 'backward-kill-word-or-region)
