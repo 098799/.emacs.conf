@@ -402,28 +402,28 @@
 (use-package ivy-prescient
   :ensure t)
 
-(use-package ivy-posframe
-  :ensure t
-  :config
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
-  (setq ivy-posframe-parameters
-      '((left-fringe . 10)
-        (right-fringe . 10)))
-  (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left))
-        ivy-posframe-height-alist '((swiper . 20)
-                                    (t      . 20))
-        ivy-posframe-parameters '((internal-border-width . 1)))
-  (ivy-posframe-mode 1)
-  (defun posframe-poshandler-frame-bottom-left-corner (info)
-  "Posframe's position handler.
+;; (use-package ivy-posframe
+;;   :ensure t
+;;   :config
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+;;   (setq ivy-posframe-parameters
+;;       '((left-fringe . 10)
+;;         (right-fringe . 10)))
+;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left))
+;;         ivy-posframe-height-alist '((swiper . 20)
+;;                                     (t      . 20))
+;;         ivy-posframe-parameters '((internal-border-width . 1)))
+;;   (ivy-posframe-mode 1)
+;;   (defun posframe-poshandler-frame-bottom-left-corner (info)
+;;   "Posframe's position handler.
 
-Get a position which let posframe stay onto its parent-frame's
-bottom left corner.  The structure of INFO can be found
-in docstring of `posframe-show'."
-  (cons 10 (- 0
-             (plist-get info :mode-line-height)
-             (plist-get info :minibuffer-height))))
-  )
+;; Get a position which let posframe stay onto its parent-frame's
+;; bottom left corner.  The structure of INFO can be found
+;; in docstring of `posframe-show'."
+;;   (cons 10 (- 0
+;;              (plist-get info :mode-line-height)
+;;              (plist-get info :minibuffer-height))))
+;;   )
 
 (use-package ivy-historian
   :ensure t)
@@ -484,16 +484,25 @@ in docstring of `posframe-show'."
 ;; (global-linum-mode t)
 (add-hook 'shell-mode-hook (lambda () (display-line-number-mode -1)))
 
-;; (use-package multiple-cursors
-;;   :ensure t
-;;   :bind
-;;   (
-;;    ("M-." . mc/mark-next-like-this)
-;;    ("M->" . mc/mark-next-word-like-this)
-;;    ("M-," . mc/unmark-next-like-this)
-;;    ("C-S-<mouse-1>" . mc/add-cursor-on-click)
-;;    )
-;;   )
+(use-package multiple-cursors
+  :ensure t
+  :config
+  :bind
+  (
+   ;; ("C-t" . mc/edit-lines)
+   ("C-t" . mc/mark-next-word-like-this)
+   ;; ("M->" . mc/mark-next-word-like-this)
+   ;; ("M-," . mc/unmark-next-like-this)
+   ("C-S-<mouse-1>" . mc/add-cursor-on-click)
+   )
+  )
+
+(use-package phi-search
+  :ensure t
+  :config
+  (global-set-key (kbd "C-s") 'phi-search)
+  (global-set-key (kbd "C-r") 'phi-search-backward)
+  )  ;; think about it
 
 (use-package ace-mc
   :ensure t) ;; please review this
@@ -1314,8 +1323,8 @@ in docstring of `posframe-show'."
          ("x" counsel-M-x)
          ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
-         ;; ("v" counsel-yank-pop)
-         ("v" helm-show-kill-ring)
+         ("v" counsel-yank-pop)
+         ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ("b" imenu)
          ("n" goto-line)
