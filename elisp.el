@@ -629,6 +629,12 @@ Repeated invocations toggle between the two most recently open buffers."
  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
   )
 
+(defun middle-font ()
+  (interactive)
+(custom-set-faces
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+  )
+
 (defun small-font ()
   (interactive)
 (custom-set-faces

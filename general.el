@@ -461,15 +461,12 @@
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
   (key-chord-define-global "fm" 'ivy-switch-buffer)
-  (key-chord-define-global "dl" 'centaur-tabs-counsel-switch-group)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
   (key-chord-define-global "qq" 'kill-word-or-region)
   (key-chord-define-global "ww" 'backward-kill-word-or-region)
   (key-chord-define-global "qw" 'my-copy-word-or-region)
   (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
-  (key-chord-define-global "dw" 'add-correct-start-of-commit)
   (key-chord-define-global "fq" 'venv-workon)
-  (key-chord-define-global "zz" 'undo-tree-undo)
   )
 
 (use-package keyfreq
@@ -714,10 +711,6 @@
   :config
   (setq company-backends '((company-capf)))
   (global-company-mode 1)
-  ;; (add-hook 'python-mode
-  ;;           (lambda ()
-  ;;             (setq company-backends '())))
-  ;; (setq company-auto-complete t)
   (setq company-dabbrev-downcase nil)
   (setq company-idle-delay 0.01)
   (setq company-show-numbers t)
@@ -726,7 +719,6 @@
   (setq company-minimum-prefix-length 3)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
-  ;; (company-tng-configure-default)
   (define-key company-active-map (kbd "C-n") 'company-select-next)
   (define-key company-active-map (kbd "C-p") 'company-select-previous)
   (define-key company-active-map (kbd "M-/") 'company-other-backend)

@@ -3,5 +3,5 @@
 # key: classmethod
 # --
 @classmethod
-def $1():
+def $1(cls):
     ...
