@@ -489,13 +489,13 @@ Taken from https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/"
 
 (defun scroll-down-and-recenter (arg)
   (interactive "P")
-  (forward-line -30)
+  (forward-line -40)
   (recenter)
   )
 
 (defun scroll-up-and-recenter (arg)
   (interactive "P")
-  (forward-line 30)
+  (forward-line 40)
   (recenter)
   )
 

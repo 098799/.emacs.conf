@@ -33,25 +33,6 @@
 ;;       (eval-print-last-sexp)))
 ;;   (load bootstrap-file nil 'nomessage))
 
-;; (use-package prescient
-;;   :straight t
-;;   :ensure t
-;;   )
-
-;; (use-package ivy-prescient
-;;   :straight t
-;;   :ensure t
-;;   :config
-;;   (ivy-prescient-mode t)
-;;   )
-
-;; (use-package company-prescient
-;;   :straight t
-;;   :ensure t
-;;   :config
-;;   (company-prescient-mode t)
-;;   )
-
 ;;;;;;;;;;;;;;;
 ;;; VISUALS ;;;
 ;;;;;;;;;;;;;;;
@@ -157,17 +138,8 @@
   (load-theme 'doom-solarized-dark t)
   )
 
-;; (use-package faff-theme
-;;   :ensure t
-;;   :config
-;;   (load-theme 'faff-theme t)
-;;   )
-
 ;; (use-package solarized-theme
 ;;   :ensure t)
-
-;; (use-package zenburn-theme
-;;       :ensure t)
 
 (use-package rainbow-delimiters
   :ensure t
@@ -463,7 +435,6 @@
   (key-chord-define-global "fm" 'ivy-switch-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
   (key-chord-define-global "qq" 'kill-word-or-region)
-  (key-chord-define-global "ww" 'backward-kill-word-or-region)
   (key-chord-define-global "qw" 'my-copy-word-or-region)
   (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
   (key-chord-define-global "fq" 'venv-workon)
@@ -727,13 +698,17 @@
 
 (use-package company-jedi
   :ensure t
+  ;; (defun my/python-mode-hook ()
+  ;;   (add-to-list 'company-backends 'company-jedi))
+
+  ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
   )
 
-(use-package company-posframe
-  :ensure t
-  :config
-  (company-posframe-mode nil)
-  )
+;; (use-package company-posframe
+;;   :ensure t
+;;   :config
+;;   (company-posframe-mode nil)
+;;   )
 
 (use-package company-prescient
   :ensure t
@@ -1140,10 +1115,10 @@
 
   (ryo-modal-keys
    ;; ("," ryo-modal-repeat)
-   ("q" kill-word-or-region)  ;; think about it
-   ("Q" my-copy-word-or-region)
-   ("w" backward-kill-word-or-region)  ;; think about it
-   ("W" my-backward-copy-word-or-region)
+   ("q" kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
+   ("Q" my-copy-word-or-region)  ;; not sure
+   ("w" backward-kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
+   ("W" my-backward-copy-word-or-region)  ;; not sure
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
    ("r" avy-goto-word-1-below)
@@ -1164,30 +1139,31 @@
 
    ("a" comment-dwim-2)
    ("s" swiper)
-   ("S" swiper-thing-at-point) ;; thing about it
+   ("S" swiper-thing-at-point) ;; use it
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" move-beginning-of-line)
    ;; ("h" beginning-of-line-or-indentation)
    ("j" my-backward-word)
-   ("J" move-beginning-of-line)  ;; think about it
+   ("J" move-beginning-of-line)  ;; almost useless
    ("k" forward-paragraph)
    ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
    ("L" scroll-down-and-recenter)
    (";" my-forward-word)
-   (":" move-end-of-line)  ;; think about it
+   (":" move-end-of-line)  ;; almost useless
    ("'" move-end-of-line)
-   ("\"" mark-until-end-of-line)  ;; think about it
+   ("\"" mark-until-end-of-line)  ;; haven't been using it but doesn't hurt
 
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
    ("x" kill-whole-line-or-region)
    ("X" delete-char)  ;; think about it
    ("c" copy-whole-line-or-region)
+   ("C" delete-backward-char)
    ("v" cua-paste)
    ("V" paste-in-new-line)
-   ("b" er-switch-to-previous-buffer)  ;; think about it
+   ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
    ("." centaur-tabs-forward)
    ("," centaur-tabs-backward)
@@ -1196,18 +1172,17 @@
    ("/" dumb-jump-go)
    ("?" dumb-jump-back)
 
-   ("<f1>" blacken-buffer)
-   ;; ("<f2>" blacken-region)
-   ("`" bookmark-jump)
+   ("<f1>" blacken-buffer)  ;; almost useless now with blacken on save
+   ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
    ;; ("~" )  ;; think about it
    ("!" helm-flycheck)
    ("%" query-replace)
    ("-" delete-horizontal-and-vertical-space)
    ("_" delete-horizontal-and-vertical-space-but-leave-one-space)
    ("=" er/expand-region)
-   ("+" mark-paragraph)
-   ("]" mark-paragraph)
-   ("\\" er/mark-python-statement)
+   ("+" mark-paragraph)  ;; use me
+   ("]" mark-paragraph)  ;; use me
+   ("\\" er/mark-python-statement)  ;; use me
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
    )
@@ -1230,11 +1205,14 @@
    "d" '(
          ;; ("q" elfeed)  ;; think about it
          ("w" add-correct-start-of-commit)
-         ("e" projectile-replace-regexp)
+         ("e" projectile-replace-regexp)  ;; I'm not using it and and this is a valuable shortcut
          ("r" projectile-replace)
-         ("R" projectile-ripgrep)
-         ("t" projectile-toggle-between-implementation-and-test)
-         ("y" string-inflection-python-style-cycle)
+         ;; ("R" projectile-ripgrep)
+         ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
+         ("y" string-inflection-python-style-cycle)  ;; unify this and learn
+
+         ;; The following are all very important, but I'm not 100% used to them yet.
+         ;; I feel like I need to invest more into them and unify with f i, f o and such.
          ("u" change-inner-with-paren)
          ;; ("u" subword-mode)
          ("i" change-inner-with-square)
@@ -1248,11 +1226,12 @@
          ;; ("P" copy-outer-with-paren)
          ;; ("{" copy-outer-with-square)
          ;; ("}" copy-outer-with-curly)
-         ;; ("a" )  ;; think about it
+
+         ;; ("a" )  ;; prime location and unused!
          ;; ("s" counsel-projectile-ag)
          ("s" helm-projectile-ag)
-         ("S" projectile-save-project-buffers)
-         ("d" projectile-dired)
+         ("S" projectile-save-project-buffers)  ;; perfect, I don't use it often and I remember it
+         ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file-dwim)
          ;; ("f" projectile-find-file)
          ("g" helm-projectile-rg)
@@ -1261,21 +1240,27 @@
          ;; ("h" helm-projectile)
          ("j" counsel-projectile-switch-project)
          ;; ("j" helm-projectile-switch-project)
-         ("k" projectile-kill-buffers)
-         ("l" centaur-tabs-counsel-switch-group)
+         ("k" projectile-kill-buffers)  ;; similar to f k for one buffer, but not sure if I need this mnemotechnique
+         ("l" centaur-tabs-counsel-switch-group)  ;; important but not sure if in the right place
          ;; ("l" awesome-tab-switch-group)
          ;; (";" kill-inside-or-not)  ;; think about it
-         ("'" kill-all-buffers-but-scratch)
+         ("'" kill-all-buffers-but-scratch)  ;; useful and out of the way, good use
+
+         ;; pytest I'm struggling to use inside emacs...
          ("z" python-pytest-popup)  ;; think about it
          ("x" python-pytest-function-dwim)  ;; think about it
          ("c" python-pytest-file-dwim)  ;; think about it
          ("v" python-pytest-repeat)  ;; think about it
          ;; ("b" )  ;; think about it
          ;; ("n" )  ;; think about it
-         ("m" go-to-119)
+         ("m" go-to-119)  ;; almost useless
+
+         ;; please unify those and learn them...
          ("," string-inflection-all-cycle)  ;; think about it
          ("." string-inflection-python-style-cycle)  ;; think about it
          ;; ("/" )  ;; think about it
+
+         ;; almost useless but hey, it's not like I'm loosing anything
          ("!" projectile-run-shell-command-in-root)
          ("%" projectile-run-async-shell-command-in-root)
          )
@@ -1300,13 +1285,13 @@
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
-         ("y" kill-inside-or-not)
-         ("u" copy-inside-or-not)
+         ("y" kill-inside-or-not)  ;; remember
+         ("u" copy-inside-or-not)  ;; remember
          ("i" mark-inside-or-not)
          ("o" mark-outside-or-not)
-         ("p" copy-outside-or-not)
+         ("p" copy-outside-or-not)  ;; remember
          ;; ("p" other-window)
-         ("[" kill-outside-or-not)
+         ("[" kill-outside-or-not)  ;; remember
          ;; ("[" ace-window)
          ("a" goto-last-change)  ;; think about it
          ("s" save-buffer)
@@ -1315,11 +1300,11 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ;; ("j" awesome-tab-backward-tab)  ;; think about it
-         ("k" kill-current-buffer)
-         ("l" counsel-projectile-switch-to-buffer)
+         ;; ("j" )  ;; EMPTY
+         ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
+         ("l" counsel-projectile-switch-to-buffer)  ;; useful but maybe somewhere else?
          ;; ("l" helm-mini)
-         ;; (";" awesome-tab-forward-tab)  ;; think about it
+         ;; (";" )  ;; EMPTY
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
@@ -1328,8 +1313,8 @@
          ("v" counsel-yank-pop)
          ;; ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
-         ("b" imenu)
-         ("n" goto-line)
+         ("b" imenu)  ;; think about it
+         ("n" goto-line)  ;; useful but I could just as well use M-g M-g
          ("m" ivy-switch-buffer)
          ("." xref-find-definitions)
          ("," xref-pop-marker-stack)
@@ -1342,8 +1327,8 @@
          ("5 1" delete-other-frames)
          ("5 2" make-frame-command)
          ("SPC" rectangle-mark-mode)
-         ("M-o" elpy-nav-move-line-or-region-up)
-         ("M-i" elpy-nav-move-line-or-region-down)
+         ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
+         ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
          )
    )
 
