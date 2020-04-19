@@ -153,30 +153,31 @@
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
-;; (setq awesome-tab-background-color "#002B36")
-;; (setq awesome-tab-style "bar")
-;; (add-to-list 'load-path "~/.emacs.d/awesome-tab/")
-;; ;; (load "tabbar")
-;; (require 'awesome-tab)
-;; (awesome-tab-mode t)
-;; (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-;; (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+(setq awesome-tab-background-color "#002B36")
+(setq awesome-tab-style "bar")
+(add-to-list 'load-path "~/.emacs.d/awesome-tab/")
+;; (load "tabbar")
+(require 'awesome-tab)
+(awesome-tab-mode t)
+(global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
+(global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
 
-(use-package centaur-tabs
-  :demand
-  :ensure t
-  :config
-  (centaur-tabs-mode t)
-  (setq centaur-tabs-set-bar 'alternate)
-  ;; (setq centaur-tabs-style "wave")
-  ;; (centaur-tabs-group-by-projectile-project)
-  (setq centaur-tabs-set-close-button nil)
-  (setq centaur-tabs-set-icons t)
-  (setq centaur-tabs-gray-out-icons 'buffer)
-  ;; :bind
-  ;; ("C-<tab>" . centaur-tabs-forward-tab)
-  ;; ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
-  )
+;; (use-package centaur-tabs
+;;   :demand
+;;   :ensure t
+;;   :config
+;;   (centaur-tabs-mode t)
+;;   (setq centaur-tabs-style 'bar)
+;;   ;; (setq centaur-tabs-set-bar 'alternate)
+;;   ;; (setq centaur-tabs-style "wave")
+;;   ;; (centaur-tabs-group-by-projectile-project)
+;;   (setq centaur-tabs-set-close-button nil)
+;;   (setq centaur-tabs-set-icons t)
+;;   (setq centaur-tabs-gray-out-icons 'buffer)
+;;   ;; :bind
+;;   ;; ("C-<tab>" . centaur-tabs-forward-tab)
+;;   ;; ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
+;;   )
 
 ;;;;;;;;;;;;;;;
 ;;; GENERAL ;;;
@@ -467,7 +468,7 @@
   :bind
   (
    ;; ("C-t" . mc/edit-lines)
-   ("C-t" . mc/mark-next-word-like-this)
+   ;; ("C-t" . mc/mark-next-word-like-this)
    ;; ("M->" . mc/mark-next-word-like-this)
    ;; ("M-," . mc/unmark-next-like-this)
    ("C-S-<mouse-1>" . mc/add-cursor-on-click)
@@ -1118,7 +1119,7 @@
    ("q" kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
    ("Q" my-copy-word-or-region)  ;; not sure
    ("w" backward-kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
-   ("W" my-backward-copy-word-or-region)  ;; not sure
+   ("W" my-backward-copy-word-or-region)  ;; not surem
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
    ("r" avy-goto-word-1-below)
@@ -1165,8 +1166,10 @@
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
-   ("." centaur-tabs-forward)
-   ("," centaur-tabs-backward)
+   ("." awesome-tab-forward-tab)
+   ;; ("." centaur-tabs-forward)
+   ("," awesome-tab-backward-tab)
+   ;; ("," centaur-tabs-backward)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" dumb-jump-go)
@@ -1241,8 +1244,8 @@
          ("j" counsel-projectile-switch-project)
          ;; ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)  ;; similar to f k for one buffer, but not sure if I need this mnemotechnique
-         ("l" centaur-tabs-counsel-switch-group)  ;; important but not sure if in the right place
-         ;; ("l" awesome-tab-switch-group)
+         ;; ("l" centaur-tabs-counsel-switch-group)  ;; important but not sure if in the right place
+         ("l" awesome-tab-switch-group)
          ;; (";" kill-inside-or-not)  ;; think about it
          ("'" kill-all-buffers-but-scratch)  ;; useful and out of the way, good use
 
