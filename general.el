@@ -597,10 +597,6 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
-(use-package vterm
-    :ensure t
-    )
-
 (use-package which-key
   :ensure t
   :init
@@ -1092,8 +1088,6 @@
 (global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
 (global-set-key (kbd "<S-iso-lefttab>") 'elpy-folding-toggle-at-point)
-
-(define-key vterm-mode-map (kbd "<escape>") #'ryo-modal-mode)
 
 
 (use-package ryo-modal
