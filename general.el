@@ -132,14 +132,17 @@
 ;; (use-package visual-regexp
 ;;   :defer t)
 
-(use-package doom-themes
+;; (use-package doom-themes
+;;   :ensure t
+;;   :config
+;;   (load-theme 'doom-solarized-dark t)
+;;   )
+
+(use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'doom-solarized-dark t)
+  (load-theme 'solarized-dark t)  ;; check
   )
-
-;; (use-package solarized-theme
-;;   :ensure t)
 
 (use-package rainbow-delimiters
   :ensure t
