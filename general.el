@@ -1252,7 +1252,7 @@
          ("c" python-pytest-file-dwim)  ;; think about it
          ("v" python-pytest-repeat)  ;; think about it
          ;; ("b" )  ;; think about it
-         ;; ("n" )  ;; think about it
+         ("n" split-string-if-over-120)  ;; think about it
          ("m" go-to-119)  ;; almost useless
 
          ;; please unify those and learn them...
