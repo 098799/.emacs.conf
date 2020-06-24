@@ -63,16 +63,24 @@
 
 (use-package doom-modeline
   :ensure t
-  :hook (after-init . doom-modeline-mode)
+  :init (doom-modeline-mode 1)
   :config
   (setq doom-modeline-height 25)
   (setq doom-modeline-bar-width 3)
-  (setq doom-modeline-icon t)
-  (setq doom-modeline-major-mode-icon t)
-  (setq doom-modeline-major-mode-color-icon t)
+  ;; (setq doom-modeline-icon t)
+  ;; (setq doom-modeline-major-mode-icon t)
+  ;; (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 20)
   )
+
+;;   (use-package diminish
+;;     :ensure t
+;;     :config
+;;     (diminish 'flycheck-mode)
+;;     (diminish 'flymake-mode)
+;;     )
+;;   )
 
 (setq echo-keystrokes 0.5)
 
@@ -81,7 +89,7 @@
 ;;  ;; If you edit it by hand, you could mess it up, so be careful.
 ;;  ;; Your init file should contain only one such instance.
 ;;  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
 
 ;; (global-prettify-symbols-mode t)
 ;; (add-hook 'prog-mode-hook
@@ -141,7 +149,7 @@
 (use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'solarized-dark t)  ;; check
+  (load-theme 'solarized-dark t)
   )
 
 (use-package rainbow-delimiters
@@ -156,14 +164,20 @@
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
-(setq awesome-tab-background-color "#002B36")
-(setq awesome-tab-style "bar")
-(add-to-list 'load-path "~/.emacs.d/awesome-tab/")
+(use-package awesome-tab
+  :load-path "~/.emacs.d/awesome-tab/"
+  :config
+  (setq awesome-tab-background-color "#002B36")
+  (setq awesome-tab-style "bar")
+  (awesome-tab-mode t)
+  (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
+  (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+  )
+
+;; (add-to-list 'load-path "~/.emacs.d/awesome-tab/")
 ;; (load "tabbar")
-(require 'awesome-tab)
-(awesome-tab-mode t)
-(global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-(global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+;; (require 'awesome-tab)
+;; (awesome-tab-mode t)
 
 ;; (use-package centaur-tabs
 ;;   :demand
@@ -251,6 +265,7 @@
   :bind
   (:map dired-mode-map
         ("w" . wdired-change-to-wdired-mode)
+        ("e" . eshell)
         ("u" . dired-up-directory)
         ("U" . dired-unmark)
         ("* u" . dired-unmark-all-files)
@@ -478,17 +493,19 @@
    )
   )
 
-(use-package phi-search
-  :ensure t
-  :config
-  (global-set-key (kbd "C-s") 'phi-search)
-  (global-set-key (kbd "C-r") 'phi-search-backward)
-  )  ;; think about it
+;; (use-package phi-search
+;;   :ensure t
+;;   :config
+;;   (global-set-key (kbd "C-s") 'phi-search)
+;;   (global-set-key (kbd "C-r") 'phi-search-backward)
+;;   )  ;; think about it
 
 (use-package ace-mc
   :ensure t) ;; please review this
 
 (setq org-support-shift-select t)
+(eval-after-load "org"
+  '(require 'ox-md nil t))
 ;; (set-default 'truncate-lines t)
 ;; (setq org-latex-pdf-process
 ;;       '("pdflatex -interaction nonstopmode -output-directory %o %f"
@@ -557,7 +574,7 @@
   :ensure t)
 
 (setq savehist-file "~/.emacs.d/savehist"
-      history-length 150)
+      history-length 300)
 
 (setq-default save-place t)
 (setq save-place-file "~/.emacs.d/saveplace")
@@ -663,9 +680,9 @@
   :ensure t
   :config
   (setq blacken-skip-string-normalization nil)
-  (setq blacken-line-length 120)
+  (setq blacken-line-length 130)
   (setq blacken-allow-py36 t)
-  (add-hook 'python-mode-hook 'blacken-mode)
+  ;; (add-hook 'python-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
 
@@ -750,12 +767,15 @@
   (elpy-enable)
   (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
+  (when (load "flycheck" t t)
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode))
   )
 
 (use-package flycheck
   :ensure t
-  :init
-  (global-flycheck-mode)
+  :config
+  (global-flycheck-mode t)
   )
 
 ;; (eval-after-load 'flycheck
@@ -766,6 +786,15 @@
 
 ;; (use-package hy-mode
 ;;   :ensure t)
+
+;; (use-package importmagic
+;;     :ensure t
+;;     :config
+;;     (add-hook 'python-mode-hook 'importmagic-mode)
+;;     (setq importmagic-style-configuration-alist '((multiline . parentheses)
+;;                                                   (max_columns . 200))
+;;           )
+;;     )
 
 ;; ;; isort
 ;; (use-package py-isort
@@ -963,6 +992,41 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
+(use-package js2-mode
+  :ensure t
+  :mode (("\\.js$" . js2-mode))
+  )
+(use-package tide
+  :ensure t
+  :config
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1)
+    ;; company is an optional dependency. You have to
+    ;; install it separately via package-install
+    ;; `M-x package-install [ret] company`
+    (company-mode +1))
+
+  (setq tide-format-options '(:indentSize 2))
+
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  (add-hook 'before-save-hook 'tide-format-before-save)
+
+  (add-hook 'typescript-mode-hook #'setup-tide-mode)
+  )
+(use-package xref-js2
+  :ensure t)
+(use-package typescript-mode
+  :mode (("\\.ts$" . typescript-mode))
+  :ensure t)
+
 (use-package json-mode
   :ensure t)
 (use-package csv-mode
@@ -1127,9 +1191,9 @@
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
-   ("I" magic-elpy-nav-forward-block)
+   ("I" magic-elpy-nav-forward-class)
    ("o" previous-line)
-   ("O" magic-elpy-nav-backward-block)
+   ("O" magic-elpy-nav-backward-class)
    ("p" forward-char)
    ("P" nav-forward-indent)
    ;; ("[" )  ;; think about it
@@ -1141,15 +1205,15 @@
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" move-beginning-of-line)
-   ;; ("h" beginning-of-line-or-indentation)
+   ("H" beginning-of-line-or-indentation)
    ("j" my-backward-word)
-   ("J" move-beginning-of-line)  ;; almost useless
+   ("J" magic-elpy-nav-backward-method)
    ("k" forward-paragraph)
    ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
    ("L" scroll-down-and-recenter)
    (";" my-forward-word)
-   (":" move-end-of-line)  ;; almost useless
+   (":" magic-elpy-nav-forward-method)
    ("'" move-end-of-line)
    ("\"" mark-until-end-of-line)  ;; haven't been using it but doesn't hurt
 
@@ -1185,6 +1249,7 @@
    ("\\" er/mark-python-statement)  ;; use me
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
+   ("~" tild-up-or-replace)
    )
 
   (ryo-modal-keys
@@ -1252,8 +1317,10 @@
          ("c" python-pytest-file-dwim)  ;; think about it
          ("v" python-pytest-repeat)  ;; think about it
          ;; ("b" )  ;; think about it
-         ("n" split-string-if-over-120)  ;; think about it
-         ("m" go-to-119)  ;; almost useless
+         ;; ("n" split-string-if-over-120)  ;; think about it
+         ;; ("m" go-to-119)  ;; almost useless
+         ("n" subword-mode)  ;; let's try to make it work
+         ("m" superword-mode)  ;; let's try to make it work
 
          ;; please unify those and learn them...
          ("," string-inflection-all-cycle)  ;; think about it
@@ -1331,6 +1398,27 @@
          ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
          )
    )
+
+  (ryo-modal-major-mode-keys
+   'python-mode
+   ("f"
+    (
+     ("." elpy-goto-definition)
+     ("," pop-tag-mark)
+     )
+    )
+   )
+
+  (ryo-modal-major-mode-keys
+   'js2-mode
+   ("f"
+    (
+     ("." js2-jump-to-definition)
+     ("," xref-pop-marker-stack)
+     )
+    )
+   )
+
 
   (ryo-modal-key
    "F" '(

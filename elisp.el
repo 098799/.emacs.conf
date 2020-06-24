@@ -11,7 +11,7 @@
   (move-end-of-line 1)
   (newline-and-indent)
   (insert "breakpoint()")
-  (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
+  (highlight-lines-matching-regexp "^[ ]*breakpoint()*"))
 
 (defun my-copy-region (arg)
   "Copy with a flash"
@@ -687,23 +687,60 @@ Repeated invocations toggle between the two most recently open buffers."
   (switch-to-buffer "*scratch*")
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
-(defun magic-elpy-nav-forward-block (arg)
-  (interactive "P")
+(defun magic-elpy-nav-forward-class ()
+  (interactive)
   (let ((current (current-column)))
-    (move-beginning-of-line arg)
+    (move-beginning-of-line nil)
     (elpy-nav-forward-block)
     (move-to-column current t)
     )
   )
 
-(defun magic-elpy-nav-backward-block (arg)
-  (interactive "P")
+(defun magic-elpy-nav-backward-class ()
+  (interactive)
   (let ((current (current-column)))
-    (move-beginning-of-line arg)
+    (move-beginning-of-line nil)
     (elpy-nav-backward-block)
     (move-to-column current t)
     )
   )
+
+(defun magic-elpy-nav-forward-method ()
+  (interactive)
+  (let ((current (current-column)))
+    (move-to-column 4 t)
+    (elpy-nav-forward-block)
+    (move-to-column current t)
+    )
+  )
+
+(defun magic-elpy-nav-backward-method ()
+  (interactive)
+  (let ((current (current-column)))
+    (move-to-column 4 t)
+    (elpy-nav-backward-block)
+    (move-to-column current t)
+    )
+  )
+
+;; (defun big-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
+;;   )
+
+;; (defun middle-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+;;   )
+
+;; (defun small-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+;;   )
+
 
 (defun big-font ()
   (interactive)
@@ -714,11 +751,36 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun middle-font ()
   (interactive)
 (custom-set-faces
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :family "Ubuntu Mono")))))
   )
 
 (defun small-font ()
   (interactive)
 (custom-set-faces
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+ '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+)
+
+(defun tild-up-or-replace (arg)
+  (interactive "P")
+  (if mark-active
+      (progn
+        (save-excursion
+          (let ((reg-beg (region-beginning))
+                (reg-end (region-end)))
+            (goto-char reg-end)
+            (insert-char ?~)
+            (goto-char reg-beg)
+            (insert-char ?~)
+            )
+          )
+        (right-char)
+        )
+    (insert-char ?~)
+    )
   )
+
+(defun query-replace-thing-at-point-or-selection (replace-str)
+   (interactive "sDo query-replace current word with: ")
+   (mark-inside-or-not nil)
+   (copy-whole-line-or-region nil)
+   (query-replace (current-kill 0) replace-str))
