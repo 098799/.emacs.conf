@@ -169,6 +169,7 @@
   :config
   (setq awesome-tab-background-color "#002B36")
   (setq awesome-tab-style "bar")
+  (setq awesome-tab-height 120)
   (awesome-tab-mode t)
   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
@@ -300,6 +301,7 @@
   :bind
   ("<f7>" . dired-toggle)
   :config
+  (setq dired-toggle-window-size 40)
   (add-hook 'dired-toggle-mode-hook
           (lambda () (interactive)
             (visual-line-mode 1)
@@ -378,6 +380,9 @@
   )
 
 (use-package helm-ag
+  :ensure t)
+
+(use-package rg
   :ensure t)
 
 (use-package helm-rg
@@ -468,12 +473,11 @@
 
 (setq kill-ring-max 500)
 
-(global-display-line-numbers-mode 1)
-(setq display-line-numbers-type 'relative)
-(setq-default display-line-numbers-type 'visual
-              display-line-numbers-current-absolute t
+(setq-default display-line-numbers-current-absolute t
               display-line-numbers-width 4
               display-line-numbers-widen t)
+(setq display-line-numbers-type t)
+(global-display-line-numbers-mode 1)
 
 ;; (line-number-mode t)
 
@@ -527,6 +531,7 @@
   (persistent-scratch-setup-default)
   )
 
+(setq recentf-max-saved-items 300)
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
@@ -605,8 +610,8 @@
 (setq tramp-default-method "ssh")
 (use-package helm-tramp
   :ensure t)
-;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
-;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
+(add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
+(add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 
 (use-package undo-tree
@@ -680,7 +685,7 @@
   :ensure t
   :config
   (setq blacken-skip-string-normalization nil)
-  (setq blacken-line-length 130)
+  (setq blacken-line-length 150)
   (setq blacken-allow-py36 t)
   ;; (add-hook 'python-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
@@ -765,6 +770,7 @@
   :ensure t
   :config
   (elpy-enable)
+  (setq elpy-rpc-timeout 10)
   (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (when (load "flycheck" t t)
@@ -949,8 +955,8 @@
 ;;        (ibuffer-do-sort-by-alphabetic))))
 ;;   )
 
-;; (use-package python-pytest
-;;   :ensure t)
+(use-package python-pytest
+  :ensure t)
 
 ;; (use-package realgud
 ;;   :ensure t)
@@ -1161,6 +1167,7 @@
   :ensure t
   :commands ryo-modal-mode
   :bind ("<escape>" . ryo-modal-mode)
+  :bind ("<f13>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
   :config
   (add-hook 'text-mode-hook #'ryo-modal-mode)
@@ -1227,6 +1234,7 @@
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
+   ;; ("m" ) ??????????? forgot about it?
    ("." awesome-tab-forward-tab)
    ;; ("." centaur-tabs-forward)
    ("," awesome-tab-backward-tab)

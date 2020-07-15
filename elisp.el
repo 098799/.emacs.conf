@@ -224,13 +224,15 @@
   "Mark inside python string, but if not, just the word."
   (interactive "P")
   (er/mark-inside-python-string)
-  (unless (region-active-p)
-    (progn
-      (superword-mode t)
-      (my-forward-word arg)
-      (cua-set-mark)
-      (my-backward-word arg)
-      (superword-mode nil)
+  (let ((current-superword-state (bound-and-true-p superword-mode)))
+    (unless (region-active-p)
+      (progn
+        (superword-mode t)
+        (my-forward-word arg)
+        (cua-set-mark)
+        (my-backward-word arg)
+        (superword-mode current-superword-state)
+        )
       )
     )
   )
@@ -265,15 +267,17 @@
   "Mark outside python string, but if not, just the word."
   (interactive "P")
   (er/mark-outside-python-string)
-  (unless (region-active-p)
-    (progn
-      (superword-mode t)
-      (my-forward-word arg)
-      (right-char)
-      (cua-set-mark)
-      (my-backward-word arg)
-      (left-char)
-      (superword-mode nil)
+  (let ((current-superword-state (bound-and-true-p superword-mode)))
+    (unless (region-active-p)
+      (progn
+        (superword-mode t)
+        (my-forward-word arg)
+        (right-char)
+        (cua-set-mark)
+        (my-backward-word arg)
+        (left-char)
+        (superword-mode current-superword-state)
+        )
       )
     )
   )
@@ -571,6 +575,14 @@ Repeated invocations toggle between the two most recently open buffers."
     (ryo-modal-mode 0))
   )
 
+(defun ryo-modal-toggle ()
+  (interactive)
+  (if (bound-and-true-p ryo-modal-mode)
+      (ryo-modal-mode 0)
+    (ryo-modal-mode 1)
+    )
+  )
+
 (defun save-and-enter-ryo ()
   (interactive)
   (save-buffer)
@@ -742,23 +754,23 @@ Repeated invocations toggle between the two most recently open buffers."
 ;;   )
 
 
-(defun big-font ()
+(defun small-font ()
   (interactive)
-(custom-set-faces
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
-  )
+  (custom-set-faces
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+)
 
 (defun middle-font ()
   (interactive)
-(custom-set-faces
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :family "Ubuntu Mono")))))
+  (custom-set-faces
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :family "Ubuntu Mono")))))
   )
 
-(defun small-font ()
+(defun big-font ()
   (interactive)
-(custom-set-faces
- '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
-)
+  (custom-set-faces
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
+  )
 
 (defun tild-up-or-replace (arg)
   (interactive "P")
@@ -784,3 +796,10 @@ Repeated invocations toggle between the two most recently open buffers."
    (mark-inside-or-not nil)
    (copy-whole-line-or-region nil)
    (query-replace (current-kill 0) replace-str))
+
+(defun kill-dired-buffers ()
+  (interactive)
+  (mapc (lambda (buffer)
+          (when (eq 'dired-mode (buffer-local-value 'major-mode buffer))
+            (kill-buffer buffer)))
+        (buffer-list)))
