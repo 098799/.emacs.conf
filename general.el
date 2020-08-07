@@ -268,7 +268,6 @@
         ("w" . wdired-change-to-wdired-mode)
         ("e" . eshell)
         ("u" . dired-up-directory)
-        ("U" . dired-unmark)
         ("* u" . dired-unmark-all-files)
         ("i" . dired-next-line)
         ("o" . dired-previous-line)
@@ -282,6 +281,7 @@
         ("K" . scroll-up-and-recenter)
         ("L" . scroll-down-and-recenter)
         ("f" . counsel-find-file)
+        ("n" . dired-unmark)
         )
   :config
   (setq dired-dwim-target t)
@@ -442,6 +442,7 @@
   :ensure t
   :config
   (ivy-rich-mode t)
+  ;; (ivy-rich-mode 0)
   )
 
 (use-package ivy-youtube
@@ -1162,12 +1163,15 @@
 (global-set-key (kbd "C-M-<return>") 'newline)
 (global-set-key (kbd "<S-iso-lefttab>") 'elpy-folding-toggle-at-point)
 
+(global-set-key (kbd "'") 'quote-up-or-replace)
+(global-set-key (kbd "\"") 'double-quote-up-or-replace)
+(global-set-key (kbd "~") 'tild-up-or-replace)
+
 
 (use-package ryo-modal
   :ensure t
   :commands ryo-modal-mode
   :bind ("<escape>" . ryo-modal-mode)
-  :bind ("<f13>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
   :config
   (add-hook 'text-mode-hook #'ryo-modal-mode)
@@ -1183,7 +1187,6 @@
   (ryo-modal-mode)
 
   (ryo-modal-keys
-   ;; ("," ryo-modal-repeat)
    ("q" kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
    ("Q" my-copy-word-or-region)  ;; not sure
    ("w" backward-kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
@@ -1222,7 +1225,7 @@
    (";" my-forward-word)
    (":" magic-elpy-nav-forward-method)
    ("'" move-end-of-line)
-   ("\"" mark-until-end-of-line)  ;; haven't been using it but doesn't hurt
+   ("\"" double-quote-up-or-replace)
 
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
@@ -1233,8 +1236,8 @@
    ("v" cua-paste)
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
+   ("m" ryo-modal-repeat)  ;; use it as well!
    ("n" recenter-top-bottom)
-   ;; ("m" ) ??????????? forgot about it?
    ("." awesome-tab-forward-tab)
    ;; ("." centaur-tabs-forward)
    ("," awesome-tab-backward-tab)
@@ -1244,20 +1247,22 @@
    ("/" dumb-jump-go)
    ("?" dumb-jump-back)
 
-   ("<f1>" blacken-buffer)  ;; almost useless now with blacken on save
    ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
-   ;; ("~" )  ;; think about it
+   ("~" tild-up-or-replace)
    ("!" helm-flycheck)
+   ("$" query-replace-thing-at-point-or-selection)
    ("%" query-replace)
    ("-" delete-horizontal-and-vertical-space)
    ("_" delete-horizontal-and-vertical-space-but-leave-one-space)
    ("=" er/expand-region)
-   ("+" mark-paragraph)  ;; use me
-   ("]" mark-paragraph)  ;; use me
+   ("+" mark-paragraph)  ;; use me ;; or not, really, what's the point...
+   ("]" mark-paragraph)  ;; use me ;; or not, really, what's the point...
+   ("(" insert-parentheses)
+   ("[" square-bracket-up-or-replace)
+   ("{" curly-bracket-up-or-replace)
    ("\\" er/mark-python-statement)  ;; use me
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
-   ("~" tild-up-or-replace)
    )
 
   (ryo-modal-keys
@@ -1277,6 +1282,7 @@
   (ryo-modal-key
    "d" '(
          ;; ("q" elfeed)  ;; think about it
+         ("q" blacken-buffer)
          ("w" add-correct-start-of-commit)
          ("e" projectile-replace-regexp)  ;; I'm not using it and and this is a valuable shortcut
          ("r" projectile-replace)

@@ -772,7 +772,7 @@ Repeated invocations toggle between the two most recently open buffers."
    '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
   )
 
-(defun tild-up-or-replace (arg)
+(defun char-up-or-replace (arg)
   (interactive "P")
   (if mark-active
       (progn
@@ -780,22 +780,67 @@ Repeated invocations toggle between the two most recently open buffers."
           (let ((reg-beg (region-beginning))
                 (reg-end (region-end)))
             (goto-char reg-end)
-            (insert-char ?~)
+            (insert-char arg)
             (goto-char reg-beg)
-            (insert-char ?~)
+            (insert-char arg)
             )
           )
         (right-char)
         )
-    (insert-char ?~)
+    (insert-char arg)
     )
   )
 
+(defun pair-up-or-replace (arg1 arg2)
+  (interactive "P")
+  (if mark-active
+      (progn
+        (save-excursion
+          (let ((reg-beg (region-beginning))
+                (reg-end (region-end)))
+            (goto-char reg-end)
+            (insert-char arg2)
+            (goto-char reg-beg)
+            (insert-char arg1)
+            )
+          )
+        (right-char)
+        )
+    (insert-char arg1)
+    )
+  )
+
+(defun tild-up-or-replace (arg)
+  (interactive "P")
+  (char-up-or-replace ?~)
+  )
+
+(defun double-quote-up-or-replace (arg)
+  (interactive "P")
+  (char-up-or-replace ?\")
+  )
+
+(defun quote-up-or-replace (arg)
+  (interactive "P")
+  (char-up-or-replace ?\')
+  )
+
+(defun square-bracket-up-or-replace (arg)
+  (interactive "P")
+  (pair-up-or-replace ?\[ ?\])
+  )
+
+(defun curly-bracket-up-or-replace (arg)
+  (interactive "P")
+  (pair-up-or-replace ?\{ ?\})
+  )
+
 (defun query-replace-thing-at-point-or-selection (replace-str)
-   (interactive "sDo query-replace current word with: ")
-   (mark-inside-or-not nil)
-   (copy-whole-line-or-region nil)
-   (query-replace (current-kill 0) replace-str))
+  (interactive "sDo query-replace current word with: ")
+  (mark-inside-or-not nil)
+  (copy-whole-line-or-region nil)
+  (goto-char (region-beginning))
+  (query-replace (current-kill 0) replace-str))
 
 (defun kill-dired-buffers ()
   (interactive)
