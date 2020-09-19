@@ -1,7 +1,7 @@
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(
-                         ("melpa" . "http://melpa.milkbox.net/packages/")
+                         ("melpa" . "https://melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
                          ("marmalade" . "https://marmalade-repo.org/packages/")
                          ))
@@ -126,10 +126,10 @@
 (use-package highlight-symbol
   :ensure t
   :bind
-  ("C-<f5>" . highlight-symbol)
-  ("<f5>" . highlight-symbol-next)
-  ("S-<f5>" . highlight-symbol-prev)
-  ("M-<f5>" . highlight-symbol-query-replace)
+  ;; ("C-<f5>" . highlight-symbol)
+  ;; ("<f5>" . highlight-symbol-next)
+  ;; ("S-<f5>" . highlight-symbol-prev)
+  ;; ("M-<f5>" . highlight-symbol-query-replace)
   )
 
 (use-package nav-flash
@@ -685,7 +685,7 @@
 (use-package blacken
   :ensure t
   :config
-  (setq blacken-skip-string-normalization nil)
+  (setq blacken-skip-string-normalization t)
   (setq blacken-line-length 150)
   (setq blacken-allow-py36 t)
   ;; (add-hook 'python-mode-hook 'blacken-mode)
@@ -1197,7 +1197,8 @@
    ("R" avy-goto-word-1-above)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
-   ("y" ivy-resume)  ;; think about it
+   ;; ("y" ivy-resume)  ;; think about it
+   ("y" other-window)
    ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
@@ -1208,9 +1209,13 @@
    ("P" nav-forward-indent)
    ;; ("[" )  ;; think about it
    ;; ("]" )  ;; think about it
+   ("[" square-bracket-up-or-replace)
+   ("{" curly-bracket-up-or-replace)
+   ("\\" er/mark-python-statement)  ;; use me
 
    ("a" comment-dwim-2)
-   ("s" swiper)
+   ("A" comment-paragraph)
+   ("s" swiper-region)
    ("S" swiper-thing-at-point) ;; use it
    ("g" keyboard-quit)
    ("G" end-of-buffer)
@@ -1250,17 +1255,14 @@
    ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
    ("~" tild-up-or-replace)
    ("!" helm-flycheck)
+   ("#" highlight-symbol-query-replace)
    ("$" query-replace-thing-at-point-or-selection)
    ("%" query-replace)
+   ("(" insert-parentheses)
    ("-" delete-horizontal-and-vertical-space)
    ("_" delete-horizontal-and-vertical-space-but-leave-one-space)
    ("=" er/expand-region)
    ("+" mark-paragraph)  ;; use me ;; or not, really, what's the point...
-   ("]" mark-paragraph)  ;; use me ;; or not, really, what's the point...
-   ("(" insert-parentheses)
-   ("[" square-bracket-up-or-replace)
-   ("{" curly-bracket-up-or-replace)
-   ("\\" er/mark-python-statement)  ;; use me
    ("SPC" cua-set-mark)
    ("RET" smart-newline)
    )
@@ -1309,7 +1311,7 @@
          ;; ("a" )  ;; prime location and unused!
          ;; ("s" counsel-projectile-ag)
          ("s" helm-projectile-ag)
-         ("S" projectile-save-project-buffers)  ;; perfect, I don't use it often and I remember it
+         ("S" helm-projectile-ag-thing-at-point)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file-dwim)
          ;; ("f" projectile-find-file)
@@ -1326,7 +1328,8 @@
          ("'" kill-all-buffers-but-scratch)  ;; useful and out of the way, good use
 
          ;; pytest I'm struggling to use inside emacs...
-         ("z" python-pytest-popup)  ;; think about it
+         ;; ("z" python-pytest-popup)  ;; think about it
+         ("z" get-test-string)  ;; think about it
          ("x" python-pytest-function-dwim)  ;; think about it
          ("c" python-pytest-file-dwim)  ;; think about it
          ("v" python-pytest-repeat)  ;; think about it
@@ -1374,8 +1377,10 @@
          ;; ("p" other-window)
          ("[" kill-outside-or-not)  ;; remember
          ;; ("[" ace-window)
+
          ("a" goto-last-change)  ;; think about it
          ("s" save-buffer)
+         ("S" projectile-save-project-buffers)  ;; perfect, I don't use it often and I remember it
          ("d" dired-jump)
          ("f" counsel-find-file)
          ;; ("f" helm-find-files)
@@ -1386,6 +1391,7 @@
          ("l" counsel-projectile-switch-to-buffer)  ;; useful but maybe somewhere else?
          ;; ("l" helm-mini)
          ;; (";" )  ;; EMPTY
+
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
@@ -1400,6 +1406,7 @@
          ("." xref-find-definitions)
          ("," xref-pop-marker-stack)
          ;; ("/" )  ;; think about it
+
          ("0" delete-window)
          ("1" delete-other-windows)
          ("2" split-window-below)
@@ -1432,7 +1439,6 @@
      )
     )
    )
-
 
   (ryo-modal-key
    "F" '(

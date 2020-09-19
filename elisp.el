@@ -26,10 +26,12 @@
   (save-excursion
     (search-forward "On branch ")
     ;; (forward-line 5)
-    ;; (forward-word 3)
-    ;; (forward-char)
+    (forward-word)
+    (forward-char)
     (cua-set-mark)
-    (move-end-of-line arg)
+    (subword-mode t)
+    (forward-word 2)
+    ;; (move-end-of-line arg)
     (my-copy-region arg)
     )
   (cua-paste arg)
@@ -757,7 +759,7 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun small-font ()
   (interactive)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
 )
 
 (defun middle-font ()
@@ -848,3 +850,112 @@ Repeated invocations toggle between the two most recently open buffers."
           (when (eq 'dired-mode (buffer-local-value 'major-mode buffer))
             (kill-buffer buffer)))
         (buffer-list)))
+
+(defun put-into-clipboard (arg)
+  "Put arg into clipboard"
+  (when arg
+    (with-temp-buffer
+      (insert arg)
+      (clipboard-kill-region (point-min) (point-max)))
+    (message arg)
+    )
+  )
+
+(defun my-put-file-name-on-clipboard ()
+  "Put the current file name on the clipboard"
+  (interactive)
+  (let ((filename (if (equal major-mode 'dired-mode)
+                      default-directory
+                    (buffer-file-name))))
+    (put-into-clipboard filename)
+    filename
+    ))
+
+(defun get-test-string ()
+  "Create an appropriate testing string for legartis unittest"
+  (interactive)
+  (setq document-mapping
+        '(
+          ("document" . "ds")
+          ("ml" . "ml")
+          ("workflow" . "ws")
+          ("annotation" . "as")
+          ("ontology" . "os")
+          ("user" . "us")
+          ("resource" . "rs")
+          ("search" . "ss")
+          ("quota" . "qs")
+          )
+        )
+  (let ((service-list (split-string (my-put-file-name-on-clipboard) "_service/")))
+    (let (
+          (path (s-replace ".py" "" (s-replace "/" "." (car (last service-list)))))
+          (service (nth 1 service-list))
+          (class-name (get-class-name))
+          (test-name (get-test-name))
+          )
+      (put-into-clipboard (concat "ltest " (cdr (assoc service document-mapping)) " " path "." class-name "." test-name))
+      )
+    )
+  )
+
+(defun get-class-name ()
+  "Get the name of the python class in which you're currently."
+  (interactive)
+  (save-excursion
+    (re-search-backward "class [A-Z][a-z]+")
+    (right-char 6)
+    (superword-mode t)
+    (setq class-name (thing-at-point 'word))
+    )
+  class-name
+  )
+
+(defun get-test-name ()
+  "Get the name of the unittest test function you're currently in."
+  (interactive)
+  (save-excursion
+    (re-search-backward "def test_[a-z]+")
+    (right-char 4)
+    (superword-mode t)
+    (setq test-name (thing-at-point 'word))
+    )
+  test-name
+  )
+
+(defun helm-projectile-ag-thing-at-point ()
+  (interactive)
+  (mark-inside-or-not nil)
+  (helm-projectile-ag)
+  (deactivate-mark)
+  )
+
+(defun swiper-region (arg)
+  (interactive "P")
+  (if (use-region-p)
+      (swiper-thing-at-point)
+    (swiper)
+    )
+  )
+
+(defun comment-paragraph ()
+  (interactive)
+  (save-excursion
+    (mark-paragraph)
+    (comment-dwim-2)
+    )
+  )
+
+(defun cdsitepackages ()
+  (interactive)
+  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.8/site-packages")
+  )
+
+(defun get-buffer-path ()
+  (nth 1 (split-string (concat (pwd) (buffer-name))))
+  )
+
+(defun copy-buffer-path ()
+  (interactive)
+  (put-into-clipboard (get-buffer-path))
+  )
