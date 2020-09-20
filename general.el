@@ -224,6 +224,8 @@
 (use-package better-defaults
   :ensure t)
 
+(setq bookmark-save-flag t)
+
 ;; (use-package boon
 ;;   :ensure t)  ;; I'm thinking of using some functions from it...
 
@@ -1213,10 +1215,10 @@
    ("{" curly-bracket-up-or-replace)
    ("\\" er/mark-python-statement)  ;; use me
 
-   ("a" comment-dwim-2)
    ("A" comment-paragraph)
-   ("s" swiper-region)
    ("S" swiper-thing-at-point) ;; use it
+   ;; ("D" ) ;; think
+   ;; ("F" ) ;; think
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" move-beginning-of-line)
@@ -1235,9 +1237,9 @@
    ("z" undo-tree-undo)
    ("Z" undo-tree-redo)
    ("x" kill-whole-line-or-region)
-   ("X" delete-char)  ;; think about it
+   ("X" kill-thing-at-point)  ;; think about it
    ("c" copy-whole-line-or-region)
-   ("C" delete-backward-char)
+   ("C" copy-thing-at-point)
    ("v" cua-paste)
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
@@ -1282,6 +1284,26 @@
    )
 
   (ryo-modal-key
+   "a" '(
+         ("a" comment-line)
+         ("j" helm-recentf)
+         ("k" save-buffers-kill-terminal)
+         ("l" bookmark-jump)
+         (";" string-inflection-kebab-case)
+         )
+   )
+
+  (ryo-modal-key
+   "s" '(
+         ("s" swiper-region)
+         ("j" counsel-projectile)
+         ("k" kill-all-buffers-but-scratch)
+         ("l" venv-workon)
+         (";" string-inflection-upcase)
+         )
+   )
+
+  (ryo-modal-key
    "d" '(
          ;; ("q" elfeed)  ;; think about it
          ("q" blacken-buffer)
@@ -1290,23 +1312,23 @@
          ("r" projectile-replace)
          ;; ("R" projectile-ripgrep)
          ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
-         ("y" string-inflection-python-style-cycle)  ;; unify this and learn
 
          ;; The following are all very important, but I'm not 100% used to them yet.
          ;; I feel like I need to invest more into them and unify with f i, f o and such.
-         ("u" change-inner-with-paren)
-         ;; ("u" subword-mode)
-         ("i" change-inner-with-square)
-         ("o" change-inner-with-curly)
-         ("p" copy-inner-with-paren)
-         ("[" copy-inner-with-square)
-         ("]" copy-inner-with-curly)
-         ("U" copy-inner-with-paren)
-         ("I" copy-inner-with-square)
-         ("O" copy-inner-with-curly)
-         ;; ("P" copy-outer-with-paren)
-         ;; ("{" copy-outer-with-square)
-         ;; ("}" copy-outer-with-curly)
+         ;; ("u" change-inner-with-paren)
+         ;; ("i" change-inner-with-square)
+         ;; ("o" change-inner-with-curly)
+         ;; ("p" copy-inner-with-paren)
+         ;; ("[" copy-inner-with-square)
+         ;; ("]" copy-inner-with-curly)
+         ;; ("U" copy-inner-with-paren)
+         ;; ("I" copy-inner-with-square)
+         ;; ("O" copy-inner-with-curly)
+
+         ("u" mark-outside-or-not)
+         ("i" mark-outer-with-paren)
+         ("o" mark-outer-with-square)
+         ("p" mark-outer-with-curly)
 
          ;; ("a" )  ;; prime location and unused!
          ;; ("s" counsel-projectile-ag)
@@ -1319,12 +1341,13 @@
          ;; ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
          ;; ("h" helm-projectile)
-         ("j" counsel-projectile-switch-project)
+         ("j" ivy-switch-buffer)
+         ;; ("j" counsel-projectile-switch-project)
          ;; ("j" helm-projectile-switch-project)
          ("k" projectile-kill-buffers)  ;; similar to f k for one buffer, but not sure if I need this mnemotechnique
          ;; ("l" centaur-tabs-counsel-switch-group)  ;; important but not sure if in the right place
          ("l" awesome-tab-switch-group)
-         ;; (";" kill-inside-or-not)  ;; think about it
+         (";" string-inflection-camelcase)
          ("'" kill-all-buffers-but-scratch)  ;; useful and out of the way, good use
 
          ;; pytest I'm struggling to use inside emacs...
@@ -1340,8 +1363,6 @@
          ("m" superword-mode)  ;; let's try to make it work
 
          ;; please unify those and learn them...
-         ("," string-inflection-all-cycle)  ;; think about it
-         ("." string-inflection-python-style-cycle)  ;; think about it
          ;; ("/" )  ;; think about it
 
          ;; almost useless but hey, it's not like I'm loosing anything
@@ -1350,33 +1371,37 @@
          )
    )
 
-  (ryo-modal-key
-   "D" '(
-         ("R" projectile-ripgrep)
-         ("U" change-outer-with-paren)
-         ("I" change-outer-with-square)
-         ("O" change-outer-with-curly)
-         ;; ("P" copy-outer-with-paren)
-         ;; ("{" copy-outer-with-square)
-         ;; ("}" copy-outer-with-curly)
-         )
-   )
+  ;; (ryo-modal-key
+  ;;  "D" '(
+  ;;        ("R" projectile-ripgrep)
+  ;;        ("U" change-outer-with-paren)
+  ;;        ("I" change-outer-with-square)
+  ;;        ("O" change-outer-with-curly)
+  ;;        ;; ("P" copy-outer-with-paren)
+  ;;        ;; ("{" copy-outer-with-square)
+  ;;        ;; ("}" copy-outer-with-curly)
+  ;;        )
+  ;;  )
 
   (ryo-modal-key
    "f" '(
-         ("q" venv-workon)
          ("w" python-add-breakpoint)
+         ("q" venv-workon)
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
          ("y" kill-inside-or-not)  ;; remember
-         ("u" copy-inside-or-not)  ;; remember
-         ("i" mark-inside-or-not)
-         ("o" mark-outside-or-not)
-         ("p" copy-outside-or-not)  ;; remember
-         ;; ("p" other-window)
-         ("[" kill-outside-or-not)  ;; remember
-         ;; ("[" ace-window)
+
+         ;; ("u" copy-inside-or-not)  ;; remember
+         ;; ("i" mark-inside-or-not)
+         ;; ("o" mark-outside-or-not)
+         ;; ("p" copy-outside-or-not)  ;; remember
+         ;; ("[" kill-outside-or-not)  ;; remember
+
+         ("u" mark-inside-or-not)
+         ("i" mark-inner-with-paren)
+         ("o" mark-inner-with-square)
+         ("p" mark-inner-with-curly)
 
          ("a" goto-last-change)  ;; think about it
          ("s" save-buffer)
@@ -1386,11 +1411,11 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ;; ("j" )  ;; EMPTY
+         ("j" counsel-projectile-switch-to-buffer)
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
-         ("l" counsel-projectile-switch-to-buffer)  ;; useful but maybe somewhere else?
+         ("l" counsel-projectile-switch-project)
          ;; ("l" helm-mini)
-         ;; (";" )  ;; EMPTY
+         (";" string-inflection-underscore)
 
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
@@ -1440,9 +1465,9 @@
     )
    )
 
-  (ryo-modal-key
-   "F" '(
-         ("D" docker)
-         )
-   )
+  ;; (ryo-modal-key
+  ;;  "F" '(
+  ;;        ("D" docker)
+  ;;        )
+  ;;  )
   )
