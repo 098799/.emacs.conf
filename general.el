@@ -461,10 +461,10 @@
   (key-chord-define-global "fk" 'kill-current-buffer)
   (key-chord-define-global "fm" 'ivy-switch-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
-  (key-chord-define-global "qq" 'kill-word-or-region)
-  (key-chord-define-global "qw" 'my-copy-word-or-region)
-  (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
-  (key-chord-define-global "fq" 'venv-workon)
+  ;; (key-chord-define-global "qq" 'kill-word-or-region)
+  ;; (key-chord-define-global "qw" 'my-copy-word-or-region)
+  ;; (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
+  ;; (key-chord-define-global "fq" 'venv-workon)
   )
 
 (use-package keyfreq
@@ -1189,10 +1189,12 @@
   (ryo-modal-mode)
 
   (ryo-modal-keys
-   ("q" kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
-   ("Q" my-copy-word-or-region)  ;; not sure
-   ("w" backward-kill-word-or-region)  ;; think about it: it's a great shortcut but maybe underused
-   ("W" my-backward-copy-word-or-region)  ;; not surem
+   ;; ("q" kill-word-or-region)
+   ;; ("Q" my-copy-word-or-region)
+   ;; ("w" backward-kill-word-or-region)
+   ;; ("W" my-backward-copy-word-or-region)
+   ("q" delete-forward-char)
+   ("w" backward-delete-char-untabify)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
    ("r" avy-goto-word-1-below)
@@ -1305,9 +1307,10 @@
 
   (ryo-modal-key
    "d" '(
-         ;; ("q" elfeed)  ;; think about it
-         ("q" blacken-buffer)
-         ("w" add-correct-start-of-commit)
+         ("q" my-cut-word-or-region)
+         ("w" my-backward-cut-word-or-region)
+         ;; ("q" blacken-buffer)
+         ;; ("w" add-correct-start-of-commit)
          ("e" projectile-replace-regexp)  ;; I'm not using it and and this is a valuable shortcut
          ("r" projectile-replace)
          ;; ("R" projectile-ripgrep)
@@ -1385,8 +1388,10 @@
 
   (ryo-modal-key
    "f" '(
-         ("w" python-add-breakpoint)
-         ("q" venv-workon)
+         ("q" my-copy-word-or-region)
+         ("w" my-backward-copy-word-or-region)
+         ;; ("w" python-add-breakpoint)
+         ;; ("q" venv-workon)
          ("e" eval-last-sexp)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
