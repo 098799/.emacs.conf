@@ -117,6 +117,18 @@
     )
   )
 
+(defun my-change-word-or-region ()
+  (interactive)
+  (my-cut-word-or-region)
+  (ryo-modal-off)
+  )
+
+(defun my-substitute-word-or-region ()
+  (interactive)
+  (my-cut-word-or-region)
+  (insert (current-kill 1))
+  )
+
 (defun my-backward-mark-word ()
   (interactive)
   (cua-set-mark)
@@ -159,6 +171,18 @@
     )
   )
 
+(defun my-backward-change-word-or-region ()
+  (interactive)
+  (my-backward-cut-word-or-region)
+  (ryo-modal-off)
+  )
+
+(defun my-backward-substitute-word-or-region ()
+  (interactive)
+  (my-backward-cut-word-or-region)
+  (insert (current-kill 1))
+  )
+
 (defun copy-whole-line ()
   "Copy whole line"
   (interactive)
@@ -185,10 +209,12 @@
   "Kills line or region"
   (interactive)
   (if (region-active-p)
-      (cua-cut-region)
+      (cua-cut-region t)
     (kill-whole-line nil)
     )
   )
+
+
 
 (defun paste-in-new-line (arg)
   "Pasting for full line edits"
@@ -335,11 +361,11 @@
   (save-excursion
     (mark-inside-or-not arg)
     (ci--flash-region (region-beginning) (region-end))
-    (copy-whole-line-or-region arg)
+    (copy-whole-line-or-region)
     )
   )
 
-(defun kill-inside-or-not (arg)
+(defun cut-inside-or-not (arg)
   "Kill inside python string, but if not, just the word."
   (interactive "P")
   (er/mark-inside-python-string)
@@ -352,7 +378,20 @@
       (superword-mode nil)
       )
     )
-  (kill-whole-line-or-region arg)
+  (kill-whole-line-or-region)
+  )
+
+(defun change-inside-or-not (arg)
+  "Cut inside or not, exit ryo."
+  (interactive "P")
+  (cut-inside-or-not arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-inside-or-not ()
+  (interactive)
+  (cut-inside-or-not nil)
+  (insert (current-kill 1))
   )
 
 (defun mark-outside-or-not (arg)
@@ -399,11 +438,11 @@
       (overlay-put overlay 'face 'shadow)
       (overlay-put overlay 'priority 100)
       (run-with-timer 0.2 nil 'delete-overlay overlay))
-    (copy-whole-line-or-region arg)
+    (copy-whole-line-or-region)
     )
   )
 
-(defun kill-outside-or-not (arg)
+(defun cut-outside-or-not (arg)
   "Kill outside python string, but if not, just the word."
   (interactive "P")
   (er/mark-outside-python-string)
@@ -416,7 +455,20 @@
       (superword-mode nil)
       )
     )
-  (kill-whole-line-or-region arg)
+  (kill-whole-line-or-region)
+  )
+
+(defun change-outside-or-not (arg)
+  "Cut outside or not, exit ryo."
+  (interactive "P")
+  (cut-outside-or-not arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-outside-or-not ()
+  (interactive)
+  (cut-outside-or-not nil)
+  (insert (current-kill 1))
   )
 
 (defun mark-until-end-of-line (arg)
@@ -507,25 +559,61 @@
   (mark-inner-with-fixed-arg* "{" nil)
   )
 
-(defun change-inner-with-paren (arg)
+(defun cut-inner-with-paren (arg)
   (interactive "P")
   (change-inner-with-fixed-arg* "(" arg nil))
+
+(defun change-inner-with-paren (arg)
+  (interactive "P")
+  (cut-inner-with-paren arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-inner-with-paren ()
+  (interactive)
+  (cut-inner-with-paren nil)
+  (insert (current-kill 1))
+  )
 
 (defun copy-inner-with-paren ()
   (interactive)
   (change-inner-with-fixed-arg* "(" t nil))
 
-(defun change-inner-with-square (arg)
+(defun cut-inner-with-square (arg)
   (interactive "P")
   (change-inner-with-fixed-arg* "[" arg nil))
+
+(defun change-inner-with-square (arg)
+  (interactive "P")
+  (cut-inner-with-square arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-inner-with-square ()
+  (interactive)
+  (cut-inner-with-square nil)
+  (insert (current-kill 1))
+  )
 
 (defun copy-inner-with-square ()
   (interactive)
   (change-inner-with-fixed-arg* "[" t nil))
 
-(defun change-inner-with-curly (arg)
+(defun cut-inner-with-curly (arg)
   (interactive "P")
   (change-inner-with-fixed-arg* "{" arg nil))
+
+(defun change-inner-with-curly (arg)
+  (interactive "P")
+  (cut-inner-with-curly arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-inner-with-curly ()
+  (interactive)
+  (cut-inner-with-curly nil)
+  (insert (current-kill 1))
+  )
 
 (defun copy-inner-with-curly ()
   (interactive)
@@ -595,25 +683,61 @@
   (mark-outer-with-fixed-arg* "{" nil)
   )
 
-(defun change-outer-with-paren (arg)
+(defun cut-outer-with-paren (arg)
   (interactive "P")
   (change-outer-with-fixed-arg* "(" arg nil))
+
+(defun change-outer-with-paren (arg)
+  (interactive "P")
+  (cut-outer-with-paren arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-outer-with-paren ()
+  (interactive)
+  (cut-outer-with-paren arg)
+  (insert (current-kill 1))
+  )
 
 (defun copy-outer-with-paren ()
   (interactive)
   (change-outer-with-fixed-arg* "(" t nil))
 
-(defun change-outer-with-square (arg)
+(defun cut-outer-with-square (arg)
   (interactive "P")
   (change-outer-with-fixed-arg* "[" arg nil))
+
+(defun change-outer-with-square (arg)
+  (interactive "P")
+  (cut-outer-with-square arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-outer-with-square ()
+  (interactive)
+  (cut-outer-with-square arg)
+  (insert (current-kill 1))
+  )
 
 (defun copy-outer-with-square ()
   (interactive)
   (change-outer-with-fixed-arg* "[" t nil))
 
-(defun change-outer-with-curly (arg)
+(defun cut-outer-with-curly (arg)
   (interactive "P")
   (change-outer-with-fixed-arg* "{" arg nil))
+
+(defun change-outer-with-curly (arg)
+  (interactive "P")
+  (cut-outer-with-curly arg)
+  (ryo-modal-off)
+  )
+
+(defun substitute-outer-with-curly ()
+  (interactive)
+  (cut-outer-with-curly arg)
+  (insert (current-kill 1))
+  )
 
 (defun copy-outer-with-curly ()
   (interactive)
@@ -1022,7 +1146,7 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun query-replace-thing-at-point-or-selection (replace-str)
   (interactive "sDo query-replace current word with: ")
   (mark-inside-or-not nil)
-  (copy-whole-line-or-region nil)
+  (copy-whole-line-or-region)
   (goto-char (region-beginning))
   (query-replace (current-kill 0) replace-str))
 
@@ -1053,8 +1177,19 @@ Repeated invocations toggle between the two most recently open buffers."
     filename
     ))
 
-(defun get-test-string ()
-  "Create an appropriate testing string for legartis unittest"
+(defun get-class-name ()
+  "Get the name of the python class in which you're currently."
+  (interactive)
+  (save-excursion
+    (re-search-backward "class [A-Z][a-z]+")
+    (right-char 6)
+    (superword-mode t)
+    (setq class-name (thing-at-point 'word))
+    )
+  class-name
+  )
+
+(defun test-class-string ()
   (interactive)
   (setq document-mapping
         '(
@@ -1074,23 +1209,20 @@ Repeated invocations toggle between the two most recently open buffers."
           (path (s-replace ".py" "" (s-replace "/" "." (car (last service-list)))))
           (service (nth 1 service-list))
           (class-name (get-class-name))
-          (test-name (get-test-name))
           )
-      (put-into-clipboard (concat "ltest " (cdr (assoc service document-mapping)) " " path "." class-name "." test-name))
+      (concat "ltest " (cdr (assoc service document-mapping)) " " path "." class-name)
       )
     )
   )
 
-(defun get-class-name ()
-  "Get the name of the python class in which you're currently."
+(defun test-string ()
   (interactive)
-  (save-excursion
-    (re-search-backward "class [A-Z][a-z]+")
-    (right-char 6)
-    (superword-mode t)
-    (setq class-name (thing-at-point 'word))
-    )
-  class-name
+  (concat (test-class-string) "." (get-test-name))
+  )
+
+(defun get-class-string ()
+  (interactive)
+  (put-into-clipboard (test-class-string))
   )
 
 (defun get-test-name ()
@@ -1103,6 +1235,12 @@ Repeated invocations toggle between the two most recently open buffers."
     (setq test-name (thing-at-point 'word))
     )
   test-name
+  )
+
+(defun get-test-string ()
+  "Create an appropriate testing string for legartis unittest"
+  (interactive)
+  (put-into-clipboard (test-string))
   )
 
 (defun helm-projectile-ag-thing-at-point ()
@@ -1153,4 +1291,24 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (mark-inside-or-not nil)
   (cua-cut-region t)
+  )
+
+(defun subword-on ()
+  (interactive)
+  (subword-mode 1)
+  )
+
+(defun subword-off ()
+  (interactive)
+  (subword-mode nil)
+  )
+
+(defun superword-on ()
+  (interactive)
+  (superword-mode 1)
+  )
+
+(defun superword-off ()
+  (interactive)
+  (superword-mode nil)
   )

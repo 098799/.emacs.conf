@@ -459,7 +459,7 @@
   (key-chord-mode +1)
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
-  (key-chord-define-global "fm" 'ivy-switch-buffer)
+  ;; (key-chord-define-global "fm" 'ivy-switch-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
   ;; (key-chord-define-global "qq" 'kill-word-or-region)
   ;; (key-chord-define-global "qw" 'my-copy-word-or-region)
@@ -689,7 +689,7 @@
   :config
   (setq blacken-skip-string-normalization t)
   (setq blacken-line-length 150)
-  (setq blacken-allow-py36 t)
+  (setq blacken-allow-py36 nil)
   ;; (add-hook 'python-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
@@ -884,6 +884,10 @@
   :bind
   ("C-x g" . magit-status)
   ("C-c m" . magit-blame-addition)
+  :config
+  (with-eval-after-load 'magit
+    (transient-append-suffix 'magit-log "-A"
+      '("-1" "First parent" "--first-parent")))
   )
 (setenv "EDITOR" "emacsclient")
 
@@ -1183,16 +1187,10 @@
   (add-hook 'magit-status-mode-hook #'ryo-modal-off)
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
   (setq ryo-modal-default-cursor-color "#839496")
-  ;; (setq-default cursor-type 'bar)
   (setq ryo-modal-cursor-type 'hbar)
-  ;; (setq ryo-modal-cursor-color nil)
   (ryo-modal-mode)
 
   (ryo-modal-keys
-   ;; ("q" kill-word-or-region)
-   ;; ("Q" my-copy-word-or-region)
-   ;; ("w" backward-kill-word-or-region)
-   ;; ("W" my-backward-copy-word-or-region)
    ("q" delete-forward-char)
    ("w" backward-delete-char-untabify)
    ("e" highlight-symbol-next)
@@ -1201,21 +1199,13 @@
    ("R" avy-goto-word-1-above)
    ("t" vi-open-line-below)
    ("T" vi-open-line-above)
-   ;; ("y" ivy-resume)  ;; think about it
    ("y" other-window)
-   ("U" nav-backward-indent)
    ("u" backward-char)
    ("i" next-line)
-   ("I" magic-elpy-nav-forward-class)
    ("o" previous-line)
-   ("O" magic-elpy-nav-backward-class)
    ("p" forward-char)
-   ("P" nav-forward-indent)
-   ;; ("[" )  ;; think about it
-   ;; ("]" )  ;; think about it
    ("[" square-bracket-up-or-replace)
    ("{" curly-bracket-up-or-replace)
-   ("\\" er/mark-python-statement)  ;; use me
 
    ("A" comment-paragraph)
    ("S" swiper-thing-at-point) ;; use it
@@ -1226,13 +1216,11 @@
    ("h" move-beginning-of-line)
    ("H" beginning-of-line-or-indentation)
    ("j" my-backward-word)
-   ("J" magic-elpy-nav-backward-method)
    ("k" forward-paragraph)
    ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
    ("L" scroll-down-and-recenter)
    (";" my-forward-word)
-   (":" magic-elpy-nav-forward-method)
    ("'" move-end-of-line)
    ("\"" double-quote-up-or-replace)
 
@@ -1245,18 +1233,16 @@
    ("v" cua-paste)
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
-   ("m" ryo-modal-repeat)  ;; use it as well!
    ("n" recenter-top-bottom)
-   ("." awesome-tab-forward-tab)
-   ;; ("." centaur-tabs-forward)
+   ("m" ryo-modal-repeat)  ;; use it as well!
    ("," awesome-tab-backward-tab)
-   ;; ("," centaur-tabs-backward)
+   ("." awesome-tab-forward-tab)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" dumb-jump-go)
    ("?" dumb-jump-back)
 
-   ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
+   ;; ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
    ("~" tild-up-or-replace)
    ("!" helm-flycheck)
    ("#" highlight-symbol-query-replace)
@@ -1287,21 +1273,62 @@
 
   (ryo-modal-key
    "a" '(
+         ("q" my-change-word-or-region)
+         ("w" my-backward-change-word-or-region)
+         ("e" blacken-buffer)
+
+         ("Q" my-substitute-word-or-region)
+         ("W" my-backward-substitute-word-or-region)
+
+         ("u" change-inside-or-not)
+         ("i" change-inner-with-paren)
+         ("o" change-inner-with-square)
+         ("p" change-inner-with-curly)
+
+         ("U" substitute-inside-or-not)
+         ("I" substitute-inner-with-paren)
+         ("O" substitute-inner-with-square)
+         ("P" substitute-inner-with-curly)
+
+
          ("a" comment-line)
          ("j" helm-recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
-         (";" string-inflection-kebab-case)
+         ("'" string-inflection-kebab-case)
+
+         ("m" change-outside-or-not)
+         ("," change-outer-with-paren)
+         ("." change-outer-with-square)
+         ("/" change-outer-with-curly)
+
+         ("M" substitute-outside-or-not)
+         ("<" substitute-outer-with-paren)
+         (">" substitute-outer-with-square)
+         ("?" substitute-outer-with-curly)
          )
    )
 
   (ryo-modal-key
    "s" '(
+         ("q" my-copy-word-or-region)
+         ("w" my-backward-copy-word-or-region)
+
+         ("u" copy-inside-or-not)
+         ("i" copy-inner-with-paren)
+         ("o" copy-inner-with-square)
+         ("p" copy-inner-with-curly)
+
          ("s" swiper-region)
          ("j" counsel-projectile)
          ("k" kill-all-buffers-but-scratch)
          ("l" venv-workon)
-         (";" string-inflection-upcase)
+         ("'" string-inflection-upcase)
+
+         ("m" copy-outside-or-not)
+         ("," copy-outer-with-paren)
+         ("." copy-outer-with-square)
+         ("/" copy-outer-with-curly)
          )
    )
 
@@ -1309,64 +1336,35 @@
    "d" '(
          ("q" my-cut-word-or-region)
          ("w" my-backward-cut-word-or-region)
-         ;; ("q" blacken-buffer)
-         ;; ("w" add-correct-start-of-commit)
-         ("e" projectile-replace-regexp)  ;; I'm not using it and and this is a valuable shortcut
+         ("e" projectile-replace-regexp)
          ("r" projectile-replace)
-         ;; ("R" projectile-ripgrep)
-         ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
 
-         ;; The following are all very important, but I'm not 100% used to them yet.
-         ;; I feel like I need to invest more into them and unify with f i, f o and such.
-         ;; ("u" change-inner-with-paren)
-         ;; ("i" change-inner-with-square)
-         ;; ("o" change-inner-with-curly)
-         ;; ("p" copy-inner-with-paren)
-         ;; ("[" copy-inner-with-square)
-         ;; ("]" copy-inner-with-curly)
-         ;; ("U" copy-inner-with-paren)
-         ;; ("I" copy-inner-with-square)
-         ;; ("O" copy-inner-with-curly)
+         ("u" cut-inside-or-not)
+         ("i" cut-inner-with-paren)
+         ("o" cut-inner-with-square)
+         ("p" cut-inner-with-curly)
 
-         ("u" mark-outside-or-not)
-         ("i" mark-outer-with-paren)
-         ("o" mark-outer-with-square)
-         ("p" mark-outer-with-curly)
-
-         ;; ("a" )  ;; prime location and unused!
-         ;; ("s" counsel-projectile-ag)
+         ;; ("a" )
          ("s" helm-projectile-ag)
          ("S" helm-projectile-ag-thing-at-point)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file-dwim)
-         ;; ("f" projectile-find-file)
-         ("g" helm-projectile-rg)
-         ;; ("g" counsel-projectile-ag-at-point)
+         ;; ("g" helm-projectile-rg)
+         ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
-         ;; ("h" helm-projectile)
-         ("j" ivy-switch-buffer)
-         ;; ("j" counsel-projectile-switch-project)
-         ;; ("j" helm-projectile-switch-project)
-         ("k" projectile-kill-buffers)  ;; similar to f k for one buffer, but not sure if I need this mnemotechnique
-         ;; ("l" centaur-tabs-counsel-switch-group)  ;; important but not sure if in the right place
+         ("j" counsel-projectile-switch-to-buffer)
+         ("k" projectile-kill-buffers)
          ("l" awesome-tab-switch-group)
-         (";" string-inflection-camelcase)
-         ("'" kill-all-buffers-but-scratch)  ;; useful and out of the way, good use
+         ("'" string-inflection-camelcase)
 
-         ;; pytest I'm struggling to use inside emacs...
-         ;; ("z" python-pytest-popup)  ;; think about it
-         ("z" get-test-string)  ;; think about it
-         ("x" python-pytest-function-dwim)  ;; think about it
-         ("c" python-pytest-file-dwim)  ;; think about it
-         ("v" python-pytest-repeat)  ;; think about it
-         ;; ("b" )  ;; think about it
-         ;; ("n" split-string-if-over-120)  ;; think about it
-         ;; ("m" go-to-119)  ;; almost useless
-         ("n" subword-mode)  ;; let's try to make it work
-         ("m" superword-mode)  ;; let's try to make it work
-
-         ;; please unify those and learn them...
-         ;; ("/" )  ;; think about it
+         ("b" superword-on)
+         ("B" superword-off)
+         ("n" subword-on)
+         ("N" subword-off)
+         ("m" cut-outside-or-not)
+         ("," cut-outer-with-paren)
+         ("." cut-outer-with-square)
+         ("/" cut-outer-with-curly)
 
          ;; almost useless but hey, it's not like I'm loosing anything
          ("!" projectile-run-shell-command-in-root)
@@ -1374,34 +1372,14 @@
          )
    )
 
-  ;; (ryo-modal-key
-  ;;  "D" '(
-  ;;        ("R" projectile-ripgrep)
-  ;;        ("U" change-outer-with-paren)
-  ;;        ("I" change-outer-with-square)
-  ;;        ("O" change-outer-with-curly)
-  ;;        ;; ("P" copy-outer-with-paren)
-  ;;        ;; ("{" copy-outer-with-square)
-  ;;        ;; ("}" copy-outer-with-curly)
-  ;;        )
-  ;;  )
-
   (ryo-modal-key
    "f" '(
-         ("q" my-copy-word-or-region)
-         ("w" my-backward-copy-word-or-region)
-         ;; ("w" python-add-breakpoint)
-         ;; ("q" venv-workon)
-         ("e" eval-last-sexp)
+         ("q" my-mark-word)
+         ("w" my-backward-mark-word)
+         ;; ("e" )
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
-         ("y" kill-inside-or-not)  ;; remember
-
-         ;; ("u" copy-inside-or-not)  ;; remember
-         ;; ("i" mark-inside-or-not)
-         ;; ("o" mark-outside-or-not)
-         ;; ("p" copy-outside-or-not)  ;; remember
-         ;; ("[" kill-outside-or-not)  ;; remember
+         ;; ("y" )
 
          ("u" mark-inside-or-not)
          ("i" mark-inner-with-paren)
@@ -1416,26 +1394,31 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("j" counsel-projectile-switch-to-buffer)
+         ("j" ivy-switch-buffer)
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
          ("l" counsel-projectile-switch-project)
          ;; ("l" helm-mini)
-         (";" string-inflection-underscore)
+         ("'" string-inflection-underscore)
 
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
          ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
-         ("v" counsel-yank-pop)
-         ;; ("v" helm-show-kill-ring)
+         ;; ("v" counsel-yank-pop)
+         ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
-         ("b" imenu)  ;; think about it
+         ;; ("b" imenu)  ;; think about it
          ("n" goto-line)  ;; useful but I could just as well use M-g M-g
-         ("m" ivy-switch-buffer)
-         ("." xref-find-definitions)
-         ("," xref-pop-marker-stack)
-         ;; ("/" )  ;; think about it
+         ("m" mark-outside-or-not)
+         ("," mark-outer-with-paren)
+         ("." mark-outer-with-square)
+         ("/" mark-outer-with-curly)
+
+         ;; ("m" ivy-switch-buffer)
+         ;; ("." xref-find-definitions)
+         ;; ("," xref-pop-marker-stack)
+         ;; ;; ("/" )  ;; think about it
 
          ("0" delete-window)
          ("1" delete-other-windows)
@@ -1445,17 +1428,43 @@
          ("5 1" delete-other-frames)
          ("5 2" make-frame-command)
          ("SPC" rectangle-mark-mode)
-         ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
-         ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
          )
    )
 
   (ryo-modal-major-mode-keys
    'python-mode
+   ("U" nav-backward-indent)
+   ("I" magic-elpy-nav-forward-class)
+   ("O" magic-elpy-nav-backward-class)
+   ("P" nav-forward-indent)
+
+   ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
+   ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
+
+   ("s"
+    (
+     ("e" python-add-breakpoint)
+     )
+    )
+
+   ("d"
+    (
+     ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
+
+     ("z" get-test-string)
+     ("x" get-class-string)
+     )
+    )
+
    ("f"
     (
-     ("." elpy-goto-definition)
-     ("," pop-tag-mark)
+     ("\\" er/mark-python-statement)  ;; use me
+
+     ("J" magic-elpy-nav-backward-method)
+     (":" magic-elpy-nav-forward-method)
+
+     (";" elpy-goto-definition)
+     (":" pop-tag-mark)
      )
     )
    )
@@ -1464,15 +1473,24 @@
    'js2-mode
    ("f"
     (
-     ("." js2-jump-to-definition)
-     ("," xref-pop-marker-stack)
+     (";" js2-jump-to-definition)
+     (":" xref-pop-marker-stack)
      )
     )
    )
 
-  ;; (ryo-modal-key
-  ;;  "F" '(
-  ;;        ("D" docker)
-  ;;        )
-  ;;  )
+  (ryo-modal-major-mode-keys
+   'emacs-lisp-mode
+   ("I" forward-sexp)
+   ("O" backward-sexp)
+
+   ("f"
+    (
+     ("e" eval-last-sexp)
+
+     (";" xref-find-definitions)
+     (":" xref-pop-marker-stack)
+     )
+    )
+   )
   )
