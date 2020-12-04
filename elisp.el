@@ -695,7 +695,7 @@
 
 (defun substitute-outer-with-paren ()
   (interactive)
-  (cut-outer-with-paren arg)
+  (cut-outer-with-paren nil)
   (insert (current-kill 1))
   )
 
@@ -715,7 +715,7 @@
 
 (defun substitute-outer-with-square ()
   (interactive)
-  (cut-outer-with-square arg)
+  (cut-outer-with-square nil)
   (insert (current-kill 1))
   )
 
@@ -735,7 +735,7 @@
 
 (defun substitute-outer-with-curly ()
   (interactive)
-  (cut-outer-with-curly arg)
+  (cut-outer-with-curly nil)
   (insert (current-kill 1))
   )
 
@@ -1065,13 +1065,15 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun small-font ()
   (interactive)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
-)
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+  )
+
+(small-font)
 
 (defun middle-font ()
   (interactive)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 140 :width normal :family "Ubuntu Mono")))))
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 145 :width normal :family "Ubuntu Mono")))))
   )
 
 (defun big-font ()
@@ -1202,6 +1204,7 @@ Repeated invocations toggle between the two most recently open buffers."
           ("resource" . "rs")
           ("search" . "ss")
           ("quota" . "qs")
+          ("pythia" . "ps")
           )
         )
   (let ((service-list (split-string (my-put-file-name-on-clipboard) "_service/")))
@@ -1311,4 +1314,21 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun superword-off ()
   (interactive)
   (superword-mode nil)
+  )
+
+(defun dired-mark-undo-tree ()
+  (interactive)
+  (dired-mark-extension "~undo-tree~")
+  )
+
+(defun magit-diff-develop ()
+  (interactive)
+  (magit-diff-range "develop")
+  (delete-other-windows)
+  (ryo-modal-off)
+  )
+
+(defun helm-rg-not-at-point ()
+  (interactive)
+  (helm-rg nil)
   )

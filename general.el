@@ -3,7 +3,7 @@
 (setq package-archives '(
                          ("melpa" . "https://melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
-                         ("marmalade" . "https://marmalade-repo.org/packages/")
+;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
                          ))
 (package-initialize)
 
@@ -47,6 +47,9 @@
 
 (global-auto-revert-mode 1)
 
+(use-package all-the-icons
+  :ensure t)
+
 (use-package beacon
   :ensure t
   :config
@@ -66,10 +69,10 @@
   :init (doom-modeline-mode 1)
   :config
   (setq doom-modeline-height 25)
-  (setq doom-modeline-bar-width 3)
-  ;; (setq doom-modeline-icon t)
-  ;; (setq doom-modeline-major-mode-icon t)
-  ;; (setq doom-modeline-major-mode-color-icon t)
+  (setq doom-modeline-bar-width 5)
+  (setq doom-modeline-icon t)
+  (setq doom-modeline-major-mode-icon t)
+  (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 20)
   )
@@ -149,7 +152,8 @@
 (use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'solarized-dark t)
+  ;; (load-theme 'solarized-dark t)
+  (load-theme 'solarized-wombat-dark t)
   )
 
 (use-package rainbow-delimiters
@@ -157,6 +161,8 @@
   :config
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
+  (show-paren-mode t)
+  (setq show-paren-style 'expression)
   )
 
 (use-package rainbow-mode
@@ -249,6 +255,7 @@
   :ensure t
   :config
   (setq counsel-find-file-ignore-regexp "~undo-tree~")
+  (global-set-key (kbd "C-h b") 'counsel-descbinds)
   )
 
 (use-package counsel-projectile
@@ -270,7 +277,7 @@
         ("w" . wdired-change-to-wdired-mode)
         ("e" . eshell)
         ("u" . dired-up-directory)
-        ("* u" . dired-unmark-all-files)
+        ("* u" . dired-mark-undo-tree)
         ("i" . dired-next-line)
         ("o" . dired-previous-line)
         ("p" . dired-find-file)
@@ -283,8 +290,11 @@
         ("K" . scroll-up-and-recenter)
         ("L" . scroll-down-and-recenter)
         ("f" . counsel-find-file)
+        ("c" . dired-do-compress)
+        ("H" . dired-hide-dotfiles-mode)
         ("n" . dired-unmark)
         )
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   (setq dired-dwim-target t)
   (use-package diredfl
@@ -310,6 +320,9 @@
             (setq-local visual-line-fringe-indicators '(nil right-curly-arrow))
             (setq-local word-wrap nil)))
   )
+
+(use-package dired-hide-dotfiles
+  :ensure t)
 
 (use-package dired-x
   :after dired)
@@ -347,7 +360,11 @@
 (setq gc-cons-threshold 50000000)
 
 (use-package gif-screencast
-  :ensure t)
+  :ensure t
+  :bind
+  ("<f8>" . gif-screencast-toggle-pause)
+  ("<f9>" . gif-screencast-stop)
+  )
 
 (use-package goto-last-change
   :ensure t)
@@ -461,6 +478,7 @@
   (key-chord-define-global "fk" 'kill-current-buffer)
   ;; (key-chord-define-global "fm" 'ivy-switch-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
+  (key-chord-define-global "fg" 'magit-status)
   ;; (key-chord-define-global "qq" 'kill-word-or-region)
   ;; (key-chord-define-global "qw" 'my-copy-word-or-region)
   ;; (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
@@ -796,14 +814,14 @@
 ;; (use-package hy-mode
 ;;   :ensure t)
 
-;; (use-package importmagic
-;;     :ensure t
-;;     :config
-;;     (add-hook 'python-mode-hook 'importmagic-mode)
-;;     (setq importmagic-style-configuration-alist '((multiline . parentheses)
-;;                                                   (max_columns . 200))
-;;           )
-;;     )
+(use-package importmagic
+    :ensure t
+    :config
+    (add-hook 'python-mode-hook 'importmagic-mode)
+    (setq importmagic-style-configuration-alist '((multiline . parentheses)
+                                                  (max_columns . 200))
+          )
+    )
 
 ;; ;; isort
 ;; (use-package py-isort
@@ -1005,6 +1023,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
+(use-package poly-ansible
+  :ensure t
+  )
 (use-package js2-mode
   :ensure t
   :mode (("\\.js$" . js2-mode))
@@ -1191,8 +1212,12 @@
   (ryo-modal-mode)
 
   (ryo-modal-keys
-   ("q" delete-forward-char)
-   ("w" backward-delete-char-untabify)
+   ("q" my-change-word-or-region)
+   ("w" my-backward-change-word-or-region)
+   ;; ("q" kill-word)
+   ;; ("w" backward-kill-word)
+   ("Q" delete-forward-char)
+   ("W" backward-delete-char-untabify)
    ("e" highlight-symbol-next)
    ("E" highlight-symbol-prev)
    ("r" avy-goto-word-1-below)
@@ -1275,7 +1300,8 @@
    "a" '(
          ("q" my-change-word-or-region)
          ("w" my-backward-change-word-or-region)
-         ("e" blacken-buffer)
+         ("e" highlight-symbol)
+         ("r" blacken-buffer)
 
          ("Q" my-substitute-word-or-region)
          ("W" my-backward-substitute-word-or-region)
@@ -1290,8 +1316,9 @@
          ("O" substitute-inner-with-square)
          ("P" substitute-inner-with-curly)
 
-
          ("a" comment-line)
+         ("s" helm-projectile-rg)
+         ;; ("s" counsel-projectile-rg)
          ("j" helm-recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
@@ -1313,6 +1340,8 @@
    "s" '(
          ("q" my-copy-word-or-region)
          ("w" my-backward-copy-word-or-region)
+         ("e" add-correct-start-of-commit)
+         ("r" importmagic-fix-symbol-at-point)
 
          ("u" copy-inside-or-not)
          ("i" copy-inner-with-paren)
@@ -1376,7 +1405,7 @@
    "f" '(
          ("q" my-mark-word)
          ("w" my-backward-mark-word)
-         ;; ("e" )
+         ("e" magit-diff-develop)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
          ;; ("y" )
