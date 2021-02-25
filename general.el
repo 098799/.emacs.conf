@@ -58,6 +58,9 @@
   (global-hl-line-mode +1)
   )
 
+(use-package command-log-mode
+  :ensure t)
+
 (use-package default-text-scale
   :ensure t
   :config
@@ -76,14 +79,6 @@
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 20)
   )
-
-;;   (use-package diminish
-;;     :ensure t
-;;     :config
-;;     (diminish 'flycheck-mode)
-;;     (diminish 'flymake-mode)
-;;     )
-;;   )
 
 (setq echo-keystrokes 0.5)
 
@@ -128,11 +123,6 @@
 
 (use-package highlight-symbol
   :ensure t
-  :bind
-  ;; ("C-<f5>" . highlight-symbol)
-  ;; ("<f5>" . highlight-symbol-next)
-  ;; ("S-<f5>" . highlight-symbol-prev)
-  ;; ("M-<f5>" . highlight-symbol-query-replace)
   )
 
 (use-package nav-flash
@@ -140,20 +130,11 @@
   :config
   (nav-flash-show))
 
-;; (use-package visual-regexp
-;;   :defer t)
-
-;; (use-package doom-themes
-;;   :ensure t
-;;   :config
-;;   (load-theme 'doom-solarized-dark t)
-;;   )
-
 (use-package solarized-theme
   :ensure t
   :config
   ;; (load-theme 'solarized-dark t)
-  (load-theme 'solarized-wombat-dark t)
+  (load-theme 'solarized-gruvbox-light t)
   )
 
 (use-package rainbow-delimiters
@@ -180,28 +161,6 @@
   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
   )
-
-;; (add-to-list 'load-path "~/.emacs.d/awesome-tab/")
-;; (load "tabbar")
-;; (require 'awesome-tab)
-;; (awesome-tab-mode t)
-
-;; (use-package centaur-tabs
-;;   :demand
-;;   :ensure t
-;;   :config
-;;   (centaur-tabs-mode t)
-;;   (setq centaur-tabs-style 'bar)
-;;   ;; (setq centaur-tabs-set-bar 'alternate)
-;;   ;; (setq centaur-tabs-style "wave")
-;;   ;; (centaur-tabs-group-by-projectile-project)
-;;   (setq centaur-tabs-set-close-button nil)
-;;   (setq centaur-tabs-set-icons t)
-;;   (setq centaur-tabs-gray-out-icons 'buffer)
-;;   ;; :bind
-;;   ;; ("C-<tab>" . centaur-tabs-forward-tab)
-;;   ;; ("C-<iso-lefttab>" . centaur-tabs-backward-tab)
-;;   )
 
 ;;;;;;;;;;;;;;;
 ;;; GENERAL ;;;
@@ -232,9 +191,6 @@
 
 (setq bookmark-save-flag t)
 
-;; (use-package boon
-;;   :ensure t)  ;; I'm thinking of using some functions from it...
-
 (setq calendar-week-start-day 1)
 
 ;; (use-package centered-cursor-mode
@@ -243,10 +199,10 @@
 (use-package change-inner
   :ensure t)
 
-(use-package comment-dwim-2
-  :ensure t
-  ;; :bind ("C-a" . comment-dwim-2)
-  )
+;; (use-package comment-dwim-2
+;;   :ensure t
+;;   ;; :bind ("C-a" . comment-dwim-2)
+;;   )
 
 (column-number-mode t)
 
@@ -354,16 +310,18 @@
   (global-set-key (kbd "s-<f9>") 'eyebrowse-switch-to-window-config-9)
   )
 
-;; (use-package find-file-in-project
-;;   :defer t)
-
 (setq gc-cons-threshold 50000000)
+
+;; angrybackon's tweak: https://github.com/angrybacon/dotemacs/blob/master/init.el#L28-L31
+(setq gc-cons-percentage .6)
+(setq read-process-output-max (* 1024 1024))
 
 (use-package gif-screencast
   :ensure t
   :bind
   ("<f8>" . gif-screencast-toggle-pause)
   ("<f9>" . gif-screencast-stop)
+  ("<f10>" . gif-screencast)
   )
 
 (use-package goto-last-change
@@ -416,31 +374,8 @@
 (use-package prescient
   :ensure t)
 
-(use-package ivy-prescient
-  :ensure t)
-
-;; (use-package ivy-posframe
-;;   :ensure t
-;;   :config
-;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
-;;   (setq ivy-posframe-parameters
-;;       '((left-fringe . 10)
-;;         (right-fringe . 10)))
-;;   (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left))
-;;         ivy-posframe-height-alist '((swiper . 20)
-;;                                     (t      . 20))
-;;         ivy-posframe-parameters '((internal-border-width . 1)))
-;;   (ivy-posframe-mode 1)
-;;   (defun posframe-poshandler-frame-bottom-left-corner (info)
-;;   "Posframe's position handler.
-
-;; Get a position which let posframe stay onto its parent-frame's
-;; bottom left corner.  The structure of INFO can be found
-;; in docstring of `posframe-show'."
-;;   (cons 10 (- 0
-;;              (plist-get info :mode-line-height)
-;;              (plist-get info :minibuffer-height))))
-;;   )
+;; (use-package ivy-prescient
+;;   :ensure t)
 
 (use-package ivy-historian
   :ensure t)
@@ -454,13 +389,17 @@
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
   (ivy-mode t)
-  (ivy-prescient-mode)
+  ;; (ivy-prescient-mode)
   )
 
 (use-package ivy-rich
   :ensure t
   :config
   (ivy-rich-mode t)
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line) ; Recommended in Github repo
+    (setq ivy-rich-parse-remote-buffer nil ; https://github.com/Yevgnen/ivy-rich/issues/47
+          ivy-rich-parse-remote-file-path nil
+          ivy-rich-path-style (quote full))
   ;; (ivy-rich-mode 0)
   )
 
@@ -476,13 +415,8 @@
   (key-chord-mode +1)
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
-  ;; (key-chord-define-global "fm" 'ivy-switch-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
   (key-chord-define-global "fg" 'magit-status)
-  ;; (key-chord-define-global "qq" 'kill-word-or-region)
-  ;; (key-chord-define-global "qw" 'my-copy-word-or-region)
-  ;; (key-chord-define-global "wq" 'my-backward-copy-word-or-region)
-  ;; (key-chord-define-global "fq" 'venv-workon)
   )
 
 (use-package keyfreq
@@ -498,6 +432,7 @@
               display-line-numbers-width 4
               display-line-numbers-widen t)
 (setq display-line-numbers-type t)
+;; (setq display-line-numbers-type nil)
 (global-display-line-numbers-mode 1)
 
 ;; (line-number-mode t)
@@ -518,33 +453,12 @@
    )
   )
 
-;; (use-package phi-search
-;;   :ensure t
-;;   :config
-;;   (global-set-key (kbd "C-s") 'phi-search)
-;;   (global-set-key (kbd "C-r") 'phi-search-backward)
-;;   )  ;; think about it
-
 (use-package ace-mc
   :ensure t) ;; please review this
 
 (setq org-support-shift-select t)
 (eval-after-load "org"
   '(require 'ox-md nil t))
-;; (set-default 'truncate-lines t)
-;; (setq org-latex-pdf-process
-;;       '("pdflatex -interaction nonstopmode -output-directory %o %f"
-;;         "bibtex %b"
-;;         "pdflatex -interaction nonstopmode -output-directory %o %f"
-;;         "pdflatex -interaction nonstopmode -output-directory %o %f"))
-;; (require 'org-ref)
-;; (autoload 'helm-bibtex "helm-bibtex" "" t)
-;; (setq reftex-default-bibliography "/home/grining/boybi.bib")
-;; (setq org-ref-bibliography-notes "~/notes.org")
-;; (setq org-ref-default-bibliography reftex-default-bibliography)
-;; (setq org-ref-pdf-directory "~/Documents/Mendeley Desktop")
-;; (setq bibtex-completion-bibliography reftex-default-bibliography)
-;; (setq bibtex-completion-library-path "~/Documents/Mendeley Desktop/")
 
 (use-package persistent-scratch
   :ensure t
@@ -556,45 +470,11 @@
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
-;; (use-package slack
-;;   :commands (slack-start)
-;;   :init
-;;   (setq slack-buffer-emojify t) ;; if you want to enable emoji, default nil
-;;   (setq slack-prefer-current-team t)
-;;   :config
-;;   (slack-register-team
-;;    :name my-slack-name
-;;    :default t
-;;    :client-id my-slack-id
-;;    :client-secret my-slack-secret
-;;    :token my-slack-token
-;;    :subscribed-channels '(test-rename crawler)
-;;    :full-and-display-names t)
-;;   :bind
-;;   ("C-c s q" . slack-start)
-;;   ("C-c s w" . slack-select-rooms)
-;;   ("C-c s e" . slack-im-open)
-;;   ("C-c s a" . slack-message-add-reaction)
-;;   )
-
-;; (use-package alert
-;;   :commands (alert)
-;;   :init
-;;   (setq alert-default-style 'notifier))
-
 (use-package smart-newline
   :ensure t
   :config
   (smart-newline-mode 1)
   )
-
-;; (use-package smartparens
-;;   :config (progn (require 'smartparens-config)
-;;                  (smartparens-global-mode t))
-;;   )
-
-;; (use-package smartparens-config
-;;   :commands smartparens-mode)
 
 (use-package helm-smex
   :ensure t)
@@ -604,17 +484,6 @@
 
 (setq-default save-place t)
 (setq save-place-file "~/.emacs.d/saveplace")
-
-;; (use-package spaceline-config
-;;   :ensure spaceline
-;;   :config
-;;   ;; (spaceline-helm-mode 1)
-;;   (spaceline-emacs-theme)
-;;   (spaceline-toggle-python-pyvenv-on)
-;;   (spaceline-toggle-python-env-on)
-;;   (spaceline-toggle-python-pyenv-on)
-;;   (spaceline-toggle-version-control-on)
-;;   )
 
 (use-package string-inflection
   :ensure t
@@ -660,44 +529,6 @@
 (winner-mode 1)
 
 
-
-;;;;;;;;;;;;;;;;;
-;;; SHORTCUTS ;;;
-;;;;;;;;;;;;;;;;;
-
-(bind-keys*
-;;  ("M-j" . left-char)  ; used to be electric-newline-and-maybe-indent
-;;  ("M-k" . next-line)  ; used to be kill-whole-line
-;;  ("M-l" . previous-line)  ; used to be recenter-top-bottom
-;;  ("M-;" . right-char)
-;;  ("C-j" . left-word)  ; was indent-new-comment-line
-;;  ("C-k" . forward-paragraph)  ; was kill-sentence; can be done now by M-0 C-d
-;;  ("C-l" . backward-paragraph)  ; was downcase-word
-;;  ("C-;" . right-word) ; was comment-dwim
-;;  ("C-," . forward-sexp)
-;;  ("C-." . backward-sexp)
-;;  ("C-M-j" . move-beginning-of-line)  ; was comment-indent-new-line
-;;  ("C-M-k" . scroll-up-command)  ; was kill-sexp
-;;  ("C-M-l" . scroll-down-command)  ; was reposition
-;;  ("C-M-;" . move-end-of-line)
-;;  ("C-o" . vi-open-line-below)
- ("M-o" . ace-window)
-;;  ;; ("C-a" . comment-dwim)  ; was move-beginning-of-line
-;;  ("C-f" . recenter-top-bottom)  ; was forward-char
-;;  ("C-d" . kill-whole-line)  ; was some delete
-;;  ("C-w" . backward-kill-word)  ; was kill-region
-;;  ("C-e" . highlight-symbol-next)  ; was same as <end>
-;;  ("C-S-e" . highlight-symbol-prev)
-;;  ("C-M-e" . highlight-symbol)  ; was forward-sentence
-)
-
-;; (global-set-key (kbd "M-:") (kbd "S-<right>"))
-;; (global-set-key (kbd "C-:") (kbd "S-M-f"))
-;; (global-set-key (kbd "C-M-:") (kbd "S-<end>"))
-;; (global-set-key (kbd "C-<") (kbd "S-C-,"))
-;; (global-set-key (kbd "C->") (kbd "S-C-."))
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; PYTHON AND PROJECTS ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -711,14 +542,6 @@
   ;; (add-hook 'python-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
-
-;; (use-package python-black
-;;   :demand t
-;;   :ensure t
-;;   :after python
-;;   :config
-;;   (python-black-on-save-mode)
-;;   )
 
 (use-package company
   :ensure t
@@ -739,6 +562,10 @@
   (define-key company-active-map (kbd "<tab>") 'company-complete)
   )
 
+(use-package company-box
+  :hook (company-mode . company-box-mode)
+  :ensure t)
+
 (use-package company-jedi
   :ensure t
   ;; (defun my/python-mode-hook ()
@@ -747,25 +574,11 @@
   ;; (add-hook 'python-mode-hook 'my/python-mode-hook)
   )
 
-;; (use-package company-posframe
-;;   :ensure t
-;;   :config
-;;   (company-posframe-mode nil)
-;;   )
-
 (use-package company-prescient
   :ensure t
   :config
   (company-prescient-mode 1)
   )
-
-
-;; I think the following makes autocompletion slow:
-;; (defun my/python-mode-hook ()
-;;   (add-to-list 'company-backends 'company-jedi)
-;;   (company-mode)
-;;   )
-;; (add-hook 'python-mode-hook 'my/python-mode-hook)
 
 (use-package cython-mode
   :defer t
@@ -780,12 +593,6 @@
   :after (docker tramp)
   :ensure t
   )
-
-;; (use-package eglot
-;;   :ensure t
-;;   :config
-;;   (add-hook 'python-mode-hook 'eglot-ensure)
-;;   )
 
 (use-package elpy
   :ensure t
@@ -804,15 +611,6 @@
   :config
   (global-flycheck-mode t)
   )
-
-;; (eval-after-load 'flycheck
-  ;; '(define-key flycheck-mode-map (kbd "C-c C-! C-h") 'helm-flycheck))
-;; (eval-after-load 'flycheck
-;;   '(define-key flycheck-mode-map (kbd "C-c ! h") 'helm-flycheck))
-;; ^ will be handled by ryo mode
-
-;; (use-package hy-mode
-;;   :ensure t)
 
 (use-package importmagic
     :ensure t
@@ -840,62 +638,9 @@
    python-environment-directory "~/.virtualenvs")
   )
 
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :commands lsp
-;;   :custom
-;;   (lsp-auto-guess-root nil)
-;;   (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
-;;   (lsp-enable-snippet t)
-;;   :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
-;;   :hook ((python-mode c-mode c++-mode) . lsp))
-
-
-;; (use-package lsp-ui
-;;   :after lsp-mode
-;;   :diminish
-;;   :commands lsp-ui-mode
-;;   :custom-face
-;;   (lsp-ui-doc-background ((t (:background nil))))
-;;   (lsp-ui-doc-header ((t (:inherit (font-lock-string-face italic)))))
-;;   :bind (:map lsp-ui-mode-map
-;;               ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
-;;               ([remap xref-find-references] . lsp-ui-peek-find-references)
-;;               ("C-c u" . lsp-ui-imenu))
-;;   :custom
-;;   (lsp-ui-doc-enable t)
-;;   (lsp-ui-doc-header t)
-;;   (lsp-ui-doc-include-signature t)
-;;   (lsp-ui-doc-position 'top)
-;;   (lsp-ui-doc-border (face-foreground 'default))
-;;   (lsp-ui-sideline-enable nil)
-;;   (lsp-ui-sideline-ignore-duplicate t)
-;;   (lsp-ui-sideline-show-code-actions nil)
-;;   :config
-;;   ;; Use lsp-ui-doc-webkit only in GUI
-;;   (setq lsp-ui-doc-use-webkit t)
-;;   ;; WORKAROUND Hide mode-line of the lsp-ui-imenu buffer
-;;   ;; https://github.com/emacs-lsp/lsp-ui/issues/243
-;;   (defadvice lsp-ui-imenu (after hide-lsp-ui-imenu-mode-line activate)
-;;     (setq mode-line-format nil)))
-
-;; (use-package company
-;;   :ensure t
-;;   :config
-;;   (setq company-idle-delay 0)
-;;   (setq company-minimum-prefix-length 3)
-
-;;   (global-company-mode t)
-;;   )
-
-;; (venv-workon "crwcommon")
-;; (setq lsp-python-executable-cmd "python")
-
-;; (use-package company-lsp
-;;   :ensure t
-;;   :config
-;;  (push 'company-lsp company-backends)
-;; )
+(use-package kubernetes
+  :ensure t
+  :commands (kubernetes-overview))
 
 (use-package magit
   :ensure t
@@ -909,26 +654,6 @@
   )
 (setenv "EDITOR" "emacsclient")
 
-;; (use-package neotree
-;;   :defer t
-;;   :init
-;;   (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-;;   (defun neotree-project-dir ()
-;;   "Open NeoTree using the git root."
-;;   (interactive)
-;;   (let ((project-dir (projectile-project-root))
-;;         (file-name (buffer-file-name)))
-;;     (neotree-toggle)
-;;     (if project-dir
-;;         (if (neo-global--window-exists-p)
-;;             (progn
-;;               (neotree-dir project-dir)
-;;               (neotree-find file-name)))
-;;       (message "Could not find git project root."))))
-;;   :bind
-;;   ("<f8>" . neotree-project-dir)
-;;   )
-
 (use-package pip-requirements
   :hook ((pip-requirements-mode . company-mode))
   :ensure t)
@@ -940,55 +665,16 @@
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
   (setq projectile-enable-caching t)
-  ;; (helm-projectile-on)
-  ;; :bind
-  ;; ("C-c C-p C-p" . projectile-switch-project)
-  ;; ("C-c C-p C-h" . helm-projectile)
-  ;; ("C-c C-p C-f" . projectile-find-file)
-  ;; ("C-c C-p C-d" . projectile-dir)
-  ;; ("C-c C-p C-t" . projectile-toggle-between-implementation-and-test)
-  ;; ("C-c C-p C-r" . projectile-replace)
-  ;; ("C-c C-p C-e" . projectile-replace-regexp)
-  ;; ("C-c C-p C-s s" . projectile-ag)
-  ;; ("C-c C-p C-s g" . projectile-grep)
-  ;; ("C-c C-p C-s r" . projectile-ripgrep)
-  ;; ("C-c C-p C-k" . projectile-kill-buffers)
-  ;; ("C-c C-p C-S" . projectile-save-project-buffers)
-  ;; ("C-c p p" . projectile-switch-project)
-  ;; ("C-c p h" . helm-projectile)
-  ;; ("C-c p f" . projectile-find-file)
-  ;; ("C-c p d" . projectile-dir)
-  ;; ("C-c p t" . projectile-toggle-between-implementation-and-test)
-  ;; ("C-c p r" . projectile-replace)
-  ;; ("C-c p e" . projectile-replace-regexp)
-  ;; ("C-c p s s" . projectile-ag)
-  ;; ("C-c p s g" . projectile-grep)
-  ;; ("C-c p s r" . projectile-ripgrep)
-  ;; ("C-c p k" . projectile-kill-buffers)
-  ;; ("C-c p S" . projectile-save-project-buffers)
-  ;; ^ will be handled by ryo mode
   )
-
-;; (use-package ibuffer-projectile
-;;   :ensure t
-;;   :config
-;;   (add-hook
-;;    'ibuffer-hook
-;;    (lambda ()
-;;      (ibuffer-projectile-set-filter-groups)
-;;      (unless (eq ibuffer-sorting-mode 'alphabetic)
-;;        (ibuffer-do-sort-by-alphabetic))))
-;;   )
 
 (use-package python-pytest
   :ensure t)
 
-;; (use-package realgud
-;;   :ensure t)
+(use-package pyvenv
+  :ensure t)
 
 (use-package virtualenvwrapper
-  :ensure t
-  )
+  :ensure t)
 
 (venv-initialize-interactive-shells)
 (defvar python-environment-directory)
@@ -996,18 +682,11 @@
 (setq venv-location "~/.virtualenvs/")
 (venv-initialize-eshell)
 
-;; (use-package auto-virtualenvwrapper
-;;   :ensure t
-;;   :config
-;;   (add-hook 'python-mode-hook #'auto-virtualenvwrapper-activate)
-;;   (add-hook 'window-configuration-change-hook #'auto-virtualenvwrapper-activate)
-;;   (add-hook 'focus-in-hook #'auto-virtualenvwrapper-activate)
-;;   )
-
 (use-package auto-virtualenv
   :ensure t
   :config
   (setq auto-virtualenv-dir "~/.virtualenvs")
+  ;; the config that makes my life hell:
   ;; (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
   ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
   (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
@@ -1158,6 +837,15 @@
 ;;                        (length (tabbar-view
 ;;                                 (tabbar-current-tabset)))))))))
 ;; (tabbar-mode 1)
+
+
+;;;;;;;;;;;;;;;;;
+;;; SHORTCUTS ;;;
+;;;;;;;;;;;;;;;;;
+
+(bind-keys*
+ ("M-o" . ace-window)
+ )
 
 (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
 (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
@@ -1390,6 +1078,7 @@
          ("B" superword-off)
          ("n" subword-on)
          ("N" subword-off)
+
          ("m" cut-outside-or-not)
          ("," cut-outer-with-paren)
          ("." cut-outer-with-square)
@@ -1438,7 +1127,8 @@
          ("v" helm-show-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ;; ("b" imenu)  ;; think about it
-         ("n" goto-line)  ;; useful but I could just as well use M-g M-g
+         ("n" goto-line)
+
          ("m" mark-outside-or-not)
          ("," mark-outer-with-paren)
          ("." mark-outer-with-square)
@@ -1467,6 +1157,8 @@
    ("O" magic-elpy-nav-backward-class)
    ("P" nav-forward-indent)
 
+   ("\\" er/mark-python-statement)  ;; use me
+
    ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
    ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
 
@@ -1487,8 +1179,6 @@
 
    ("f"
     (
-     ("\\" er/mark-python-statement)  ;; use me
-
      ("J" magic-elpy-nav-backward-method)
      (":" magic-elpy-nav-forward-method)
 

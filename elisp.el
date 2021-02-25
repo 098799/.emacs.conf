@@ -392,6 +392,7 @@
   (interactive)
   (cut-inside-or-not nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun mark-outside-or-not (arg)
@@ -469,6 +470,7 @@
   (interactive)
   (cut-outside-or-not nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun mark-until-end-of-line (arg)
@@ -573,6 +575,7 @@
   (interactive)
   (cut-inner-with-paren nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-inner-with-paren ()
@@ -593,6 +596,7 @@
   (interactive)
   (cut-inner-with-square nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-inner-with-square ()
@@ -613,6 +617,7 @@
   (interactive)
   (cut-inner-with-curly nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-inner-with-curly ()
@@ -697,6 +702,7 @@
   (interactive)
   (cut-outer-with-paren nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-outer-with-paren ()
@@ -717,6 +723,7 @@
   (interactive)
   (cut-outer-with-square nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-outer-with-square ()
@@ -737,6 +744,7 @@
   (interactive)
   (cut-outer-with-curly nil)
   (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun copy-outer-with-curly ()
@@ -1068,8 +1076,6 @@ Repeated invocations toggle between the two most recently open buffers."
    '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
   )
 
-(small-font)
-
 (defun middle-font ()
   (interactive)
   (custom-set-faces
@@ -1271,7 +1277,7 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun cdsitepackages ()
   (interactive)
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.8/site-packages")
+  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.9/site-packages")
   )
 
 (defun get-buffer-path ()
@@ -1332,3 +1338,9 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (helm-rg nil)
   )
+
+(defun copy-full-path-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (kill-new (file-truename buffer-file-name))))
