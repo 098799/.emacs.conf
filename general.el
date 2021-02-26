@@ -1,17 +1,33 @@
-(require 'package)
-(setq package-enable-at-startup nil)
-(setq package-archives '(
-                         ("melpa" . "https://melpa.org/packages/")
-                         ("gnu" . "https://elpa.gnu.org/packages/")
-;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
-                         ))
-(package-initialize)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(eval-when-compile
-  (require 'use-package))
+(straight-use-package 'use-package)
+(setq straight-use-package-by-default t)
+
+;; (require 'package)
+;; (setq package-enable-at-startup nil)
+;; (setq package-archives '(
+;;                          ("melpa" . "https://melpa.org/packages/")
+;;                          ("gnu" . "https://elpa.gnu.org/packages/")
+;; ;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
+;;                          ))
+;; (package-initialize)
+
+;; (unless (package-installed-p 'use-package)
+;;   (package-refresh-contents)
+;;   (package-install 'use-package))
+;; (eval-when-compile
+;;   (require 'use-package))
 
 ;; (use-package auto-package-update
 ;;    :ensure t
@@ -217,6 +233,7 @@
 (use-package counsel-projectile
   :after counsel
   :ensure t
+  :config (counsel-projectile-mode)
   )
 
 (use-package counsel-tramp
@@ -228,6 +245,7 @@
 
 (use-package dired
   :hook (dired-mode . dired-hide-details-mode)
+  :straight nil
   :bind
   (:map dired-mode-map
         ("w" . wdired-change-to-wdired-mode)
@@ -253,15 +271,17 @@
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   (setq dired-dwim-target t)
+  )
+
   (use-package diredfl
     :ensure t
     :config
     (diredfl-global-mode 1))
+
   (use-package dired-git-info
     :ensure t
     :bind (:map dired-mode-map
                 (")" . dired-git-info-mode)))
-  )
 
 (use-package dired-toggle
   :after dired
@@ -279,9 +299,6 @@
 
 (use-package dired-hide-dotfiles
   :ensure t)
-
-(use-package dired-x
-  :after dired)
 
 (use-package dumb-jump
   :ensure t)
@@ -310,11 +327,9 @@
   (global-set-key (kbd "s-<f9>") 'eyebrowse-switch-to-window-config-9)
   )
 
-(setq gc-cons-threshold 50000000)
-
-;; angrybackon's tweak: https://github.com/angrybacon/dotemacs/blob/master/init.el#L28-L31
-(setq gc-cons-percentage .6)
-(setq read-process-output-max (* 1024 1024))
+;; The default is 800 kilobytes.  Measured in bytes.
+(setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB
+(setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
 
 (use-package gif-screencast
   :ensure t
@@ -330,6 +345,7 @@
 (use-package helm-config
   :config
   (helm-mode 1)
+  :straight nil
   )
 
 (use-package helm
@@ -371,25 +387,42 @@
 (use-package helm-projectile
   :ensure t)
 
-(use-package prescient
+(use-package hideshow
   :ensure t)
-
-;; (use-package ivy-prescient
-;;   :ensure t)
 
 (use-package ivy-historian
   :ensure t)
 
 (use-package ivy
   :ensure t
-  :after helm
+  ;; :after helm
   :init
   (historian-mode +1)
+  (ivy-mode 1)
+  (counsel-mode 1)
   :config
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
-  (ivy-mode t)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
+  )
+
+(use-package ivy-xref
+  :init
+  (setq xref-show-definitions-function #'ivy-xref-show-defs)
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+
+(use-package ivy-prescient
+  :after counsel
+  :init
+  (ivy-prescient-mode)
+  (prescient-persist-mode)
+  )
+
+(use-package prescient
+  :diminish
+  :config
   )
 
 (use-package ivy-rich
@@ -401,7 +434,7 @@
           ivy-rich-parse-remote-file-path nil
           ivy-rich-path-style (quote full))
   ;; (ivy-rich-mode 0)
-  )
+    )
 
 (use-package ivy-youtube
   :defer t
@@ -512,6 +545,9 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
+(use-package vimish-fold
+  :ensure t)
+
 (use-package which-key
   :ensure t
   :init
@@ -575,9 +611,11 @@
   )
 
 (use-package company-prescient
+  :after company
   :ensure t
   :config
   (company-prescient-mode 1)
+  (prescient-persist-mode)
   )
 
 (use-package cython-mode
@@ -664,7 +702,9 @@
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
+  (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'hybrid)
   )
 
 (use-package python-pytest
@@ -876,7 +916,6 @@
 (global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
 (global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
-(global-set-key (kbd "<S-iso-lefttab>") 'elpy-folding-toggle-at-point)
 
 (global-set-key (kbd "'") 'quote-up-or-replace)
 (global-set-key (kbd "\"") 'double-quote-up-or-replace)
