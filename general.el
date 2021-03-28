@@ -71,7 +71,7 @@
   :config
   (beacon-mode 1)
   ;; (set-face-background hl-line "gray13")
-  (global-hl-line-mode +1)
+  ;; (global-hl-line-mode +1)
   )
 
 (use-package command-log-mode
@@ -149,8 +149,8 @@
 (use-package solarized-theme
   :ensure t
   :config
-  ;; (load-theme 'solarized-dark t)
-  (load-theme 'solarized-gruvbox-light t)
+  (load-theme 'solarized-dark t)
+  ;; (load-theme 'solarized-gruvbox-light t)
   )
 
 (use-package rainbow-delimiters
@@ -390,6 +390,13 @@
 (use-package hideshow
   :ensure t)
 
+;; One of the following was making ivy slow:
+;; historian
+;; prescient
+;; rich
+;;
+;; Figure it out and go back to the others...
+
 (use-package ivy-historian
   :ensure t)
 
@@ -403,15 +410,10 @@
   :config
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
-  (setq ivy-use-virtual-buffers t)
+  ;; (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
   )
-
-(use-package ivy-xref
-  :init
-  (setq xref-show-definitions-function #'ivy-xref-show-defs)
-  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
 (use-package ivy-prescient
   :after counsel
@@ -425,22 +427,16 @@
   :config
   )
 
-(use-package ivy-rich
-  :ensure t
-  :config
-  (ivy-rich-mode t)
-  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line) ; Recommended in Github repo
-    (setq ivy-rich-parse-remote-buffer nil ; https://github.com/Yevgnen/ivy-rich/issues/47
-          ivy-rich-parse-remote-file-path nil
-          ivy-rich-path-style (quote full))
-  ;; (ivy-rich-mode 0)
-    )
-
-(use-package ivy-youtube
-  :defer t
-  :config
-  (autoload 'ivy-youtube "ivy-youtube" nil t)
-  )
+;; (use-package ivy-rich
+;;   :ensure t
+;;   :config
+;;   (ivy-rich-mode t)
+;;   (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line) ; Recommended in Github repo
+;;     (setq ivy-rich-parse-remote-buffer nil ; https://github.com/Yevgnen/ivy-rich/issues/47
+;;           ivy-rich-parse-remote-file-path nil
+;;           ivy-rich-path-style (quote full))
+;;   ;; (ivy-rich-mode 0)
+;;     )
 
 (use-package key-chord
   :ensure t
@@ -934,8 +930,10 @@
   (add-hook 'special-mode-hook #'ryo-modal-mode)
   (add-hook 'magit-status-mode-hook #'ryo-modal-off)
   (add-hook 'conf-unix-mode-hook #'ryo-modal-mode)
-  (setq ryo-modal-default-cursor-color "#839496")
-  (setq ryo-modal-cursor-type 'hbar)
+  (setq ryo-modal-default-cursor-color "#859900")
+  (setq ryo-modal-cursor-color "#859900")
+  (setq-default cursor-type 'bar)
+  (setq ryo-modal-cursor-type 'box)
   (ryo-modal-mode)
 
   (ryo-modal-keys
@@ -1043,6 +1041,11 @@
          ("O" substitute-inner-with-square)
          ("P" substitute-inner-with-curly)
 
+         ("fu" substitute-inside-or-not-with-kill-ring)
+         ("fi" substitute-inner-with-paren-with-kill-ring)
+         ("fo" substitute-inner-with-square-with-kill-ring)
+         ("fp" substitute-inner-with-curly-with-kill-ring)
+
          ("a" comment-line)
          ("s" helm-projectile-rg)
          ;; ("s" counsel-projectile-rg)
@@ -1060,6 +1063,11 @@
          ("<" substitute-outer-with-paren)
          (">" substitute-outer-with-square)
          ("?" substitute-outer-with-curly)
+
+         ("fm" substitute-outside-or-not-with-kill-ring)
+         ("f," substitute-outer-with-paren-with-kill-ring)
+         ("f." substitute-outer-with-square-with-kill-ring)
+         ("f/" substitute-outer-with-curly-with-kill-ring)
          )
    )
 
@@ -1163,7 +1171,7 @@
          ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
          ;; ("v" counsel-yank-pop)
-         ("v" helm-show-kill-ring)
+         ("v" yank-from-kill-ring)
          ("V" paste-from-kill-ring-new-line)
          ;; ("b" imenu)  ;; think about it
          ("n" goto-line)
@@ -1172,11 +1180,6 @@
          ("," mark-outer-with-paren)
          ("." mark-outer-with-square)
          ("/" mark-outer-with-curly)
-
-         ;; ("m" ivy-switch-buffer)
-         ;; ("." xref-find-definitions)
-         ;; ("," xref-pop-marker-stack)
-         ;; ;; ("/" )  ;; think about it
 
          ("0" delete-window)
          ("1" delete-other-windows)

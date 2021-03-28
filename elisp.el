@@ -395,6 +395,54 @@
   (pop kill-ring)
   )
 
+(defun substitute-with-kill-ring (closure)
+  (let ((to-be-pasted (read-from-kill-ring)))
+    (funcall closure nil)
+    (insert to-be-pasted)
+    )
+  (pop kill-ring)
+  )
+
+(defun substitute-inside-or-not-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-inside-or-not)
+  )
+
+(defun substitute-inner-with-paren-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-inner-with-paren)
+  )
+
+(defun substitute-inner-with-square-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-inner-with-square)
+  )
+
+(defun substitute-inner-with-curly-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-inner-with-curly)
+  )
+
+(defun substitute-outside-or-not-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-outside-or-not)
+  )
+
+(defun substitute-outer-with-paren-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-outer-with-paren)
+  )
+
+(defun substitute-outer-with-square-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-outer-with-square)
+  )
+
+(defun substitute-outer-with-curly-with-kill-ring ()
+  (interactive)
+  (substitute-with-kill-ring 'cut-outer-with-curly)
+  )
+
 (defun mark-outside-or-not (arg)
   "Mark outside python string, but if not, just the word."
   (interactive "P")
