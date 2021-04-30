@@ -11,7 +11,10 @@
   (move-end-of-line 1)
   (newline-and-indent)
   (insert "breakpoint()")
-  (highlight-lines-matching-regexp "^[ ]*breakpoint()*"))
+  (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
+
+(add-hook 'change-major-mode-hook '(lambda () (highlight-lines-matching-regexp "^[ ]*breakpoint()")))
+(add-hook 'change-minor-mode-hook '(lambda () (highlight-lines-matching-regexp "^[ ]*breakpoint()")))
 
 (defun my-copy-region ()
   "Copy with a flash"
@@ -1392,3 +1395,14 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (when buffer-file-name
     (kill-new (file-truename buffer-file-name))))
+
+(defun revert-buffer-no-confirm ()
+  "Revert buffer without confirmation."
+  (interactive)
+  (revert-buffer t t))
+
+(defun importmagic-save-revert-and-fix ()
+  (interactive)
+  (save-buffer)
+  (revert-buffer-no-confirm)
+  (importmagic-fix-symbol-at-point))

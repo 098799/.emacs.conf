@@ -1,41 +1,3 @@
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-(straight-use-package 'use-package)
-(setq straight-use-package-by-default t)
-
-;; (require 'package)
-;; (setq package-enable-at-startup nil)
-;; (setq package-archives '(
-;;                          ("melpa" . "https://melpa.org/packages/")
-;;                          ("gnu" . "https://elpa.gnu.org/packages/")
-;; ;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
-;;                          ))
-;; (package-initialize)
-
-;; (unless (package-installed-p 'use-package)
-;;   (package-refresh-contents)
-;;   (package-install 'use-package))
-;; (eval-when-compile
-;;   (require 'use-package))
-
-;; (use-package auto-package-update
-;;    :ensure t
-;;    :config
-;;    (setq auto-package-update-delete-old-versions t
-;;          auto-package-update-interval 4)
-;;    (auto-package-update-maybe))
-
 ;; (defvar bootstrap-version)
 ;; (let ((bootstrap-file
 ;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -48,6 +10,32 @@
 ;;       (goto-char (point-max))
 ;;       (eval-print-last-sexp)))
 ;;   (load bootstrap-file nil 'nomessage))
+
+;; (straight-use-package 'use-package)
+;; (setq straight-use-package-by-default nil)
+;; (setq package-enable-at-startup nil)
+
+(require 'package)
+(setq package-enable-at-startup nil)
+(setq package-archives '(
+                         ("melpa" . "https://melpa.org/packages/")
+                         ("gnu" . "https://elpa.gnu.org/packages/")
+;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
+                         ))
+(package-initialize)
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+(eval-when-compile
+  (require 'use-package))
+
+(use-package auto-package-update
+   :ensure t
+   :config
+   (setq auto-package-update-delete-old-versions t
+         auto-package-update-interval 4)
+   (auto-package-update-maybe))
 
 ;;;;;;;;;;;;;;;
 ;;; VISUALS ;;;
@@ -87,13 +75,13 @@
   :ensure t
   :init (doom-modeline-mode 1)
   :config
-  (setq doom-modeline-height 25)
-  (setq doom-modeline-bar-width 5)
-  (setq doom-modeline-icon t)
-  (setq doom-modeline-major-mode-icon t)
-  (setq doom-modeline-major-mode-color-icon t)
-  (setq doom-modeline-env-enable-python t)
-  (setq doom-modeline-vcs-max-length 20)
+  ;; (setq doom-modeline-height 5)
+  ;; (setq doom-modeline-bar-width 5)
+  ;; (setq doom-modeline-icon t)
+  ;; (setq doom-modeline-major-mode-icon t)
+  ;; (setq doom-modeline-major-mode-color-icon t)
+  ;; (setq doom-modeline-env-enable-python t)
+  ;; (setq doom-modeline-vcs-max-length 5)
   )
 
 (setq echo-keystrokes 0.5)
@@ -172,7 +160,7 @@
   :config
   (setq awesome-tab-background-color "#002B36")
   (setq awesome-tab-style "bar")
-  (setq awesome-tab-height 120)
+  (setq awesome-tab-height 12)
   (awesome-tab-mode t)
   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
@@ -245,7 +233,7 @@
 
 (use-package dired
   :hook (dired-mode . dired-hide-details-mode)
-  :straight nil
+  ;; :straight nil
   :bind
   (:map dired-mode-map
         ("w" . wdired-change-to-wdired-mode)
@@ -301,7 +289,11 @@
   :ensure t)
 
 (use-package dumb-jump
-  :ensure t)
+  :ensure t
+  :config
+  (setq dumb-jump-force-searcher 'rg)
+  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)  ;; is this making things work?
+  )
 
 (use-package eshell-toggle
   :ensure t)
@@ -345,7 +337,7 @@
 (use-package helm-config
   :config
   (helm-mode 1)
-  :straight nil
+  ;; :straight nil
   )
 
 (use-package helm
@@ -364,6 +356,7 @@
   :config
   (helm-mode 1)
   (helm-adaptive-mode t)
+  (add-to-list 'ivy-ignore-buffers "\\*helm")
   :bind
   ("C-c p s g" . helm-do-ag-project-root)
   ("M-x" . helm-M-x)
@@ -413,13 +406,13 @@
   ;; (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
+  (add-to-list 'ivy-ignore-buffers "\\*Help")
   )
 
 (use-package ivy-prescient
-  :after counsel
-  :init
-  (ivy-prescient-mode)
-  (prescient-persist-mode)
+  :ensure t
+  :config
+  (prescient-persist-mode t)
   )
 
 (use-package prescient
@@ -592,6 +585,8 @@
   (define-key company-active-map (kbd "C-p") 'company-select-previous)
   (define-key company-active-map (kbd "M-/") 'company-other-backend)
   (define-key company-active-map (kbd "<tab>") 'company-complete)
+
+  (add-to-list 'ivy-ignore-buffers "\\*company")
   )
 
 (use-package company-box
@@ -644,6 +639,7 @@
   :ensure t
   :config
   (global-flycheck-mode t)
+  (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
   )
 
 (use-package importmagic
@@ -653,6 +649,9 @@
     (setq importmagic-style-configuration-alist '((multiline . parentheses)
                                                   (max_columns . 200))
           )
+    (add-to-list 'ivy-ignore-buffers "\\*epc con")
+    (setq importmagic-python-interpreter "/home/tgrining/.virtualenvs/legartis/bin/python")
+    (setq importmagic-be-quiet t)
     )
 
 ;; ;; isort
@@ -685,7 +684,11 @@
   (with-eval-after-load 'magit
     (transient-append-suffix 'magit-log "-A"
       '("-1" "First parent" "--first-parent")))
+  (add-to-list 'ivy-ignore-buffers "magit-process:")
+  (add-to-list 'ivy-ignore-buffers "magit-diff:")
+  (add-to-list 'ivy-ignore-buffers "magit:")
   )
+
 (setenv "EDITOR" "emacsclient")
 
 (use-package pip-requirements
@@ -718,15 +721,15 @@
 (setq venv-location "~/.virtualenvs/")
 (venv-initialize-eshell)
 
-(use-package auto-virtualenv
-  :ensure t
-  :config
-  (setq auto-virtualenv-dir "~/.virtualenvs")
-  ;; the config that makes my life hell:
-  ;; (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
-  ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
-  (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
-  )
+;; (use-package auto-virtualenv
+;;   :ensure t
+;;   :config
+;;   (setq auto-virtualenv-dir "~/.virtualenvs")
+;;   ;; the config that makes my life hell:
+;;   ;; (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+;;   ;; (add-hook 'window-configuration-change-hook 'auto-virtualenv-set-virtualenv)
+;;   (add-hook 'focus-in-hook 'auto-virtualenv-set-virtualenv)
+;;   )
 
 (use-package yasnippet-snippets
   :ensure t
@@ -1076,7 +1079,7 @@
          ("q" my-copy-word-or-region)
          ("w" my-backward-copy-word-or-region)
          ("e" add-correct-start-of-commit)
-         ("r" importmagic-fix-symbol-at-point)
+         ("r" importmagic-save-revert-and-fix)
 
          ("u" copy-inside-or-not)
          ("i" copy-inner-with-paren)
@@ -1084,6 +1087,7 @@
          ("p" copy-inner-with-curly)
 
          ("s" swiper-region)
+
          ("j" counsel-projectile)
          ("k" kill-all-buffers-but-scratch)
          ("l" venv-workon)
@@ -1170,8 +1174,7 @@
          ("x" counsel-M-x)
          ;; ("x" helm-M-x)
          ("c" save-buffers-kill-terminal)
-         ;; ("v" counsel-yank-pop)
-         ("v" yank-from-kill-ring)
+         ("v" counsel-yank-pop)
          ("V" paste-from-kill-ring-new-line)
          ;; ("b" imenu)  ;; think about it
          ("n" goto-line)
@@ -1224,8 +1227,8 @@
      ("J" magic-elpy-nav-backward-method)
      (":" magic-elpy-nav-forward-method)
 
-     (";" elpy-goto-definition)
-     (":" pop-tag-mark)
+     (";" xref-find-definitions)
+     (":" xref-pop-marker-stack)
      )
     )
    )
@@ -1254,4 +1257,42 @@
      )
     )
    )
+  )
+
+
+(use-package hydra
+  :ensure t
+  :config
+  (defhydra hydra-smerge (:color pink
+                                 :hint nil
+                                 :pre (smerge-mode 1)
+                                 ;; Disable `smerge-mode' when quitting hydra if
+                                 ;; no merge conflicts remain.
+                                 :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^-----------^^-------------------^^---------------------^^-------
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine
+^^           _RET_: current       _E_diff
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("q" nil "cancel" :color blue))
   )
