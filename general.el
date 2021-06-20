@@ -137,9 +137,14 @@
 (use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'solarized-dark t)
+  ;; (load-theme 'solarized-dark t)
   ;; (load-theme 'solarized-gruvbox-light t)
   )
+
+(use-package spacemacs-theme
+  :ensure t
+  :config
+  (load-theme 'spacemacs-light t))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -158,9 +163,7 @@
 (use-package awesome-tab
   :load-path "~/.emacs.d/awesome-tab/"
   :config
-  (setq awesome-tab-background-color "#002B36")
-  (setq awesome-tab-style "bar")
-  (setq awesome-tab-height 12)
+  (setq awesome-tab-background-color "#fbf8ef")
   (awesome-tab-mode t)
   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
@@ -356,7 +359,6 @@
   :config
   (helm-mode 1)
   (helm-adaptive-mode t)
-  (add-to-list 'ivy-ignore-buffers "\\*helm")
   :bind
   ("C-c p s g" . helm-do-ag-project-root)
   ("M-x" . helm-M-x)
@@ -407,6 +409,7 @@
   (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
+  (add-to-list 'ivy-ignore-buffers "\\*helm")
   )
 
 (use-package ivy-prescient
@@ -525,6 +528,7 @@
 (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
 (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
+(setq tramp-chunksize 500)
 
 (use-package undo-tree
   :ensure t
@@ -647,18 +651,16 @@
     :config
     (add-hook 'python-mode-hook 'importmagic-mode)
     (setq importmagic-style-configuration-alist '((multiline . parentheses)
-                                                  (max_columns . 200))
-          )
+                                                  (max_columns . 200)))
     (add-to-list 'ivy-ignore-buffers "\\*epc con")
-    (setq importmagic-python-interpreter "/home/tgrining/.virtualenvs/legartis/bin/python")
     (setq importmagic-be-quiet t)
     )
 
-;; ;; isort
-;; (use-package py-isort
-;;   :ensure t
-;;   :config
-;;   (add-hook 'before-save-hook 'py-isort-before-save))
+;; isort
+(use-package py-isort
+  :ensure t
+  :config
+  (add-hook 'before-save-hook 'py-isort-before-save))
 
 (use-package jedi
   :ensure t
@@ -688,6 +690,10 @@
   (add-to-list 'ivy-ignore-buffers "magit-diff:")
   (add-to-list 'ivy-ignore-buffers "magit:")
   )
+
+(use-package forge
+  :ensure t
+  :after magit)
 
 (setenv "EDITOR" "emacsclient")
 
@@ -798,9 +804,6 @@
                 web-mode-code-indent-offset 2)
   )
 (use-package markdown-mode
-  :ensure t
-  )
-(use-package markdown-mode+
   :ensure t
   )
 (use-package nov
@@ -969,11 +972,13 @@
    ("h" move-beginning-of-line)
    ("H" beginning-of-line-or-indentation)
    ("j" my-backward-word)
+   ("J" backward-sexp)
    ("k" forward-paragraph)
    ("K" scroll-up-and-recenter)
    ("l" backward-paragraph)
    ("L" scroll-down-and-recenter)
    (";" my-forward-word)
+   (":" forward-sexp)
    ("'" move-end-of-line)
    ("\"" double-quote-up-or-replace)
 

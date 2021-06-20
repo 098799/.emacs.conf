@@ -5,16 +5,18 @@
     (if (equal previous-point (point))
         (beginning-of-line))))
 
+(defun highlight-breakpoint ()
+  (interactive)
+  (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
+
 (defun python-add-breakpoint ()
   "Adding a breakpoint to a python code."
   (interactive)
   (move-end-of-line 1)
   (newline-and-indent)
   (insert "breakpoint()")
-  (highlight-lines-matching-regexp "^[ ]*breakpoint()"))
-
-(add-hook 'change-major-mode-hook '(lambda () (highlight-lines-matching-regexp "^[ ]*breakpoint()")))
-(add-hook 'change-minor-mode-hook '(lambda () (highlight-lines-matching-regexp "^[ ]*breakpoint()")))
+  (highlight-breakpoint)
+  )
 
 (defun my-copy-region ()
   "Copy with a flash"
@@ -1403,6 +1405,8 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun importmagic-save-revert-and-fix ()
   (interactive)
-  (save-buffer)
-  (revert-buffer-no-confirm)
-  (importmagic-fix-symbol-at-point))
+  ;; (save-buffer)
+  ;; (revert-buffer-no-confirm)
+  ;; (highlight-breakpoint)
+  (importmagic-fix-symbol-at-point)
+  )
