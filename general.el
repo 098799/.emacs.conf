@@ -137,14 +137,15 @@
 (use-package solarized-theme
   :ensure t
   :config
+  (load-theme 'solarized-light t)
   ;; (load-theme 'solarized-dark t)
   ;; (load-theme 'solarized-gruvbox-light t)
   )
 
-(use-package spacemacs-theme
-  :ensure t
-  :config
-  (load-theme 'spacemacs-light t))
+;; (use-package spacemacs-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'spacemacs-light t))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -298,6 +299,12 @@
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)  ;; is this making things work?
   )
 
+(use-package dired-posframe
+  :ensure t
+  :config
+  :bind (:map dired-mode-map
+              ("_" . dired-posframe-mode)))
+
 (use-package eshell-toggle
   :ensure t)
 
@@ -423,6 +430,10 @@
   :config
   )
 
+(use-package ivy-rich
+  :ensure t
+  :init (ivy-rich-mode 1))
+
 ;; (use-package ivy-rich
 ;;   :ensure t
 ;;   :config
@@ -541,14 +552,14 @@
 (use-package vimish-fold
   :ensure t)
 
-(use-package which-key
-  :ensure t
-  :init
-  (setq which-key-separator " ")
-  (setq which-key-prefix-prefix "+")
-  :config
-  (which-key-mode 1)
-  )
+;; (use-package which-key
+;;   :ensure t
+;;   :init
+;;   (setq which-key-separator " ")
+;;   (setq which-key-prefix-prefix "+")
+;;   :config
+;;   (which-key-mode 1)
+;;   )
 
 (use-package whitespace-cleanup-mode
   :ensure t
@@ -673,10 +684,6 @@
    python-environment-directory "~/.virtualenvs")
   )
 
-(use-package kubernetes
-  :ensure t
-  :commands (kubernetes-overview))
-
 (use-package magit
   :ensure t
   :bind
@@ -747,6 +754,27 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
+;; dhall-mode highlight the syntax and run dhall format on save
+(use-package dhall-mode
+  :ensure t
+  :config
+  (setq
+    ;; uncomment the next line to disable automatic format
+    ;; dhall-format-at-save nil
+
+    ;; comment the next line to use unicode syntax
+    dhall-format-arguments (\` ("--ascii"))
+
+    ;; header-line is obsoleted by lsp-mode
+    dhall-use-header-line nil))
+
+;; lsp-mode provides the lsp client and it configure flymake to explain errors
+(use-package lsp-mode
+  :ensure t
+  :init (setq lsp-keymap-prefix "C-c l")
+  :hook ((dhall-mode . lsp))
+  :commands lsp)
+
 (use-package poly-ansible
   :ensure t
   )
