@@ -18,6 +18,20 @@
   (highlight-breakpoint)
   )
 
+(defun python-add-return ()
+  (interactive)
+  (move-end-of-line 1)
+  (newline-and-indent)
+  (insert "return")
+  )
+
+(defun python-add-pass ()
+  (interactive)
+  (move-end-of-line 1)
+  (newline-and-indent)
+  (insert "pass")
+  )
+
 (defun my-copy-region ()
   "Copy with a flash"
   (interactive)
@@ -32,6 +46,7 @@
     (search-forward "On branch ")
     ;; (forward-line 5)
     (forward-word)
+    (forward-word)
     (forward-char)
     (cua-set-mark)
     (subword-mode t)
@@ -39,7 +54,11 @@
     ;; (move-end-of-line arg)
     (my-copy-region)
     )
+  (self-insert-command 1 91)
   (cua-paste arg)
+  (self-insert-command 1 93)
+  (self-insert-command 1 32)
+  (ryo-modal-off)
   )
 
 (defun vi-open-line-below ()
@@ -370,20 +389,29 @@
     )
   )
 
+;; (defun cut-inside-or-not (arg)
+;;   "Kill inside python string, but if not, just the word."
+;;   (interactive "P")
+;;   (er/mark-inside-python-string)
+;;   (unless (region-active-p)
+;;     (progn
+;;       (superword-mode t)
+;;       (my-forward-word arg)
+;;       (cua-set-mark)
+;;       (my-backward-word arg)
+;;       (superword-mode nil)
+;;       )
+;;     )
+;;   (kill-whole-line-or-region)
+;;   )
+
 (defun cut-inside-or-not (arg)
   "Kill inside python string, but if not, just the word."
   (interactive "P")
-  (er/mark-inside-python-string)
-  (unless (region-active-p)
-    (progn
-      (superword-mode t)
-      (my-forward-word arg)
-      (cua-set-mark)
-      (my-backward-word arg)
-      (superword-mode nil)
-      )
+  (save-excursion
+    (mark-inside-or-not arg)
+    (kill-whole-line-or-region)
     )
-  (kill-whole-line-or-region)
   )
 
 (defun change-inside-or-not (arg)
@@ -1104,22 +1132,45 @@ Repeated invocations toggle between the two most recently open buffers."
     )
   )
 
+;; Font?
+;; FiraCode Nerd Font
+;; RobotoMono Nerd Font
+;; Ubuntu Mono
+
 ;; (defun big-font ()
 ;;   (interactive)
 ;; (custom-set-faces
-;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "RobotoMono Nerd Font")))))
 ;;   )
 
 ;; (defun middle-font ()
 ;;   (interactive)
 ;; (custom-set-faces
-;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "Ubuntu Mono")))))
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "RobotoMono Nerd Font")))))
 ;;   )
 
 ;; (defun small-font ()
 ;;   (interactive)
 ;; (custom-set-faces
-;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "Ubuntu Mono")))))
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "RobotoMono Nerd Font")))))
+;;   )
+
+;; (defun big-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "FiraCode Nerd Font")))))
+;;   )
+
+;; (defun middle-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 120 :width normal :family "FiraCode Nerd Font")))))
+;;   )
+
+;; (defun small-font ()
+;;   (interactive)
+;; (custom-set-faces
+;;  '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 106 :width normal :family "FiraCode Nerd Font")))))
 ;;   )
 
 
@@ -1132,13 +1183,13 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun middle-font ()
   (interactive)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 145 :width normal :family "Ubuntu Mono")))))
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 135 :width normal :family "Ubuntu Mono")))))
   )
 
 (defun big-font ()
   (interactive)
   (custom-set-faces
-   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 170 :width normal :family "Ubuntu Mono")))))
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 180 :width normal :family "Ubuntu Mono")))))
   )
 
 (defun char-up-or-replace (arg)
@@ -1305,6 +1356,11 @@ Repeated invocations toggle between the two most recently open buffers."
   (put-into-clipboard (test-string))
   )
 
+(defun insert-class ()
+  (interactive)
+  (insert "class\\s")
+  )
+
 (defun helm-projectile-ag-thing-at-point ()
   (interactive)
   (mark-inside-or-not nil)
@@ -1330,7 +1386,8 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun cdsitepackages ()
   (interactive)
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.9/site-packages")
+  ;; (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.9/site-packages")
+  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.10/site-packages")
   )
 
 (defun get-buffer-path ()
@@ -1377,7 +1434,7 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun dired-mark-undo-tree ()
   (interactive)
-  (dired-mark-extension "~undo-tree~")
+  (dired-mark-files-regexp "~undo-tree~")
   )
 
 (defun magit-diff-develop ()
@@ -1398,6 +1455,27 @@ Repeated invocations toggle between the two most recently open buffers."
   (when buffer-file-name
     (kill-new (file-truename buffer-file-name))))
 
+(defun join-with-slashes (a b)
+  "Join strings a and b with a slash"
+  (concat a "/" b)
+  )
+
+(defun copy-folder-path-to-kill-ring ()
+  "copy buffer's full path to kill ring"
+  (interactive)
+  (when buffer-file-name
+    (kill-new
+     (reduce #'join-with-slashes
+             (let ((path-list (split-string (file-truename buffer-file-name) "/")))
+               (let ((file-name (car (last path-list))))
+                 (remove file-name path-list)
+                 )
+               )
+          )
+     )
+    )
+  )
+
 (defun revert-buffer-no-confirm ()
   "Revert buffer without confirmation."
   (interactive)
@@ -1405,8 +1483,26 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun importmagic-save-revert-and-fix ()
   (interactive)
-  ;; (save-buffer)
-  ;; (revert-buffer-no-confirm)
-  ;; (highlight-breakpoint)
+  (save-buffer)
+  (revert-buffer-no-confirm)
   (importmagic-fix-symbol-at-point)
   )
+
+(defun remove-imports ()
+  (interactive)
+  (shell-command (concat "remove_imports " (buffer-file-name)))
+  )
+
+(defun autoflake ()
+  (interactive)
+  (when (eq major-mode 'python-mode)
+    (let ((buffer-name (file-truename buffer-file-name)))
+      (shell-command (concat "/home/tgrining/.virtualenvs/legartis/bin/autoflake " buffer-name " --remove-all-unused-imports " "--in-place"))))
+  )
+
+;; (defun ivy-call-second-action ()
+;;   (interactive)
+;;   (ivy-exit-with-action
+;;    (cadr (nth 1 (cdr (ivy-state-action ivy-last))))))
+
+;; (define-key ivy-minibuffer-map (kbd "<C-return>") 'ivy-call-second-action)

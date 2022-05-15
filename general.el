@@ -1,15 +1,16 @@
-;; (defvar bootstrap-version)
-;; (let ((bootstrap-file
-;;        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-;;       (bootstrap-version 5))
-;;   (unless (file-exists-p bootstrap-file)
-;;     (with-current-buffer
-;;         (url-retrieve-synchronously
-;;          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-;;          'silent 'inhibit-cookies)
-;;       (goto-char (point-max))
-;;       (eval-print-last-sexp)))
-;;   (load bootstrap-file nil 'nomessage))
+;; Straight
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
 ;; (straight-use-package 'use-package)
 ;; (setq straight-use-package-by-default nil)
@@ -37,9 +38,16 @@
          auto-package-update-interval 4)
    (auto-package-update-maybe))
 
+(straight-use-package 'project)  ;; some problem with old version that magit had...
+
 ;;;;;;;;;;;;;;;
 ;;; VISUALS ;;;
 ;;;;;;;;;;;;;;;
+
+;; THINK ABOUT THIS but not now
+;; (add-to-list 'load-path "/Users/rougier/Documents/GitHub/nano-emacs")
+;; (straight-use-package
+;;   '(nano-emacs :type git :host github :repo "rougier/nano-emacs"))
 
 (menu-bar-mode -1)
 (when (fboundp 'tool-bar-mode)
@@ -50,6 +58,9 @@
   (horizontal-scroll-bar-mode -1))
 
 (global-auto-revert-mode 1)
+
+(setq scroll-margin 10)
+(setq recenter-positions '(middle top bottom))
 
 (use-package all-the-icons
   :ensure t)
@@ -73,15 +84,15 @@
 
 (use-package doom-modeline
   :ensure t
-  :init (doom-modeline-mode 1)
   :config
-  ;; (setq doom-modeline-height 5)
-  ;; (setq doom-modeline-bar-width 5)
-  ;; (setq doom-modeline-icon t)
-  ;; (setq doom-modeline-major-mode-icon t)
-  ;; (setq doom-modeline-major-mode-color-icon t)
-  ;; (setq doom-modeline-env-enable-python t)
-  ;; (setq doom-modeline-vcs-max-length 5)
+  (doom-modeline-mode 1)
+  (setq doom-modeline-height 10)
+  (setq doom-modeline-bar-width 5)
+  (setq doom-modeline-icon t)
+  (setq doom-modeline-major-mode-icon t)
+  (setq doom-modeline-major-mode-color-icon t)
+  (setq doom-modeline-env-enable-python t)
+  (setq doom-modeline-vcs-max-length 5)
   )
 
 (setq echo-keystrokes 0.5)
@@ -134,6 +145,17 @@
   :config
   (nav-flash-show))
 
+;; (use-package nano-theme
+;;   :ensure nil
+;;   :defer t
+;;   :quelpa (nano-theme
+;;            :fetcher github
+;;            :repo "rougier/nano-theme")
+;;   :config
+;;   ;; (load-theme 'nano-light)
+;;   ;; (load-theme 'nano-dark)
+;;   )
+
 (use-package solarized-theme
   :ensure t
   :config
@@ -161,13 +183,26 @@
 
 ;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
 
-(use-package awesome-tab
-  :load-path "~/.emacs.d/awesome-tab/"
+;; (use-package awesome-tab
+;;   :load-path "~/.emacs.d/awesome-tab/"
+;;   :config
+;;   (setq awesome-tab-background-color "#fbf8ef")
+;;   (awesome-tab-mode t)
+;;   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
+;;   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+;;   )
+
+(use-package centaur-tabs
+  :ensure t
   :config
-  (setq awesome-tab-background-color "#fbf8ef")
-  (awesome-tab-mode t)
-  (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-  (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
+  (centaur-tabs-mode t)
+  (setq centaur-tabs-set-modified-marker t)
+  (setq centaur-tabs-height 28)
+  (setq centaur-tabs-set-bar 'under)
+  (setq centaur-tabs-cycle-scope 'tabs)
+  (setq centaur-tabs-style "bar")
+  (global-set-key (kbd "<C-tab>") 'centaur-tabs-forward)
+  (global-set-key (kbd "<C-iso-lefttab>") 'centaur-tabs-backward)
   )
 
 ;;;;;;;;;;;;;;;
@@ -416,7 +451,7 @@
   (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
-  (add-to-list 'ivy-ignore-buffers "\\*helm")
+  ;; (add-to-list 'ivy-ignore-buffers "\\*helm")
   )
 
 (use-package ivy-prescient
@@ -452,6 +487,7 @@
   (key-chord-define-global "jk" 'ryo-modal-on)
   (key-chord-define-global "fk" 'kill-current-buffer)
   (key-chord-define-global "fs" 'save-and-enter-ryo)
+  (key-chord-define-global "FS" 'save-and-enter-ryo)
   (key-chord-define-global "fg" 'magit-status)
   )
 
@@ -576,17 +612,17 @@
 (use-package blacken
   :ensure t
   :config
-  (setq blacken-skip-string-normalization t)
-  (setq blacken-line-length 150)
+  (setq blacken-skip-string-normalization nil)
+  (setq blacken-line-length 160)
   (setq blacken-allow-py36 nil)
-  ;; (add-hook 'python-mode-hook 'blacken-mode)
+  (add-hook 'python-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
 
 (use-package company
   :ensure t
   :config
-  (setq company-backends '((company-capf)))
+  (setq company-backends '((company-capf company-files)))
   (global-company-mode 1)
   (setq company-dabbrev-downcase nil)
   (setq company-idle-delay 0.01)
@@ -671,7 +707,9 @@
 (use-package py-isort
   :ensure t
   :config
-  (add-hook 'before-save-hook 'py-isort-before-save))
+  (add-hook 'before-save-hook 'py-isort-before-save)
+  ;; (setq py-isort-options '("--line-length=160 --profile=black"))
+  )
 
 (use-package jedi
   :ensure t
@@ -696,6 +734,8 @@
   (add-to-list 'ivy-ignore-buffers "magit-process:")
   (add-to-list 'ivy-ignore-buffers "magit-diff:")
   (add-to-list 'ivy-ignore-buffers "magit:")
+  (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
+  (setq projectile-switch-project-action 'magit-status)
   )
 
 (use-package forge
@@ -769,11 +809,21 @@
     dhall-use-header-line nil))
 
 ;; lsp-mode provides the lsp client and it configure flymake to explain errors
-(use-package lsp-mode
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :init (setq lsp-keymap-prefix "C-c l")
+;;   :hook ((dhall-mode . lsp))
+;;   :commands lsp)
+
+(use-package eglot
+  :ensure t)
+
+(use-package kubernetes
   :ensure t
-  :init (setq lsp-keymap-prefix "C-c l")
-  :hook ((dhall-mode . lsp))
-  :commands lsp)
+  :commands (kubernetes-overview)
+  :config
+  (setq kubernetes-poll-frequency 3600
+        kubernetes-redraw-frequency 3600))
 
 (use-package poly-ansible
   :ensure t
@@ -1020,12 +1070,15 @@
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
+   ;; ("n" reposition-window)
    ("m" ryo-modal-repeat)  ;; use it as well!
-   ("," awesome-tab-backward-tab)
-   ("." awesome-tab-forward-tab)
+   ;; ("," awesome-tab-backward-tab)
+   ;; ("," awesome-tab-backward-tab)
+   ("." centaur-tabs-forward)
+   ("," centaur-tabs-backward)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
-   ("/" dumb-jump-go)
+   ("/" move-end-of-line)
    ("?" dumb-jump-back)
 
    ;; ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
@@ -1088,6 +1141,7 @@
          ("j" helm-recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
+         (";" ibuffer)
          ("'" string-inflection-kebab-case)
 
          ("m" change-outside-or-not)
@@ -1112,7 +1166,8 @@
          ("q" my-copy-word-or-region)
          ("w" my-backward-copy-word-or-region)
          ("e" add-correct-start-of-commit)
-         ("r" importmagic-save-revert-and-fix)
+         ("r" importmagic-fix-symbol-at-point)
+         ("R" importmagic-save-revert-and-fix)
 
          ("u" copy-inside-or-not)
          ("i" copy-inner-with-paren)
@@ -1120,10 +1175,10 @@
          ("p" copy-inner-with-curly)
 
          ("s" swiper-region)
-
          ("j" counsel-projectile)
          ("k" kill-all-buffers-but-scratch)
          ("l" venv-workon)
+         (";" pyvenv-workon)
          ("'" string-inflection-upcase)
 
          ("m" copy-outside-or-not)
@@ -1145,9 +1200,9 @@
          ("o" cut-inner-with-square)
          ("p" cut-inner-with-curly)
 
-         ;; ("a" )
+         ("a" helm-projectile-ag-thing-at-point)
+         ("A" insert-class)
          ("s" helm-projectile-ag)
-         ("S" helm-projectile-ag-thing-at-point)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file-dwim)
          ;; ("g" helm-projectile-rg)
@@ -1156,6 +1211,7 @@
          ("j" counsel-projectile-switch-to-buffer)
          ("k" projectile-kill-buffers)
          ("l" awesome-tab-switch-group)
+         (";" xref-find-references)
          ("'" string-inflection-camelcase)
 
          ("b" superword-on)
@@ -1198,15 +1254,16 @@
          ("h" mark-whole-buffer)
          ("j" ivy-switch-buffer)
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
-         ("l" counsel-projectile-switch-project)
-         ;; ("l" helm-mini)
+         ("l" projectile-switch-project)
+         (";" xref-find-definitions)
+         (":" xref-pop-marker-stack)
          ("'" string-inflection-underscore)
 
          ("z" avy-zap-up-to-char-dwim)
          ("Z" avy-zap-to-char-dwim)
          ("x" counsel-M-x)
          ;; ("x" helm-M-x)
-         ("c" save-buffers-kill-terminal)
+         ;; ("c" save-buffers-kill-terminal)
          ("v" counsel-yank-pop)
          ("V" paste-from-kill-ring-new-line)
          ;; ("b" imenu)  ;; think about it
@@ -1240,9 +1297,16 @@
    ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
    ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
 
+   ("a"
+    (
+     ("t" python-add-return)
+     )
+    )
+
    ("s"
     (
      ("e" python-add-breakpoint)
+     ("t" python-add-pass)
      )
     )
 
@@ -1259,19 +1323,6 @@
     (
      ("J" magic-elpy-nav-backward-method)
      (":" magic-elpy-nav-forward-method)
-
-     (";" xref-find-definitions)
-     (":" xref-pop-marker-stack)
-     )
-    )
-   )
-
-  (ryo-modal-major-mode-keys
-   'js2-mode
-   ("f"
-    (
-     (";" js2-jump-to-definition)
-     (":" xref-pop-marker-stack)
      )
     )
    )
@@ -1284,9 +1335,6 @@
    ("f"
     (
      ("e" eval-last-sexp)
-
-     (";" xref-find-definitions)
-     (":" xref-pop-marker-stack)
      )
     )
    )
@@ -1328,4 +1376,36 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
     ("r" smerge-resolve)
     ("k" smerge-kill-current)
     ("q" nil "cancel" :color blue))
+
+  (defhydra hydra-osm (:color purple
+                              :hint nil
+                              :pre (osm-home)
+                              :post (kill-buffer))
+    ("u" osm-left)
+    ("i" osm-up)
+    ("o" osm-down)
+    ("p" osm-right)
+
+    ("d" osm-zoom-in)
+    ("f" osm-zoom-out)
+
+    ("s" osm-search)
+    ("g" osm-goto)
+    )
+
+  (defhydra hydra-flymake (:color purple
+                                  :hint nil)
+    "
+Flymake hydra
+-------------
+j -- next
+; -- prev
+"
+    ("j" flymake-goto-prev-error)
+    (";" flymake-goto-next-error)
+    ("q" nil "cancel" :color blue)
+    )
   )
+
+(use-package ivy-hydra
+  :ensure t)
