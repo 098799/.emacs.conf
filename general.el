@@ -140,6 +140,10 @@
   :ensure t
   )
 
+(use-package highlight-indentation
+  :ensure t
+  )
+
 (use-package nav-flash
   :ensure t
   :config
@@ -159,10 +163,17 @@
 (use-package solarized-theme
   :ensure t
   :config
-  (load-theme 'solarized-light t)
-  ;; (load-theme 'solarized-dark t)
+  ;; (load-theme 'solarized-light t)
+  (load-theme 'solarized-selenized-dark t)
   ;; (load-theme 'solarized-gruvbox-light t)
   )
+
+;; (use-package material-theme
+;;   :ensure t
+;;   :config
+;;   (load-theme 'material t)
+;;   (load-theme 'material-light t)
+;;   )
 
 ;; (use-package spacemacs-theme
 ;;   :ensure t
@@ -177,6 +188,9 @@
   (show-paren-mode t)
   (setq show-paren-style 'expression)
   )
+
+(use-package
+  :ensure t)
 
 (use-package rainbow-mode
   :ensure t)
@@ -195,14 +209,16 @@
 (use-package centaur-tabs
   :ensure t
   :config
-  (centaur-tabs-mode t)
+  (centaur-tabs-mode 0)
   (setq centaur-tabs-set-modified-marker t)
   (setq centaur-tabs-height 28)
   (setq centaur-tabs-set-bar 'under)
   (setq centaur-tabs-cycle-scope 'tabs)
   (setq centaur-tabs-style "bar")
+  (setq centaur-tabs-label-fixed-length 14)
   (global-set-key (kbd "<C-tab>") 'centaur-tabs-forward)
   (global-set-key (kbd "<C-iso-lefttab>") 'centaur-tabs-backward)
+  ;; (centaur-tabs-mode 1)
   )
 
 ;;;;;;;;;;;;;;;
@@ -242,10 +258,10 @@
 (use-package change-inner
   :ensure t)
 
-;; (use-package comment-dwim-2
-;;   :ensure t
-;;   ;; :bind ("C-a" . comment-dwim-2)
-;;   )
+(use-package comment-dwim-2
+  :ensure t
+  ;; :bind ("C-a" . comment-dwim-2)
+  )
 
 (column-number-mode t)
 
@@ -267,6 +283,21 @@
   :after counsel
   :ensure t
   )
+
+;; (require 'quelpa-use-package)
+;; (use-package chatgpt
+;;   :quelpa ((chatgpt :fetcher git :url "https://github.com/joshcho/ChatGPT.el.git") :upgrade t)
+;;   :init
+;;   (require 'python)
+;;   (unless (boundp 'python-interpreter)
+;;     (defvaralias 'python-interpreter 'python-shell-interpreter))
+;;   (setq chatgpt-repo-path (expand-file-name "chatgpt/" quelpa-build-dir))
+;;   :bind ("C-c q" . chatgpt-query))
+
+;; (add-to-list 'load-path "/home/tgrining/.emacs.d/gptel/")
+;; (require 'gptel)
+;; (require 'gptel-curl)
+;; (require 'gptel-transient)
 
 (cua-mode t)
 
@@ -298,6 +329,7 @@
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
   (setq dired-dwim-target t)
+  (setq wdired-allow-to-change-permissions t)
   )
 
   (use-package diredfl
@@ -309,6 +341,9 @@
     :ensure t
     :bind (:map dired-mode-map
                 (")" . dired-git-info-mode)))
+
+(use-package dired-ranger
+  :ensure t)
 
 (use-package dired-toggle
   :after dired
@@ -334,11 +369,13 @@
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)  ;; is this making things work?
   )
 
-(use-package dired-posframe
-  :ensure t
-  :config
-  :bind (:map dired-mode-map
-              ("_" . dired-posframe-mode)))
+;; (use-package dired-posframe
+;;   :ensure t
+;;   :config
+;;   :bind (:map dired-mode-map
+;;               ("_" . dired-posframe-mode)))
+
+;; (straight-use-package '(empv :type git :host github :repo "isamert/empv.el"))
 
 (use-package eshell-toggle
   :ensure t)
@@ -379,11 +416,15 @@
 (use-package goto-last-change
   :ensure t)
 
-(use-package helm-config
-  :config
-  (helm-mode 1)
-  ;; :straight nil
-  )
+;; (use-package helm-config
+;;   :config
+;;   (helm-mode 1)
+;;   :ensure t
+;;   ;; :straight nil
+;;   )
+
+(use-package harpoon
+  :ensure t)
 
 (use-package helm
   :ensure t
@@ -465,9 +506,12 @@
   :config
   )
 
-(use-package ivy-rich
-  :ensure t
-  :init (ivy-rich-mode 1))
+;; (use-package ivy-rich
+;;   :ensure t
+;;   :init (ivy-rich-mode 1)
+;;   :config
+;;   (setq ivy-rich-parse-remote-buffer nil)
+;;   )
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -532,6 +576,37 @@
 (eval-after-load "org"
   '(require 'ox-md nil t))
 
+(use-package org-present
+  :ensure t)
+
+(use-package visual-fill-column
+  :ensure t
+  :config
+  (setq visual-fill-column-width 110)
+  (setq visual-fill-column-center-text t)
+  )
+
+;; (org-babel-do-load-languages
+;;  'org-babel-load-languages
+;;  '((python . t)
+;;  (ipython . t)))
+
+(eval-after-load "ox-latex"
+  ;; update the list of LaTeX classes and associated header (encoding, etc.)
+  ;; and structure
+  '(add-to-list 'org-latex-classes
+                `("beamer"
+                  ,(concat "\\documentclass[presentation]{beamer}\n"
+                           "[DEFAULT-PACKAGES]"
+                           "[PACKAGES]"
+                           "[EXTRA]\n")
+                  ("\\section{%s}" . "\\section*{%s}")
+                  ("\\subsection{%s}" . "\\subsection*{%s}")
+                  ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))))
+
+(setq org-latex-listings t)
+
+
 (use-package persistent-scratch
   :ensure t
   :config
@@ -576,6 +651,8 @@
 (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
+(use-package kubernetes-tramp
+  :ensure t)
 
 (use-package undo-tree
   :ensure t
@@ -629,7 +706,7 @@
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
-  (setq company-minimum-prefix-length 3)
+  (setq company-minimum-prefix-length 2)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   (define-key company-active-map (kbd "C-n") 'company-select-next)
@@ -678,8 +755,8 @@
   :ensure t
   :config
   (elpy-enable)
-  (setq elpy-rpc-timeout 10)
-  (setq elpy-rpc-backend "jedi")
+  ;; (setq elpy-rpc-timeout 10)
+  ;; (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (when (load "flycheck" t t)
     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
@@ -708,6 +785,7 @@
   :ensure t
   :config
   (add-hook 'before-save-hook 'py-isort-before-save)
+  ;; (remove-hook 'before-save-hook 'py-isort-before-save)
   ;; (setq py-isort-options '("--line-length=160 --profile=black"))
   )
 
@@ -738,9 +816,31 @@
   (setq projectile-switch-project-action 'magit-status)
   )
 
-(use-package forge
-  :ensure t
-  :after magit)
+;; (use-package forge
+;;   :ensure t
+;;   :after magit
+;;   ;; :config
+;;   ;; (defclass forge-gitlab-http-repository (forge-gitlab-repository)
+;;   ;;   ((issues-url-format         :initform "http://%h/%o/%n/issues")
+;;   ;;    (issue-url-format          :initform "http://%h/%o/%n/issues/%i")
+;;   ;;    (issue-post-url-format     :initform "http://%h/%o/%n/issues/%i#note_%I")
+;;   ;;    (pullreqs-url-format       :initform "http://%h/%o/%n/merge_requests")
+;;   ;;    (pullreq-url-format        :initform "http://%h/%o/%n/merge_requests/%i")
+;;   ;;    (pullreq-post-url-format   :initform "http://%h/%o/%n/merge_requests/%i#note_%I")
+;;   ;;    (commit-url-format         :initform "http://%h/%o/%n/commit/%r")
+;;   ;;    (branch-url-format         :initform "http://%h/%o/%n/commits/%r")
+;;   ;;    (remote-url-format         :initform "http://%h/%o/%n")
+;;   ;;    (create-issue-url-format   :initform "http://%h/%o/%n/issues/new")
+;;   ;;    (create-pullreq-url-format :initform "http://%h/%o/%n/merge_requests/new")
+;;   ;;    (pullreq-refspec :initform "+refs/merge-requests/*/head:refs/pullreqs/*")))
+
+;;   ;; (add-to-list 'ghub-insecure-hosts "git.legartis.ai/api/v4")
+;;   )
+
+(use-package jupyter
+  :ensure t)
+;;(use-package ob-ipython
+;;  :ensure t)
 
 (setenv "EDITOR" "emacsclient")
 
@@ -754,6 +854,7 @@
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
+  ;; (setq projectile-completion-system 'helm)
   (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
   (setq projectile-indexing-method 'hybrid)
@@ -794,6 +895,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Other Languages ;;;
 ;;;;;;;;;;;;;;;;;;;;;;
+
+(setq-default c-basic-offset 4)
+
 ;; dhall-mode highlight the syntax and run dhall format on save
 (use-package dhall-mode
   :ensure t
@@ -824,6 +928,12 @@
   :config
   (setq kubernetes-poll-frequency 3600
         kubernetes-redraw-frequency 3600))
+(use-package kubectx-mode
+  :ensure t)
+
+(use-package haskell-mode
+  :ensure t
+  )
 
 (use-package poly-ansible
   :ensure t
@@ -900,6 +1010,7 @@
   :config
   (require 'yaml-mode)
   (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
+  (setq yaml-indent-offset 2)
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -967,12 +1078,12 @@
  ("M-o" . ace-window)
  )
 
-(define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
-(define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
-(define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
-(define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
-(define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-(define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
+;; (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
+;; (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
+;; (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
+;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
+;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
+;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
 (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
 (define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
@@ -1000,6 +1111,76 @@
 (global-set-key (kbd "'") 'quote-up-or-replace)
 (global-set-key (kbd "\"") 'double-quote-up-or-replace)
 (global-set-key (kbd "~") 'tild-up-or-replace)
+
+
+(use-package hydra
+  :ensure t
+  :config
+  (defhydra hydra-smerge (:color pink
+                                 :hint nil
+                                 :pre (smerge-mode 1)
+                                 ;; Disable `smerge-mode' when quitting hydra if
+                                 ;; no merge conflicts remain.
+                                 :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^-----------^^-------------------^^---------------------^^-------
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine
+^^           _RET_: current       _E_diff
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("q" nil "cancel" :color blue))
+
+  (defhydra hydra-osm (:color purple
+                              :hint nil
+                              :pre (osm-home)
+                              :post (kill-buffer))
+    ("u" osm-left)
+    ("i" osm-up)
+    ("o" osm-down)
+    ("p" osm-right)
+
+    ("d" osm-zoom-in)
+    ("f" osm-zoom-out)
+
+    ("s" osm-search)
+    ("g" osm-goto)
+    )
+
+  (defhydra hydra-flymake (:color purple
+                                  :hint nil)
+    "
+Flymake hydra
+-------------
+j -- next
+; -- prev
+"
+    ("j" flymake-goto-prev-error)
+    (";" flymake-goto-next-error)
+    ("q" nil "cancel" :color blue)
+    )
+  )
+
+(use-package ivy-hydra
+  :ensure t)
 
 
 (use-package ryo-modal
@@ -1041,10 +1222,10 @@
    ("[" square-bracket-up-or-replace)
    ("{" curly-bracket-up-or-replace)
 
-   ("A" comment-paragraph)
+   ("A" comment-paragraph) ;; use it
    ("S" swiper-thing-at-point) ;; use it
    ;; ("D" ) ;; think
-   ;; ("F" ) ;; think
+   ("F" harpoon-quick-menu-hydra)
    ("g" keyboard-quit)
    ("G" end-of-buffer)
    ("h" move-beginning-of-line)
@@ -1120,12 +1301,15 @@
          ("Q" my-substitute-word-or-region)
          ("W" my-backward-substitute-word-or-region)
 
+         ("y" change-inside-string-or-not)
          ("u" change-inside-or-not)
          ("i" change-inner-with-paren)
          ("o" change-inner-with-square)
          ("p" change-inner-with-curly)
 
+         ("Y" substitute-inside-string-or-not)
          ("U" substitute-inside-or-not)
+
          ("I" substitute-inner-with-paren)
          ("O" substitute-inner-with-square)
          ("P" substitute-inner-with-curly)
@@ -1169,13 +1353,16 @@
          ("r" importmagic-fix-symbol-at-point)
          ("R" importmagic-save-revert-and-fix)
 
+         ("y" copy-inside-string-or-not)
          ("u" copy-inside-or-not)
          ("i" copy-inner-with-paren)
          ("o" copy-inner-with-square)
          ("p" copy-inner-with-curly)
 
          ("s" swiper-region)
+         ("d" hydra-smerge/body)
          ("j" counsel-projectile)
+         ;; ("j" projectile-switch-to-buffer)
          ("k" kill-all-buffers-but-scratch)
          ("l" venv-workon)
          (";" pyvenv-workon)
@@ -1195,6 +1382,7 @@
          ("e" projectile-replace-regexp)
          ("r" projectile-replace)
 
+         ("y" cut-inside-string-or-not)
          ("u" cut-inside-or-not)
          ("i" cut-inner-with-paren)
          ("o" cut-inner-with-square)
@@ -1204,14 +1392,14 @@
          ("A" insert-class)
          ("s" helm-projectile-ag)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
-         ("f" counsel-projectile-find-file-dwim)
+         ("f" counsel-projectile-find-file)
          ;; ("g" helm-projectile-rg)
          ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
          ("j" counsel-projectile-switch-to-buffer)
          ("k" projectile-kill-buffers)
          ("l" awesome-tab-switch-group)
-         (";" xref-find-references)
+         (";" xref-pop-marker-stack)
          ("'" string-inflection-camelcase)
 
          ("b" superword-on)
@@ -1237,8 +1425,8 @@
          ("e" magit-diff-develop)
          ("r" avy-goto-line)
          ("t" elpy-multiedit-python-symbol-at-point)
-         ;; ("y" )
 
+         ("y" mark-inside-string-or-not)
          ("u" mark-inside-or-not)
          ("i" mark-inner-with-paren)
          ("o" mark-inner-with-square)
@@ -1252,11 +1440,12 @@
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ("j" ivy-switch-buffer)
+         ;; ("j" ivy-switch-buffer)
+         ("j" helm-mini)
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
          ("l" projectile-switch-project)
          (";" xref-find-definitions)
-         (":" xref-pop-marker-stack)
+         (":" xref-find-references)
          ("'" string-inflection-underscore)
 
          ("z" avy-zap-up-to-char-dwim)
@@ -1312,19 +1501,20 @@
 
    ("d"
     (
-     ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
+     ("t" autoflake)
+     ;; ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
 
      ("z" get-test-string)
      ("x" get-class-string)
      )
     )
 
-   ("f"
-    (
-     ("J" magic-elpy-nav-backward-method)
-     (":" magic-elpy-nav-forward-method)
-     )
-    )
+   ;; ("f"
+   ;;  (
+   ;;   ("J" magic-elpy-nav-backward-method)
+   ;;   (":" magic-elpy-nav-forward-method)
+   ;;   )
+   ;;  )
    )
 
   (ryo-modal-major-mode-keys
@@ -1338,74 +1528,23 @@
      )
     )
    )
-  )
 
-
-(use-package hydra
-  :ensure t
-  :config
-  (defhydra hydra-smerge (:color pink
-                                 :hint nil
-                                 :pre (smerge-mode 1)
-                                 ;; Disable `smerge-mode' when quitting hydra if
-                                 ;; no merge conflicts remain.
-                                 :post (smerge-auto-leave))
-    "
-^Move^       ^Keep^               ^Diff^                 ^Other^
-^^-----------^^-------------------^^---------------------^^-------
-_n_ext       _b_ase               _<_: upper/base        _C_ombine
-_p_rev       _u_pper              _=_: upper/lower       _r_esolve
-^^           _l_ower              _>_: base/lower        _k_ill current
-^^           _a_ll                _R_efine
-^^           _RET_: current       _E_diff
-"
-    ("n" smerge-next)
-    ("p" smerge-prev)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("R" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("k" smerge-kill-current)
-    ("q" nil "cancel" :color blue))
-
-  (defhydra hydra-osm (:color purple
-                              :hint nil
-                              :pre (osm-home)
-                              :post (kill-buffer))
-    ("u" osm-left)
-    ("i" osm-up)
-    ("o" osm-down)
-    ("p" osm-right)
-
-    ("d" osm-zoom-in)
-    ("f" osm-zoom-out)
-
-    ("s" osm-search)
-    ("g" osm-goto)
+  (ryo-modal-major-mode-keys
+   'haskell-mode
+   ("f"
+    (
+     (";" haskell-mode-jump-to-def)
+     )
     )
+   )
 
-  (defhydra hydra-flymake (:color purple
-                                  :hint nil)
-    "
-Flymake hydra
--------------
-j -- next
-; -- prev
-"
-    ("j" flymake-goto-prev-error)
-    (";" flymake-goto-next-error)
-    ("q" nil "cancel" :color blue)
-    )
+  (ryo-modal-major-mode-keys
+   'org-present-mode
+   ("q" org-present-quit)
+   ("<left>" org-present-prev)
+   ("<right>" org-present-next)
+   ("<home>" org-present-beginning)
+   ("<end>" org-present-end)
+   )
+
   )
-
-(use-package ivy-hydra
-  :ensure t)

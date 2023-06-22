@@ -344,6 +344,31 @@
     )
   )
 
+
+(defun mark-inside-string-or-not (arg)
+  "Mark just the word"
+  (interactive "P")
+  (let ((current-superword-state (bound-and-true-p superword-mode)))
+    (progn
+      (if (is-end-of-word)
+          (progn
+            (superword-mode t)
+            (my-backward-word arg)
+            (cua-set-mark)
+            (my-forward-word arg)
+            )
+        (progn
+          (superword-mode t)
+          (my-forward-word arg)
+          (cua-set-mark)
+          (my-backward-word arg)
+          )
+        )
+      (superword-mode current-superword-state)
+      )
+    )
+  )
+
 (defun mark-inside-or-not (arg)
   "Mark inside python string, but if not, just the word."
   (interactive "P")
@@ -358,24 +383,21 @@
                    (er/mark-inside-python-string)
                    )
                  )
-        (if (is-end-of-word)
-            (progn
-              (superword-mode t)
-              (my-backward-word arg)
-              (cua-set-mark)
-              (my-forward-word arg)
-              (superword-mode current-superword-state)
-              )
-          (progn
-            (superword-mode t)
-            (my-forward-word arg)
-            (cua-set-mark)
-            (my-backward-word arg)
-            (superword-mode current-superword-state)
-            )
+        (progn
+          (mark-inside-string-or-not arg)
+          (superword-mode current-superword-state)
           )
         )
       )
+    )
+  )
+
+(defun copy-inside-string-or-not (arg)
+  (interactive "P")
+  (save-excursion
+    (mark-inside-string-or-not arg)
+    (ci--flash-region (region-beginning) (region-end))
+    (copy-whole-line-or-region)
     )
   )
 
@@ -405,6 +427,14 @@
 ;;   (kill-whole-line-or-region)
 ;;   )
 
+(defun cut-inside-string-or-not (arg)
+  (interactive "P")
+  (save-excursion
+    (mark-inside-string-or-not arg)
+    (kill-whole-line-or-region)
+    )
+  )
+
 (defun cut-inside-or-not (arg)
   "Kill inside python string, but if not, just the word."
   (interactive "P")
@@ -414,11 +444,24 @@
     )
   )
 
+(defun change-inside-string-or-not (arg)
+  (interactive "P")
+  (cut-inside-string-or-not arg)
+  (ryo-modal-off)
+  )
+
 (defun change-inside-or-not (arg)
   "Cut inside or not, exit ryo."
   (interactive "P")
   (cut-inside-or-not arg)
   (ryo-modal-off)
+  )
+
+(defun substitute-inside-string-or-not ()
+  (interactive)
+  (cut-inside-string-or-not nil)
+  (insert (current-kill 1))
+  (pop kill-ring)
   )
 
 (defun substitute-inside-or-not ()
@@ -1484,7 +1527,9 @@ Repeated invocations toggle between the two most recently open buffers."
 (defun importmagic-save-revert-and-fix ()
   (interactive)
   (save-buffer)
-  (revert-buffer-no-confirm)
+  ;; (revert-buffer-no-confirm)
+  (importmagic-mode)
+  (importmagic-mode)
   (importmagic-fix-symbol-at-point)
   )
 
@@ -1506,3 +1551,9 @@ Repeated invocations toggle between the two most recently open buffers."
 ;;    (cadr (nth 1 (cdr (ivy-state-action ivy-last))))))
 
 ;; (define-key ivy-minibuffer-map (kbd "<C-return>") 'ivy-call-second-action)
+
+(defun centaur-restart ()
+  (interactive)
+  (centaur-tabs-mode 0)
+  (centaur-tabs-mode 1)
+  )
