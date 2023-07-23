@@ -59,7 +59,7 @@
 
 (global-auto-revert-mode 1)
 
-(setq scroll-margin 10)
+(setq scroll-margin 5)
 (setq recenter-positions '(middle top bottom))
 
 (use-package all-the-icons
@@ -82,18 +82,28 @@
   (default-text-scale-mode t)
   )
 
+(use-package emojify
+  :hook (after-init . global-emojify-mode))
+
 (use-package doom-modeline
   :ensure t
-  :config
+  :init
   (doom-modeline-mode 1)
-  (setq doom-modeline-height 10)
-  (setq doom-modeline-bar-width 5)
+  :config
+  (setq doom-modeline-height 20)
+  (setq doom-modeline-bar-width 0)
   (setq doom-modeline-icon t)
   (setq doom-modeline-major-mode-icon t)
   (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 5)
+  (setq doom-modeline-project-detection 'auto)
   )
+
+
+(use-package nerd-icons
+  :ensure t)
+
 
 (setq echo-keystrokes 0.5)
 
@@ -160,13 +170,14 @@
 ;;   ;; (load-theme 'nano-dark)
 ;;   )
 
-(use-package solarized-theme
-  :ensure t
-  :config
-  ;; (load-theme 'solarized-light t)
-  (load-theme 'solarized-selenized-dark t)
-  ;; (load-theme 'solarized-gruvbox-light t)
-  )
+;; (use-package solarized-theme
+;;   :ensure t
+;;   :config
+;;   ;; (load-theme 'solarized-light t)
+;;   (load-theme 'solarized-selenized-dark t)
+;;   ;; (load-theme 'solarized-gruvbox-light t)
+;;   ;; (load-theme 'solarized-gruvbox t)
+;;   )
 
 ;; (use-package material-theme
 ;;   :ensure t
@@ -178,7 +189,12 @@
 ;; (use-package spacemacs-theme
 ;;   :ensure t
 ;;   :config
-;;   (load-theme 'spacemacs-light t))
+;;   (load-theme 'spacemacs-dark t))
+
+(use-package doom-themes
+  :ensure t
+  :config
+  (load-theme 'doom-gruvbox t))
 
 (use-package rainbow-delimiters
   :ensure t
@@ -188,9 +204,6 @@
   (show-paren-mode t)
   (setq show-paren-style 'expression)
   )
-
-(use-package
-  :ensure t)
 
 (use-package rainbow-mode
   :ensure t)
@@ -232,11 +245,12 @@
 (use-package ace-window
   :ensure t)
 
-(use-package amx
-  :ensure t
-  :config
-  (amx-mode t)
-  )
+;; (use-package amx
+;;   :ensure t
+;;   :config
+;;   (amx-mode t)
+;;   ;; (amx-mode nil)
+;;   )
 
 (use-package avy
   :ensure t)
@@ -264,6 +278,15 @@
   )
 
 (column-number-mode t)
+
+(use-package copilot
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'copilot-mode)
+  ;; (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+  (define-key copilot-completion-map (kbd "C-e") 'copilot-accept-completion)
+  )
 
 (use-package counsel
   :after ivy
@@ -576,6 +599,13 @@
 (eval-after-load "org"
   '(require 'ox-md nil t))
 
+(setq org-todo-keywords
+      '((sequence "TODO" "IN PROGRESS" "DONE")))
+(setq org-todo-keyword-faces
+      '(("TODO" . org-warning) ("IN PROGRESS" . "#FF8000")
+        ("DONE" . (:foreground "grey" :weight bold))))
+(setq org-startup-folded t)
+
 (use-package org-present
   :ensure t)
 
@@ -651,8 +681,8 @@
 (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
-(use-package kubernetes-tramp
-  :ensure t)
+;; (use-package kubernetes-tramp
+;;   :ensure t)
 
 (use-package undo-tree
   :ensure t
@@ -746,10 +776,10 @@
   :bind
   ("C-c d" . docker)
   )
-(use-package docker-tramp
-  :after (docker tramp)
-  :ensure t
-  )
+;; (use-package docker-tramp
+;;   :after (docker tramp)
+;;   :ensure t
+;;   )
 
 (use-package elpy
   :ensure t
@@ -922,12 +952,12 @@
 (use-package eglot
   :ensure t)
 
-(use-package kubernetes
-  :ensure t
-  :commands (kubernetes-overview)
-  :config
-  (setq kubernetes-poll-frequency 3600
-        kubernetes-redraw-frequency 3600))
+;; (use-package kubernetes
+;;   :ensure t
+;;   :commands (kubernetes-overview)
+;;   :config
+;;   (setq kubernetes-poll-frequency 3600
+;;         kubernetes-redraw-frequency 3600))
 (use-package kubectx-mode
   :ensure t)
 
@@ -1188,6 +1218,7 @@ j -- next
   :commands ryo-modal-mode
   :bind ("<escape>" . ryo-modal-mode)
   :bind ("C-c C-r" . ryo-modal-mode)
+  :bind ("M-;" . ryo-modal-mode)
   :config
   (add-hook 'text-mode-hook #'ryo-modal-mode)
   (add-hook 'prog-mode-hook #'ryo-modal-mode)
@@ -1301,6 +1332,18 @@ j -- next
          ("Q" my-substitute-word-or-region)
          ("W" my-backward-substitute-word-or-region)
 
+         ("a" comment-line)
+         ("s" helm-projectile-rg)
+         ;; ("s" counsel-projectile-rg)
+         ;; ("d" ) unused!!!
+         ;; ("g" ) unused!!!
+         ;; ("h" ) unused!!!
+         ("j" helm-recentf)
+         ("k" save-buffers-kill-terminal)
+         ("l" bookmark-jump)
+         (";" ibuffer)
+         ("'" string-inflection-kebab-case)
+
          ("y" change-inside-string-or-not)
          ("u" change-inside-or-not)
          ("i" change-inner-with-paren)
@@ -1309,24 +1352,9 @@ j -- next
 
          ("Y" substitute-inside-string-or-not)
          ("U" substitute-inside-or-not)
-
          ("I" substitute-inner-with-paren)
          ("O" substitute-inner-with-square)
          ("P" substitute-inner-with-curly)
-
-         ("fu" substitute-inside-or-not-with-kill-ring)
-         ("fi" substitute-inner-with-paren-with-kill-ring)
-         ("fo" substitute-inner-with-square-with-kill-ring)
-         ("fp" substitute-inner-with-curly-with-kill-ring)
-
-         ("a" comment-line)
-         ("s" helm-projectile-rg)
-         ;; ("s" counsel-projectile-rg)
-         ("j" helm-recentf)
-         ("k" save-buffers-kill-terminal)
-         ("l" bookmark-jump)
-         (";" ibuffer)
-         ("'" string-inflection-kebab-case)
 
          ("m" change-outside-or-not)
          ("," change-outer-with-paren)
@@ -1337,6 +1365,11 @@ j -- next
          ("<" substitute-outer-with-paren)
          (">" substitute-outer-with-square)
          ("?" substitute-outer-with-curly)
+
+         ("fu" substitute-inside-or-not-with-kill-ring)
+         ("fi" substitute-inner-with-paren-with-kill-ring)
+         ("fo" substitute-inner-with-square-with-kill-ring)
+         ("fp" substitute-inner-with-curly-with-kill-ring)
 
          ("fm" substitute-outside-or-not-with-kill-ring)
          ("f," substitute-outer-with-paren-with-kill-ring)
@@ -1361,11 +1394,15 @@ j -- next
 
          ("s" swiper-region)
          ("d" hydra-smerge/body)
+         ;; ("f" ) unused!!!
+         ;; ("g" ) unused!!!
+         ;; ("h" ) unused!!!
          ("j" counsel-projectile)
          ;; ("j" projectile-switch-to-buffer)
          ("k" kill-all-buffers-but-scratch)
-         ("l" venv-workon)
-         (";" pyvenv-workon)
+         ;; ("l" venv-workon)
+         ("l" pyvenv-workon)
+         ;; ("'" ) unused!!!
          ("'" string-inflection-upcase)
 
          ("m" copy-outside-or-not)
