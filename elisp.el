@@ -1235,6 +1235,12 @@ Repeated invocations toggle between the two most recently open buffers."
    '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 180 :width normal :family "Ubuntu Mono")))))
   )
 
+(defun huge-font ()
+  (interactive)
+  (custom-set-faces
+   '(default ((t (:inherit nil :stipple nil :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 220 :width normal :family "Ubuntu Mono")))))
+  )
+
 (defun char-up-or-replace (arg)
   (interactive "P")
   (if mark-active
@@ -1404,13 +1410,6 @@ Repeated invocations toggle between the two most recently open buffers."
   (insert "class\\s")
   )
 
-(defun helm-projectile-ag-thing-at-point ()
-  (interactive)
-  (mark-inside-or-not nil)
-  (helm-projectile-ag)
-  (deactivate-mark)
-  )
-
 (defun swiper-region (arg)
   (interactive "P")
   (if (use-region-p)
@@ -1496,7 +1495,12 @@ Repeated invocations toggle between the two most recently open buffers."
   "copy buffer's full path to kill ring"
   (interactive)
   (when buffer-file-name
-    (kill-new (file-truename buffer-file-name))))
+    (let ((value (file-truename buffer-file-name)))
+          (kill-new value)
+          (message value)
+          )
+  )
+)
 
 (defun join-with-slashes (a b)
   "Join strings a and b with a slash"
@@ -1507,15 +1511,16 @@ Repeated invocations toggle between the two most recently open buffers."
   "copy buffer's full path to kill ring"
   (interactive)
   (when buffer-file-name
-    (kill-new
-     (reduce #'join-with-slashes
+    (let ((value (reduce #'join-with-slashes
              (let ((path-list (split-string (file-truename buffer-file-name) "/")))
                (let ((file-name (car (last path-list))))
                  (remove file-name path-list)
                  )
                )
-          )
-     )
+          )))
+      (kill-new value)
+      (message value)
+      )
     )
   )
 
@@ -1557,3 +1562,14 @@ Repeated invocations toggle between the two most recently open buffers."
   (centaur-tabs-mode 0)
   (centaur-tabs-mode 1)
   )
+
+(defun xref-find-references-at-point ()
+  (interactive)
+  (setq unread-command-events (listify-key-sequence (kbd "RET")))
+  (call-interactively 'xref-find-references)
+  )
+
+(defun example-function (arg)
+  (interactive
+   (list (read-string "Enter your value (default is foo): " nil nil "foo")))
+  (message "Value is: %s" arg))

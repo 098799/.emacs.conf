@@ -16,6 +16,11 @@
 ;; (setq straight-use-package-by-default nil)
 ;; (setq package-enable-at-startup nil)
 
+
+;; (add-to-list 'package-archives
+;;              '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
+
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(
@@ -48,6 +53,8 @@
 ;; (add-to-list 'load-path "/Users/rougier/Documents/GitHub/nano-emacs")
 ;; (straight-use-package
 ;;   '(nano-emacs :type git :host github :repo "rougier/nano-emacs"))
+
+(defalias 'yes-or-no-p 'y-or-n-p)
 
 (menu-bar-mode -1)
 (when (fboundp 'tool-bar-mode)
@@ -486,7 +493,24 @@
   :ensure t)
 
 (use-package helm-projectile
-  :ensure t)
+  :ensure t
+  :config
+
+  (defun helm-projectile-ag-with-defaults (&optional additional-options)
+    "Wrapper for `helm-projectile-ag' with default options."
+    (interactive (if current-prefix-arg
+                     (list (helm-read-string "Additional options: " "" 'helm-ag--extra-options-history))
+                   nil))
+    (let ((default-options "--ignore *.mar --ignore *.sql --ignore *.pt --ignore *openapi_sdk*"))
+      (helm-projectile-ag (concat default-options " " additional-options))))
+
+  (defun helm-projectile-ag-thing-at-point ()
+    (interactive)
+    (mark-inside-or-not nil)
+    (helm-projectile-ag-with-defaults)
+    (deactivate-mark)
+    )
+  )
 
 (use-package hideshow
   :ensure t)
@@ -602,8 +626,10 @@
 (setq org-todo-keywords
       '((sequence "TODO" "IN PROGRESS" "DONE")))
 (setq org-todo-keyword-faces
-      '(("TODO" . org-warning) ("IN PROGRESS" . "#FF8000")
-        ("DONE" . (:foreground "grey" :weight bold))))
+      '(("TODO" . org-warning)
+        ("IN PROGRESS" . "#FF8000")
+        ("DONE" . (:foreground "grey" :weight bold))
+        ))
 (setq org-startup-folded t)
 
 (use-package org-present
@@ -692,8 +718,8 @@
   (setq undo-tree-visualizer-timestamps 1)
   )
 
-(use-package vimish-fold
-  :ensure t)
+;; (use-package vimish-fold
+;;   :ensure t)
 
 ;; (use-package which-key
 ;;   :ensure t
@@ -702,6 +728,10 @@
 ;;   (setq which-key-prefix-prefix "+")
 ;;   :config
 ;;   (which-key-mode 1)
+;;   )
+
+;; (use-package wgrep
+;;   :ensure t
 ;;   )
 
 (use-package whitespace-cleanup-mode
@@ -745,7 +775,10 @@
   (define-key company-active-map (kbd "<tab>") 'company-complete)
 
   (add-to-list 'ivy-ignore-buffers "\\*company")
+
+  ;; (setq company-transformers '(company-sort-by-backend-importance))
   )
+
 
 (use-package company-box
   :hook (company-mode . company-box-mode)
@@ -766,6 +799,52 @@
   (company-prescient-mode 1)
   (prescient-persist-mode)
   )
+
+;; (use-package orderless
+;;   :init
+;;   ;; Configure a custom style dispatcher (see the Consult wiki)
+;;   ;; (setq orderless-style-dispatchers '(+orderless-dispatch)
+;;   ;;       orderless-component-separator #'orderless-escapable-split-on-space)
+;;   (setq completion-styles '(orderless basic)
+;;         completion-category-defaults nil
+;;         completion-category-overrides '((file (styles partial-completion))))
+;;   :ensure t)
+
+
+
+;; (use-package corfu
+;;   :ensure t
+;;   :custom
+;;   (corfu-cycle t)
+;;   (corfu-auto t)
+;;   (corfu-auto-prefix 2)
+;;   (corfu-quit-at-boundary 'separator)
+;;   ;; (corfu-quit-no-match 'separator)
+;;   (corfu-quit-no-match 'separator)
+;;   (corfu-echo-documentation 0.25)
+;;   (corfu-preview-current t)
+;;   (corfu-preselect 'first)
+;;   ;; (corfu-on-exact-match nil)
+;;   (corfu-preview-current 'insert)
+;;   ;; (corfu-scroll-margin 5)
+;;   ;; :init
+;;   ;; (setq completion-cycle-threshold 3)
+;;   :bind (:map corfu-map
+;;               ("M-SPC" . corfu-insert-separator)
+;;               ("C-g" . corfu-quit)
+;;               ("TAB" . corfu-complete)
+;;               ("RET" . corfu-insert)
+;;               )
+;;   :config
+;;   (global-corfu-mode t)
+;;   (corfu-history-mode t)
+;;   (corfu-echo-mode t)
+;;   )
+
+
+;; (use-package corfu-prescient
+;;   :ensure t)
+
 
 (use-package cython-mode
   :defer t
@@ -993,7 +1072,7 @@
   (setq company-tooltip-align-annotations t)
 
   ;; formats the buffer before saving
-  (add-hook 'before-save-hook 'tide-format-before-save)
+  ;; (add-hook 'before-save-hook 'tide-format-before-save)
 
   (add-hook 'typescript-mode-hook #'setup-tide-mode)
   )
@@ -1020,6 +1099,11 @@
   :mode ("\\.html\\'" "\\.jinja\\'")
   :config (setq web-mode-markup-indent-offset 2
                 web-mode-code-indent-offset 2)
+  (defun my-web-mode-save-hook ()
+    (when (eq major-mode 'web-mode)
+      (web-mode-buffer-indent)))
+
+  (add-hook 'after-save-hook 'my-web-mode-save-hook)
   )
 (use-package markdown-mode
   :ensure t
@@ -1335,7 +1419,8 @@ j -- next
          ("a" comment-line)
          ("s" helm-projectile-rg)
          ;; ("s" counsel-projectile-rg)
-         ;; ("d" ) unused!!!
+         ("d" copy-full-path-to-kill-ring)
+         ("D" copy-folder-path-to-kill-ring)
          ;; ("g" ) unused!!!
          ;; ("h" ) unused!!!
          ("j" helm-recentf)
@@ -1427,7 +1512,7 @@ j -- next
 
          ("a" helm-projectile-ag-thing-at-point)
          ("A" insert-class)
-         ("s" helm-projectile-ag)
+         ("s" helm-projectile-ag-with-defaults)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file)
          ;; ("g" helm-projectile-rg)
@@ -1482,7 +1567,7 @@ j -- next
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
          ("l" projectile-switch-project)
          (";" xref-find-definitions)
-         (":" xref-find-references)
+         (":" xref-find-references-at-point)
          ("'" string-inflection-underscore)
 
          ("z" avy-zap-up-to-char-dwim)
