@@ -36,6 +36,18 @@
 (eval-when-compile
   (require 'use-package))
 
+(unless (package-installed-p 'quelpa)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+    (eval-buffer)
+    (quelpa-self-upgrade)))
+
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://github.com/quelpa/quelpa-use-package.git"))
+(require 'quelpa-use-package)
+
 (use-package auto-package-update
    :ensure t
    :config
@@ -155,6 +167,13 @@
 
 (use-package highlight-symbol
   :ensure t
+  :config
+  (use-package auto-highlight-symbol
+    :ensure t
+    :config
+    (global-auto-highlight-symbol-mode t)
+    (setq ahs-idle-interval 0.0)
+    )
   )
 
 (use-package highlight-indentation
@@ -286,9 +305,20 @@
 
 (column-number-mode t)
 
+;; (use-package copilot
+;;   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+;;   :ensure t
+;;   :config
+;;   (add-hook 'python-mode-hook 'copilot-mode)
+;;   ;; (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+;;   (define-key copilot-completion-map (kbd "C-e") 'copilot-accept-completion)
+;;   )
+
 (use-package copilot
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
-  :ensure t
+  :quelpa (copilot :fetcher github
+                   :repo "zerolfx/copilot.el"
+                   :branch "main"
+                   :files ("dist" "*.el"))
   :config
   (add-hook 'python-mode-hook 'copilot-mode)
   ;; (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
@@ -304,9 +334,11 @@
   )
 
 (use-package counsel-projectile
-  :after counsel
+  :after (counsel projectile)
   :ensure t
-  :config (counsel-projectile-mode)
+  :config
+  (counsel-projectile-mode 1)
+  (setq counsel-ag-base-command "ag --vimgrep --ignore \"*.sql\" --ignore \"*.csv\" --ignore \"*.mar\" %s")
   )
 
 (use-package counsel-tramp
@@ -324,8 +356,32 @@
 ;;   (setq chatgpt-repo-path (expand-file-name "chatgpt/" quelpa-build-dir))
 ;;   :bind ("C-c q" . chatgpt-query))
 
-;; (add-to-list 'load-path "/home/tgrining/.emacs.d/gptel/")
-;; (require 'gptel)
+
+(use-package gptel
+  :ensure t
+  :config
+  
+  (defcustom gptel-directives
+  '((default . "You are a large language model living in Emacs and a helpful assistant. Respond concisely.")
+    (programming . "You are a large language model and a careful programmer. Provide code and only code as output without any additional text, prompt or note.")
+    (writing . "You are a large language model and a writing assistant. Respond concisely.")
+    (chat . "You are a large language model and a conversation partner. Respond concisely.")
+    (code . "You are presented with a part of computer program. Respond with the code that is most likely to fit at the end of the block you're presented with. Don't give any markup. Make sure you're at a right level of indentation. Don't give any comments. Imagine your whole response is verbatum pasted in the code file you're presented with.")
+    )
+  "System prompts (directives) for the LLM.
+
+These are system instructions sent at the beginning of each
+request to the LLM.
+
+Each entry in this alist maps a symbol naming the directive to
+the string that is sent.  To set the directive for a chat session
+interactively call `gptel-send' with a prefix argument."
+  :group 'gptel
+  :safe #'always
+  :type '(alist :key-type symbol :value-type string))
+  )
+ 
+
 ;; (require 'gptel-curl)
 ;; (require 'gptel-transient)
 
@@ -333,7 +389,7 @@
 
 (use-package dired
   :hook (dired-mode . dired-hide-details-mode)
-  ;; :straight nil
+  :straight nil
   :bind
   (:map dired-mode-map
         ("w" . wdired-change-to-wdired-mode)
@@ -432,16 +488,29 @@
   )
 
 ;; The default is 800 kilobytes.  Measured in bytes.
-(setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB
-(setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
+(defmacro k-time (&rest body)
+  "Measure and return the time it takes evaluating BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (float-time (time-since time))))
 
-(use-package gif-screencast
-  :ensure t
-  :bind
-  ("<f8>" . gif-screencast-toggle-pause)
-  ("<f9>" . gif-screencast-stop)
-  ("<f10>" . gif-screencast)
-  )
+;; Set garbage collection threshold to 1GB.
+(setq gc-cons-threshold #x40000000)
+
+;; When idle for 15sec run the GC no matter what.
+(defvar k-gc-timer
+  (run-with-idle-timer 15 t
+                       (lambda ()
+                         (message "Garbage Collector has run for %.06fsec"
+                                  (k-time (garbage-collect))))))
+
+;; (use-package gif-screencast
+;;   :ensure t
+;;   :bind
+;;   ("<f8>" . gif-screencast-toggle-pause)
+;;   ("<f9>" . gif-screencast-stop)
+;;   ("<f10>" . gif-screencast)
+;;   )
 
 (use-package goto-last-change
   :ensure t)
@@ -456,61 +525,61 @@
 (use-package harpoon
   :ensure t)
 
-(use-package helm
-  :ensure t
-  :init
-  (setq
-   helm-M-x-fuzzy-match t
-   helm-mode-fuzzy-match t
-   helm-buffers-fuzzy-matching t
-   helm-recentf-fuzzy-match t
-   helm-locate-fuzzy-match t
-   helm-semantic-fuzzy-match t
-   helm-imenu-fuzzy-match t
-   helm-completion-in-region-fuzzy-match t
-  )
-  :config
-  (helm-mode 1)
-  (helm-adaptive-mode t)
-  :bind
-  ("C-c p s g" . helm-do-ag-project-root)
-  ("M-x" . helm-M-x)
-  ("C-x C-f" . helm-find-files)
-  ("C-x b" . helm-mini)
-  ("C-x C-r" . helm-recentf)
-  )
+;; (use-package helm
+;;   :ensure t
+;;   :init
+;;   (setq
+;;    helm-M-x-fuzzy-match t
+;;    helm-mode-fuzzy-match t
+;;    helm-buffers-fuzzy-matching t
+;;    helm-recentf-fuzzy-match t
+;;    helm-locate-fuzzy-match t
+;;    helm-semantic-fuzzy-match t
+;;    helm-imenu-fuzzy-match t
+;;    helm-completion-in-region-fuzzy-match t
+;;   )
+;;   :config
+;;   (helm-mode 1)
+;;   (helm-adaptive-mode t)
+;;   :bind
+;;   ("C-c p s g" . helm-do-ag-project-root)
+;;   ("M-x" . helm-M-x)
+;;   ("C-x C-f" . helm-find-files)
+;;   ("C-x b" . helm-mini)
+;;   ("C-x C-r" . helm-recentf)
+;;   )
 
-(use-package helm-ag
-  :ensure t)
+;; (use-package helm-ag
+;;   :ensure t)
 
-(use-package rg
-  :ensure t)
+;; (use-package helm-rg
+;;   :ensure t)
 
-(use-package helm-rg
-  :ensure t)
+;; (use-package helm-flycheck
+;;   :ensure t)
 
-(use-package helm-flycheck
-  :ensure t)
+;; (use-package helm-projectile
+;;   :ensure t
+;;   :config
 
-(use-package helm-projectile
-  :ensure t
-  :config
+;; (use-package helm-smex
+;;   :ensure t)
 
-  (defun helm-projectile-ag-with-defaults (&optional additional-options)
-    "Wrapper for `helm-projectile-ag' with default options."
-    (interactive (if current-prefix-arg
-                     (list (helm-read-string "Additional options: " "" 'helm-ag--extra-options-history))
-                   nil))
-    (let ((default-options "--ignore *.mar --ignore *.sql --ignore *.pt --ignore *openapi_sdk*"))
-      (helm-projectile-ag (concat default-options " " additional-options))))
+;;   (defun helm-projectile-ag-with-defaults (&optional additional-options)
+;;     "Wrapper for `helm-projectile-ag' with default options."
+;;     (interactive (if current-prefix-arg
+;;                      (list (helm-read-string "Additional options: " "" 'helm-ag--extra-options-history))
+;;                    nil))
+;;     (let ((default-options "--ignore *.mar --ignore *.sql --ignore *.pt --ignore *openapi_sdk* --ignore *.txt --ignore *.json"))
+;;       (helm-projectile-ag (concat default-options " " additional-options))))
 
-  (defun helm-projectile-ag-thing-at-point ()
-    (interactive)
-    (mark-inside-or-not nil)
-    (helm-projectile-ag-with-defaults)
-    (deactivate-mark)
-    )
-  )
+;;   (defun helm-projectile-ag-thing-at-point ()
+;;     (interactive)
+;;     (mark-inside-or-not nil)
+;;     (helm-projectile-ag-with-defaults)
+;;     (deactivate-mark)
+;;     )
+;;   )
 
 (use-package hideshow
   :ensure t)
@@ -619,17 +688,24 @@
 (use-package ace-mc
   :ensure t) ;; please review this
 
+(require 'org)
+(setq org-src-fontify-natively t)
+(setq org-confirm-babel-evaluate nil)
+
 (setq org-support-shift-select t)
 (eval-after-load "org"
   '(require 'ox-md nil t))
 
 (setq org-todo-keywords
-      '((sequence "TODO" "IN PROGRESS" "DONE")))
+      '((sequence "TODO" "IN PROGRESS" "|" "DONE" "POSTPONED")))
+
 (setq org-todo-keyword-faces
       '(("TODO" . org-warning)
         ("IN PROGRESS" . "#FF8000")
         ("DONE" . (:foreground "grey" :weight bold))
+        ("POSTPONED" . (:foreground "grey" :weight bold))
         ))
+
 (setq org-startup-folded t)
 
 (use-package org-present
@@ -642,10 +718,12 @@
   (setq visual-fill-column-center-text t)
   )
 
-;; (org-babel-do-load-languages
-;;  'org-babel-load-languages
-;;  '((python . t)
-;;  (ipython . t)))
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((python . t)))
+
+(setq python-shell-interpreter "ipython"
+    python-shell-interpreter-args "-i --simple-prompt")
 
 (eval-after-load "ox-latex"
   ;; update the list of LaTeX classes and associated header (encoding, etc.)
@@ -669,6 +747,9 @@
   (persistent-scratch-setup-default)
   )
 
+(use-package rg
+  :ensure t)
+
 (setq recentf-max-saved-items 300)
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
@@ -678,9 +759,6 @@
   :config
   (smart-newline-mode 1)
   )
-
-(use-package helm-smex
-  :ensure t)
 
 (setq savehist-file "~/.emacs.d/savehist"
       history-length 300)
@@ -701,13 +779,23 @@
   )
 
 (setq tramp-default-method "ssh")
-(use-package helm-tramp
-  :ensure t)
-(add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
-(add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
+
+
+
+;; (use-package helm-tramp
+;;   :ensure t)
+;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
+;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
+
+
+
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
 ;; (use-package kubernetes-tramp
+;;   :ensure t)
+;; (use-package kubernetes-helm
+;;   :ensure t)
+;; (use-package kubernetes
 ;;   :ensure t)
 
 (use-package undo-tree
@@ -766,7 +854,7 @@
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
-  (setq company-minimum-prefix-length 2)
+  (setq company-minimum-prefix-length 3)
   (setq company-selection-wrap-around t)
   (setq completion-ignore-case 0)
   (define-key company-active-map (kbd "C-n") 'company-select-next)
@@ -879,15 +967,15 @@
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
   )
 
-(use-package importmagic
-    :ensure t
-    :config
-    (add-hook 'python-mode-hook 'importmagic-mode)
-    (setq importmagic-style-configuration-alist '((multiline . parentheses)
-                                                  (max_columns . 200)))
-    (add-to-list 'ivy-ignore-buffers "\\*epc con")
-    (setq importmagic-be-quiet t)
-    )
+;; (use-package importmagic
+;;     :ensure t
+;;     :config
+;;     (add-hook 'python-mode-hook 'importmagic-mode)
+;;     (setq importmagic-style-configuration-alist '((multiline . parentheses)
+;;                                                   (max_columns . 200)))
+;;     (add-to-list 'ivy-ignore-buffers "\\*epc con")
+;;     (setq importmagic-be-quiet t)
+;;     )
 
 ;; isort
 (use-package py-isort
@@ -928,23 +1016,28 @@
 ;; (use-package forge
 ;;   :ensure t
 ;;   :after magit
-;;   ;; :config
-;;   ;; (defclass forge-gitlab-http-repository (forge-gitlab-repository)
-;;   ;;   ((issues-url-format         :initform "http://%h/%o/%n/issues")
-;;   ;;    (issue-url-format          :initform "http://%h/%o/%n/issues/%i")
-;;   ;;    (issue-post-url-format     :initform "http://%h/%o/%n/issues/%i#note_%I")
-;;   ;;    (pullreqs-url-format       :initform "http://%h/%o/%n/merge_requests")
-;;   ;;    (pullreq-url-format        :initform "http://%h/%o/%n/merge_requests/%i")
-;;   ;;    (pullreq-post-url-format   :initform "http://%h/%o/%n/merge_requests/%i#note_%I")
-;;   ;;    (commit-url-format         :initform "http://%h/%o/%n/commit/%r")
-;;   ;;    (branch-url-format         :initform "http://%h/%o/%n/commits/%r")
-;;   ;;    (remote-url-format         :initform "http://%h/%o/%n")
-;;   ;;    (create-issue-url-format   :initform "http://%h/%o/%n/issues/new")
-;;   ;;    (create-pullreq-url-format :initform "http://%h/%o/%n/merge_requests/new")
-;;   ;;    (pullreq-refspec :initform "+refs/merge-requests/*/head:refs/pullreqs/*")))
+;;   :config
+;;   (with-eval-after-load 'forge
+;;     (add-to-list 'forge-alist
+;;                  '("git.legartis.ai" "git.legartis.ai/api/v4" "git.legartis.ai" forge-gitlab-repository)))
+;;   (setq auth-source-debug 'trivia)
 
-;;   ;; (add-to-list 'ghub-insecure-hosts "git.legartis.ai/api/v4")
-;;   )
+  ;; (defclass forge-gitlab-http-repository (forge-gitlab-repository)
+  ;;   ((issues-url-format         :initform "http://%h/%o/%n/issues")
+  ;;    (issue-url-format          :initform "http://%h/%o/%n/issues/%i")
+  ;;    (issue-post-url-format     :initform "http://%h/%o/%n/issues/%i#note_%I")
+  ;;    (pullreqs-url-format       :initform "http://%h/%o/%n/merge_requests")
+  ;;    (pullreq-url-format        :initform "http://%h/%o/%n/merge_requests/%i")
+  ;;    (pullreq-post-url-format   :initform "http://%h/%o/%n/merge_requests/%i#note_%I")
+  ;;    (commit-url-format         :initform "http://%h/%o/%n/commit/%r")
+  ;;    (branch-url-format         :initform "http://%h/%o/%n/commits/%r")
+  ;;    (remote-url-format         :initform "http://%h/%o/%n")
+  ;;    (create-issue-url-format   :initform "http://%h/%o/%n/issues/new")
+  ;;    (create-pullreq-url-format :initform "http://%h/%o/%n/merge_requests/new")
+  ;;    (pullreq-refspec :initform "+refs/merge-requests/*/head:refs/pullreqs/*")))
+
+  ;; (add-to-list 'ghub-insecure-hosts "git.legartis.ai/api/v4")
+  ;; )
 
 (use-package jupyter
   :ensure t)
@@ -1028,8 +1121,8 @@
 ;;   :hook ((dhall-mode . lsp))
 ;;   :commands lsp)
 
-(use-package eglot
-  :ensure t)
+;; (use-package eglot
+;;   :ensure t)
 
 ;; (use-package kubernetes
 ;;   :ensure t
@@ -1070,6 +1163,7 @@
 
   ;; aligns annotation to the right hand side
   (setq company-tooltip-align-annotations t)
+  (setq-default typescript-indent-level 2)
 
   ;; formats the buffer before saving
   ;; (add-hook 'before-save-hook 'tide-format-before-save)
@@ -1198,14 +1292,14 @@
 ;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
 ;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
 ;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
-(define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
-(define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-(define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
-(define-key helm-read-file-map (kbd "C-u") 'helm-find-files-up-one-level)
-(define-key helm-read-file-map (kbd "C-i") 'helm-next-line)
-(define-key helm-read-file-map (kbd "C-o") 'helm-previous-line)
-(define-key helm-read-file-map (kbd "C-p") 'helm-execute-persistent-action)
-(define-key helm-read-file-map (kbd "C-;") 'helm-execute-persistent-action)
+;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
+;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
+;; (define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
+;; (define-key helm-read-file-map (kbd "C-u") 'helm-find-files-up-one-level)
+;; (define-key helm-read-file-map (kbd "C-i") 'helm-next-line)
+;; (define-key helm-read-file-map (kbd "C-o") 'helm-previous-line)
+;; (define-key helm-read-file-map (kbd "C-p") 'helm-execute-persistent-action)
+;; (define-key helm-read-file-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key ivy-minibuffer-map (kbd "C-i") 'ivy-next-line)
 (define-key ivy-minibuffer-map (kbd "C-o") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
@@ -1362,7 +1456,7 @@ j -- next
    ("X" kill-thing-at-point)  ;; think about it
    ("c" copy-whole-line-or-region)
    ("C" copy-thing-at-point)
-   ("v" cua-paste)
+   ("v" delete-and-paste)
    ("V" paste-in-new-line)
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
@@ -1379,7 +1473,7 @@ j -- next
 
    ;; ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
    ("~" tild-up-or-replace)
-   ("!" helm-flycheck)
+   ("!" flycheck-list-errors)
    ("#" highlight-symbol-query-replace)
    ("$" query-replace-thing-at-point-or-selection)
    ("%" query-replace)
@@ -1412,18 +1506,19 @@ j -- next
          ("w" my-backward-change-word-or-region)
          ("e" highlight-symbol)
          ("r" blacken-buffer)
+         ;; ("t")
 
          ("Q" my-substitute-word-or-region)
          ("W" my-backward-substitute-word-or-region)
 
          ("a" comment-line)
-         ("s" helm-projectile-rg)
-         ;; ("s" counsel-projectile-rg)
+         ;; ("s" helm-projectile-rg)
+         ("s" counsel-projectile-ag)
          ("d" copy-full-path-to-kill-ring)
          ("D" copy-folder-path-to-kill-ring)
-         ;; ("g" ) unused!!!
+         ("g" gptel-menu) 
          ;; ("h" ) unused!!!
-         ("j" helm-recentf)
+         ("j" recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
          (";" ibuffer)
@@ -1460,6 +1555,10 @@ j -- next
          ("f," substitute-outer-with-paren-with-kill-ring)
          ("f." substitute-outer-with-square-with-kill-ring)
          ("f/" substitute-outer-with-curly-with-kill-ring)
+
+         ("fj" gptel-send-to-gpt4)
+         ;; ("fk" gptel-send-to-claude-opus)
+         ;; ("fl" gptel-send-to-claude-haiku)
          )
    )
 
@@ -1468,8 +1567,8 @@ j -- next
          ("q" my-copy-word-or-region)
          ("w" my-backward-copy-word-or-region)
          ("e" add-correct-start-of-commit)
-         ("r" importmagic-fix-symbol-at-point)
-         ("R" importmagic-save-revert-and-fix)
+         ("r" autoimport)
+         ;; ("R" importmagic-save-revert-and-fix)
 
          ("y" copy-inside-string-or-not)
          ("u" copy-inside-or-not)
@@ -1510,11 +1609,13 @@ j -- next
          ("o" cut-inner-with-square)
          ("p" cut-inner-with-curly)
 
-         ("a" helm-projectile-ag-thing-at-point)
+         ;; ("a" helm-projectile-ag-thing-at-point)
          ("A" insert-class)
-         ("s" helm-projectile-ag-with-defaults)
+         ;; ("s" helm-projectile-ag-with-defaults)
+         ("s" counsel-projectile-ag)
          ("d" projectile-dired)  ;; probably duplicates dired-jump
          ("f" counsel-projectile-find-file)
+         ("F" invalidate-cache-and-counsel-projectile-find-file)
          ;; ("g" helm-projectile-rg)
          ("g" counsel-projectile-ag-at-point)
          ("h" counsel-projectile)
@@ -1562,8 +1663,8 @@ j -- next
          ;; ("f" helm-find-files)
          ("g" magit-status)
          ("h" mark-whole-buffer)
-         ;; ("j" ivy-switch-buffer)
-         ("j" helm-mini)
+         ("j" ivy-switch-buffer)
+         ;; ("j" helm-mini)
          ("k" kill-current-buffer)  ;; useful but maybe somewhere else?
          ("l" projectile-switch-project)
          (";" xref-find-definitions)
@@ -1598,10 +1699,10 @@ j -- next
 
   (ryo-modal-major-mode-keys
    'python-mode
-   ("U" nav-backward-indent)
+   ("U" magic-elpy-nav-backward-method)
    ("I" magic-elpy-nav-forward-class)
    ("O" magic-elpy-nav-backward-class)
-   ("P" nav-forward-indent)
+   ("P" magic-elpy-nav-forward-method)
 
    ("\\" er/mark-python-statement)  ;; use me
 
@@ -1670,3 +1771,4 @@ j -- next
    )
 
   )
+

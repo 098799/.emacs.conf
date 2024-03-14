@@ -1428,8 +1428,7 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun cdsitepackages ()
   (interactive)
-  ;; (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.9/site-packages")
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.10/site-packages")
+  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.11/site-packages")
   )
 
 (defun get-buffer-path ()
@@ -1573,3 +1572,87 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive
    (list (read-string "Enter your value (default is foo): " nil nil "foo")))
   (message "Value is: %s" arg))
+
+(defun delete-and-paste ()
+  (interactive)
+  (if (region-active-p)
+      (progn
+        (delete-region (region-beginning) (region-end))
+        (cua-paste nil)
+        )
+      (cua-paste nil)
+    )
+  )
+
+(defun invalidate-cache-and-counsel-projectile-find-file (arg)
+  (interactive "P")
+  (projectile-invalidate-cache arg)
+  (counsel-projectile-find-file arg)
+  )
+
+
+
+(defvar my-symbol-map
+  '(
+    ("glob" . "from glob import glob")
+    ("json" . "import json")
+    ("requests" . "import requests")
+    ("pytest" . "import pytest")
+    ("tqdm" . "from tqdm import tqdm")
+    ("Path" . "from pathlib import Path")
+    ("partial" . "from functools import partial")
+    ("cache" . "from functools import cache")
+    ("count" . "from itertools import count")
+    ("profile" . "from memory_profiler import profile")
+    ("load_dotenv" . "from dotenv import load_dotenv")
+    ("st" . "import streamlit as st")
+    ("re" . "import re")
+    ("pd" . "import pandas as pd")
+    ("np" . "import numpy as np")
+    ("torch" . "import torch")
+    ("Q" . "from django.db.models import Q")
+    ("Query" . "from fastapi import Query")
+    ("BaseModel" . "from pydantic import BaseModel")
+    ("Text" . "from pythia_service.document.models import Text")
+    ("AutoModel" . "from transformers import AutoModel")
+    ("AutoModelForQuestionAnswering" . "AutoModelForQuestionAnswering")
+    ("AutoModelForSeq2SeqLM" . "from transformers import AutoModelForSeq2SeqLM")
+    ("AutoTokenizer" . "from transformers import AutoTokenizer")
+    ("T5ForConditionalGeneration" . "from transformers import T5ForConditionalGeneration")
+    ("pipeline" . "from transformers import pipeline")
+    ("Provision" . "from pythia_service.ontology.models import Provision")
+    )
+  )
+
+(defun autoimport ()
+  "Auto-import a symbol at point by finding the suitable place to insert the import statement in a Python buffer.
+If no existing 'import' or 'from' statement is found, insert at the top of the file."
+  (interactive)
+  (let* ((sym (thing-at-point 'symbol))
+         (import-stmt (cdr (assoc sym my-symbol-map))))
+    (when import-stmt
+      (save-excursion
+        (goto-char (point-max)) ; Start from the end of the buffer
+        ;; Search backward for the import or from patterns. If not found, go to the buffer's start.
+        (unless (re-search-backward "^\\(import \\|from \\)" nil t)
+          (goto-char (point-min)))
+        ;; If found, move to the next line; if not found, we're already at the top.
+        (when (looking-at "^\\(import \\|from \\)")
+          (forward-line 1))
+        ;; Insert the import statement.
+        (insert import-stmt "\n")))))
+
+(defun gptel-send-to-gpt4 ()
+  (interactive)
+  (let ((gptel-backend (gptel-make-openai
+                         "Custom ChatGPT"
+                         :models '("gpt-4-turbo-preview")
+                         :key 'gptel-api-key
+                         :stream t))
+        (gptel-model "gpt-4-turbo-preview")
+        (gptel--system-message "You are an AI assistant named ChatGPT. Please respond concisely and helpfully."))
+    (gptel-send)
+    (message "Query sent with custom model and directive.")))
+
+
+;; Given this function, could you write a similar one that calls claude 3 opus?
