@@ -46,6 +46,7 @@
  '(quelpa-use-package
    :fetcher git
    :url "https://github.com/quelpa/quelpa-use-package.git"))
+
 (require 'quelpa-use-package)
 
 (use-package auto-package-update
@@ -196,14 +197,14 @@
 ;;   ;; (load-theme 'nano-dark)
 ;;   )
 
-;; (use-package solarized-theme
-;;   :ensure t
-;;   :config
-;;   ;; (load-theme 'solarized-light t)
-;;   (load-theme 'solarized-selenized-dark t)
-;;   ;; (load-theme 'solarized-gruvbox-light t)
-;;   ;; (load-theme 'solarized-gruvbox t)
-;;   )
+(use-package solarized-theme
+  :ensure t
+  ;; :config
+  ;; (load-theme 'solarized-light t)
+  ;; (load-theme 'solarized-selenized-dark t)
+  ;; (load-theme 'solarized-gruvbox-light t)
+  ;; (load-theme 'solarized-gruvbox t)
+  )
 
 ;; (use-package material-theme
 ;;   :ensure t
@@ -1391,6 +1392,9 @@ j -- next
   :ensure t)
 
 
+(load "~/.emacs.conf/gptel-custom.el" t)
+
+
 (use-package ryo-modal
   :ensure t
   :commands ryo-modal-mode
@@ -1516,7 +1520,7 @@ j -- next
          ("s" counsel-projectile-ag)
          ("d" copy-full-path-to-kill-ring)
          ("D" copy-folder-path-to-kill-ring)
-         ("g" gptel-menu) 
+         ("G" gptel-menu) 
          ;; ("h" ) unused!!!
          ("j" recentf)
          ("k" save-buffers-kill-terminal)
@@ -1555,10 +1559,18 @@ j -- next
          ("f," substitute-outer-with-paren-with-kill-ring)
          ("f." substitute-outer-with-square-with-kill-ring)
          ("f/" substitute-outer-with-curly-with-kill-ring)
+         
+         ("gj" gptel-send-to-gpt4--short)
+         ("gk" gptel-send-to-claude-opus--short)
+         ("gl" gptel-send-to-claude-haiku--short)
 
-         ("fj" gptel-send-to-gpt4)
-         ;; ("fk" gptel-send-to-claude-opus)
-         ;; ("fl" gptel-send-to-claude-haiku)
+         ("gu" gptel-send-to-gpt4--general)
+         ("gi" gptel-send-to-claude-opus--general)
+         ("go" gptel-send-to-claude-haiku--general)
+         
+         ("gm" gptel-send-to-gpt4--continue)
+         ("g," gptel-send-to-opus--continue)
+         ("g." gptel-send-to-haiku--continue)
          )
    )
 
@@ -1578,7 +1590,6 @@ j -- next
 
          ("s" swiper-region)
          ("d" hydra-smerge/body)
-         ;; ("f" ) unused!!!
          ;; ("g" ) unused!!!
          ;; ("h" ) unused!!!
          ("j" counsel-projectile)
@@ -1748,6 +1759,7 @@ j -- next
    ("f"
     (
      ("e" eval-last-sexp)
+     ("E" eval-buffer)
      )
     )
    )
@@ -1769,6 +1781,5 @@ j -- next
    ("<home>" org-present-beginning)
    ("<end>" org-present-end)
    )
-
   )
 
