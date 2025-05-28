@@ -1,3 +1,9 @@
+;; Ensure native-comp variables are defined
+(when (and (fboundp 'native-comp-available-p)
+           (native-comp-available-p))
+  (defvar native-comp-deferred-compilation-deny-list nil)
+  (defvar native-comp-async-report-warnings-errors nil))
+
 ;; Straight
 (defvar bootstrap-version)
 (let ((bootstrap-file
@@ -49,12 +55,12 @@
 
 (require 'quelpa-use-package)
 
-(use-package auto-package-update
-   :ensure t
-   :config
-   (setq auto-package-update-delete-old-versions t
-         auto-package-update-interval 4)
-   (auto-package-update-maybe))
+;; (use-package auto-package-update
+;;    :ensure t
+;;    :config
+;;    (setq auto-package-update-delete-old-versions t
+;;          auto-package-update-interval 4)
+;;    (auto-package-update-maybe))
 
 (straight-use-package 'project)  ;; some problem with old version that magit had...
 
@@ -197,14 +203,14 @@
 ;;   ;; (load-theme 'nano-dark)
 ;;   )
 
-(use-package solarized-theme
-  :ensure t
-  ;; :config
-  ;; (load-theme 'solarized-light t)
-  ;; (load-theme 'solarized-selenized-dark t)
-  ;; (load-theme 'solarized-gruvbox-light t)
-  ;; (load-theme 'solarized-gruvbox t)
-  )
+;; (use-package solarized-theme
+;;   :ensure t
+;;   ;; :config
+;;   ;; (load-theme 'solarized-light t)
+;;   ;; (load-theme 'solarized-selenized-dark t)
+;;   ;; (load-theme 'solarized-gruvbox-light t)
+;;   ;; (load-theme 'solarized-gruvbox t)
+;;   )
 
 ;; (use-package material-theme
 ;;   :ensure t
@@ -221,12 +227,20 @@
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-gruvbox t))
+  (load-theme 'doom-gruvbox t)
+  )
+
+;; (use-package modus-themes
+;;   :ensure t
+;;   :config
+;;   (load-theme 'modus-vivendi-tinted t)
+;;   )
 
 (use-package rainbow-delimiters
   :ensure t
   :config
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
+  (add-hook 'python-ts-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'emacs-lisp-mode-hook #'rainbow-delimiters-mode)
   (show-paren-mode t)
   (setq show-paren-style 'expression)
@@ -315,16 +329,17 @@
 ;;   (define-key copilot-completion-map (kbd "C-e") 'copilot-accept-completion)
 ;;   )
 
-(use-package copilot
-  :quelpa (copilot :fetcher github
-                   :repo "zerolfx/copilot.el"
-                   :branch "main"
-                   :files ("dist" "*.el"))
-  :config
-  (add-hook 'python-mode-hook 'copilot-mode)
-  ;; (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
-  (define-key copilot-completion-map (kbd "C-e") 'copilot-accept-completion)
-  )
+;; (use-package copilot
+;;   :quelpa (copilot :fetcher github
+;;                    :repo "zerolfx/copilot.el"
+;;                    :branch "main"
+;;                    :files ("dist" "*.el"))
+;;   :config
+;;   (add-hook 'python-mode-hook 'copilot-mode)
+;;   (add-hook 'python-ts-mode-hook 'copilot-mode)
+;;   ;; (define-key copilot-completion-map (kbd "<tab>") 'copilot-accept-completion)
+;;   (define-key copilot-completion-map (kbd "C-e") 'copilot-accept-completion)
+;;   )
 
 (use-package counsel
   :after ivy
@@ -380,6 +395,8 @@ interactively call `gptel-send' with a prefix argument."
   :group 'gptel
   :safe #'always
   :type '(alist :key-type symbol :value-type string))
+
+  (setq gptel-log-level 'debug)
   )
  
 
@@ -412,6 +429,8 @@ interactively call `gptel-send' with a prefix argument."
         ("c" . dired-do-compress)
         ("H" . dired-hide-dotfiles-mode)
         ("n" . dired-unmark)
+        ("c" . dired-ranger-copy)
+        ("P" . dired-ranger-paste)
         )
   :custom ((dired-listing-switches "-agho --group-directories-first"))
   :config
@@ -607,7 +626,7 @@ interactively call `gptel-send' with a prefix argument."
   (setq ivy-fixed-height-minibuffer t)
   ;; (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
-  ;; (ivy-prescient-mode)
+  (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
   ;; (add-to-list 'ivy-ignore-buffers "\\*helm")
   )
@@ -623,12 +642,12 @@ interactively call `gptel-send' with a prefix argument."
   :config
   )
 
-;; (use-package ivy-rich
-;;   :ensure t
-;;   :init (ivy-rich-mode 1)
-;;   :config
-;;   (setq ivy-rich-parse-remote-buffer nil)
-;;   )
+(use-package ivy-rich
+  :ensure t
+  :init (ivy-rich-mode 1)
+  :config
+  (setq ivy-rich-parse-remote-buffer nil)
+  )
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -690,7 +709,50 @@ interactively call `gptel-send' with a prefix argument."
   :ensure t) ;; please review this
 
 (require 'org)
-(setq org-src-fontify-natively t)
+
+;; (use-package org-modern
+;;   :ensure t
+;;   :config
+;;   (with-eval-after-load 'org (global-org-modern-mode))
+  
+;;   ;; (modify-all-frames-parameters
+;;   ;;  '((right-divider-width . 40)
+;;   ;;    (internal-border-width . 40)))
+  
+;;   ;; (dolist (face '(window-divider
+;;   ;;                 window-divider-first-pixel
+;;   ;;                 window-divider-last-pixel))
+;;   ;;   (face-spec-reset-face face)
+;;   ;;   (set-face-foreground face (face-attribute 'default :background)))
+;;   ;; (set-face-background 'fringe (face-attribute 'default :background))
+  
+;;   (setq
+;;    ;; Edit settings
+;;    org-auto-align-tags nil
+;;    org-tags-column 0
+;;    org-catch-invisible-edits 'show-and-error
+;;    org-special-ctrl-a/e t
+;;    org-insert-heading-respect-content t
+
+;;    ;; Org styling, hide markup etc.
+;;    org-hide-emphasis-markers t
+;;    org-pretty-entities t
+;;    org-ellipsis "…"
+
+;;    ;; Agenda styling
+;;    org-agenda-tags-column 0
+;;    org-agenda-block-separator ?─
+;;    org-agenda-time-grid
+;;    '((daily today require-timed)
+;;      (800 1000 1200 1400 1600 1800 2000)
+;;      " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+;;    org-agenda-current-time-string
+;;    "◀── now ─────────────────────────────────────────────────")
+
+;;   (global-org-modern-mode)
+;;   )
+
+;; (setq org-src-fontify-natively t)
 (setq org-confirm-babel-evaluate nil)
 
 (setq org-support-shift-select t)
@@ -779,14 +841,9 @@ interactively call `gptel-send' with a prefix argument."
   :ensure t
   )
 
+(require 'tramp)
+(setq tramp-verbose 6)
 (setq tramp-default-method "ssh")
-
-
-
-;; (use-package helm-tramp
-;;   :ensure t)
-;; (add-hook 'helm-tramp-pre-command-hook '(lambda () (projectile-mode 0)))
-;; (add-hook 'helm-tramp-quit-hook '(lambda () (projectile-mode 1)))
 
 
 
@@ -838,10 +895,12 @@ interactively call `gptel-send' with a prefix argument."
 (use-package blacken
   :ensure t
   :config
+  (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
   (setq blacken-skip-string-normalization nil)
   (setq blacken-line-length 160)
   (setq blacken-allow-py36 nil)
   (add-hook 'python-mode-hook 'blacken-mode)
+  (add-hook 'python-ts-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
 
@@ -956,6 +1015,7 @@ interactively call `gptel-send' with a prefix argument."
   ;; (setq elpy-rpc-timeout 10)
   ;; (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
+  (add-hook 'python-ts-mode-hook 'hs-minor-mode)
   (when (load "flycheck" t t)
     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
     (add-hook 'elpy-mode-hook 'flycheck-mode))
@@ -964,7 +1024,7 @@ interactively call `gptel-send' with a prefix argument."
 (use-package flycheck
   :ensure t
   :config
-  (global-flycheck-mode t)
+  (global-flycheck-mode nil)
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
   )
 
@@ -1061,6 +1121,7 @@ interactively call `gptel-send' with a prefix argument."
   (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
   (setq projectile-indexing-method 'hybrid)
+  (setq projectile-globally-ignored-file-suffixes '("j2" "json" "llamafile" "pdf" "docx"))
   )
 
 (use-package python-pytest
@@ -1123,7 +1184,18 @@ interactively call `gptel-send' with a prefix argument."
 ;;   :commands lsp)
 
 ;; (use-package eglot
-;;   :ensure t)
+;;   :ensure t
+;;   :defer t
+;;   :hook (python-ts-mode . eglot-ensure))
+
+;; (add-hook 'python-mode-hook 'eglot-ensure)
+;; (with-eval-after-load 'eglot
+;;   (add-to-list 'eglot-server-programs
+;;                '(python-mode . ("ruff" "server")))
+;;   (add-hook 'after-save-hook 'eglot-format))
+
+;; (require 'flymake-ruff)
+;; (add-hook 'python-mode-hook #'flymake-ruff-load)
 
 ;; (use-package kubernetes
 ;;   :ensure t
@@ -1178,7 +1250,10 @@ interactively call `gptel-send' with a prefix argument."
   :ensure t)
 
 (use-package json-mode
-  :ensure t)
+  :ensure t
+  :config
+  (setq json-reformat:indent-width 2)
+  (setq js-indent-level 2))
 (use-package csv-mode
   :defer t
   :mode "\\.csv\\'")
@@ -1187,8 +1262,6 @@ interactively call `gptel-send' with a prefix argument."
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
-(use-package json-mode
-  :ensure t)
 (use-package web-mode
   :ensure t
   :mode ("\\.html\\'" "\\.jinja\\'")
@@ -1486,7 +1559,7 @@ j -- next
    ("_" delete-horizontal-and-vertical-space-but-leave-one-space)
    ("=" er/expand-region)
    ("+" mark-paragraph)  ;; use me ;; or not, really, what's the point...
-   ("SPC" cua-set-mark)
+   ("SPC" set-mark-command)
    ("RET" smart-newline)
    )
 
@@ -1559,18 +1632,17 @@ j -- next
          ("f," substitute-outer-with-paren-with-kill-ring)
          ("f." substitute-outer-with-square-with-kill-ring)
          ("f/" substitute-outer-with-curly-with-kill-ring)
-         
-         ("gj" gptel-send-to-gpt4--short)
-         ("gk" gptel-send-to-claude-opus--short)
-         ("gl" gptel-send-to-claude-haiku--short)
 
-         ("gu" gptel-send-to-gpt4--general)
-         ("gi" gptel-send-to-claude-opus--general)
-         ("go" gptel-send-to-claude-haiku--general)
+         ("ga" remove-thinking)
+         ("gg" gptel-really-abort)
          
-         ("gm" gptel-send-to-gpt4--continue)
-         ("g," gptel-send-to-opus--continue)
-         ("g." gptel-send-to-haiku--continue)
+         ("g;" gptel-send-to-claude--conversation)
+
+         ("gu" gptel-send-to-gemini--general)
+         ("gi" gptel-send-to-sonnet--general)
+         ("gI" gptel-send-to-sonnet--general-thinking)
+         ("go" gptel-send-to-o4-mini--general)
+         ("gp" gptel-send-to-o3--general)         
          )
    )
 
@@ -1720,57 +1792,30 @@ j -- next
    ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
    ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
 
-   ("a"
-    (
-     ("t" python-add-return)
-     )
-    )
+   ("at" python-add-return)
+   ("se" python-add-breakpoint)
+   ("st" ask-aider)
 
-   ("s"
-    (
-     ("e" python-add-breakpoint)
-     ("t" python-add-pass)
-     )
-    )
+   ("dt" autoflake)
+   ("dz" get-test-string)
+   ("dx" get-class-string)
 
-   ("d"
-    (
-     ("t" autoflake)
-     ;; ("t" projectile-toggle-between-implementation-and-test)  ;; useful when it works
-
-     ("z" get-test-string)
-     ("x" get-class-string)
-     )
-    )
-
-   ;; ("f"
-   ;;  (
-   ;;   ("J" magic-elpy-nav-backward-method)
-   ;;   (":" magic-elpy-nav-forward-method)
-   ;;   )
-   ;;  )
+   ("f;" elpy-goto-definition)
+   ("f:" xref-find-references-at-point)
    )
 
   (ryo-modal-major-mode-keys
    'emacs-lisp-mode
    ("I" forward-sexp)
    ("O" backward-sexp)
+   ("fe" eval-last-sexp)
+   ("fE" eval-current-buffer-and-message)
 
-   ("f"
-    (
-     ("e" eval-last-sexp)
-     ("E" eval-buffer)
-     )
-    )
    )
 
   (ryo-modal-major-mode-keys
    'haskell-mode
-   ("f"
-    (
-     (";" haskell-mode-jump-to-def)
-     )
-    )
+   ("f;" haskell-mode-jump-to-def)
    )
 
   (ryo-modal-major-mode-keys

@@ -618,6 +618,8 @@
   (interactive)
   (ivy-with-thing-at-point 'swiper))
 
+(require 'cl-lib)
+
 (defun change-inner-with-fixed-arg* (argument yank? search-forward-char)
   "My fork for change-inner. Will be used for parens."
   (let* ((expand-region-fast-keys-enabled nil)
@@ -626,7 +628,7 @@
          (starting-point (point)))
     (when search-forward-char
       (search-forward char (point-at-eol)))
-    (flet ((message (&rest args) nil))
+    (cl-letf (((symbol-function 'message) (lambda (&rest args) nil)))
       (er--expand-region-1)
       (er--expand-region-1)
       (while (and (not (= (point) (point-min)))
@@ -644,8 +646,7 @@
               (copy-region-as-kill (region-beginning) (region-end))
               (ci--flash-region (region-beginning) (region-end))
               (goto-char starting-point))
-          (kill-region (region-beginning) (region-end)))
-        ))))
+          (kill-region (region-beginning) (region-end)))))))
 
 (defun mark-inner-with-fixed-arg* (argument search-forward-char)
   "Mark inner."
@@ -655,7 +656,7 @@
          (starting-point (point)))
     (when search-forward-char
       (search-forward char (point-at-eol)))
-    (flet ((message (&rest args) nil))
+    (cl-letf (((symbol-function 'message) (lambda (&rest args) nil)))
       (er--expand-region-1)
       (er--expand-region-1)
       (while (and (not (= (point) (point-min)))
@@ -667,8 +668,7 @@
             (goto-char starting-point)
             (setq mark-active nil)
             (mark-inner-with-fixed-arg* argument char))
-        (er/contract-region 1)
-        ))))
+        (er/contract-region 1)))))
 
 (defun mark-inner-with-paren ()
   (interactive)
@@ -756,7 +756,7 @@
          (starting-point (point)))
     (when search-forward-char
       (search-forward char (point-at-eol)))
-    (flet ((message (&rest args) nil))
+    (cl-letf (((symbol-function 'message) (lambda (&rest args) nil)))
       (when (looking-at q-char)
         (er/expand-region 1))
       (while (and (not (= (point) (point-min)))
@@ -783,7 +783,7 @@
          (starting-point (point)))
     (when search-forward-char
       (search-forward char (point-at-eol)))
-    (flet ((message (&rest args) nil))
+    (cl-letf (((symbol-function 'message) (lambda (&rest args) nil)))
       (when (looking-at q-char)
         (er/expand-region 1))
       (while (and (not (= (point) (point-min)))
@@ -794,8 +794,7 @@
               (error "Couldn't find any expansion starting with %S" char)
             (goto-char starting-point)
             (setq mark-active nil)
-            (mark-inner-with-fixed-arg* argument char))
-        ))))
+            (mark-inner-with-fixed-arg* argument char))))))
 
 (defun mark-outer-with-paren ()
   (interactive)
@@ -1428,7 +1427,7 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun cdsitepackages ()
   (interactive)
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.11/site-packages")
+  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.13/site-packages")
   )
 
 (defun get-buffer-path ()
@@ -1592,3 +1591,53 @@ Repeated invocations toggle between the two most recently open buffers."
 
 
 (load "~/.emacs.conf/autoimport.el" t)
+
+
+
+(defun dired-open-latest-kill-ring-folder ()
+  "Open the most recent folder path from the kill ring in Dired."
+  (interactive)
+  (let ((folder-path (car kill-ring)))
+    (if (and folder-path (file-directory-p folder-path))
+        (dired folder-path)
+      (message "No valid folder path found in the kill ring."))))
+
+(defun ask-aider ()
+  "Add 'AI!' to the end of current line and save the buffer."
+  (interactive)
+  (end-of-line)
+  (insert " AI!")
+  (save-buffer))
+
+(defun remove-thinking ()
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    ;; First, remove all "</t><t>" occurrences
+    (while (search-forward "</t><t>" nil t)
+      (replace-match "" t t))
+
+    ;; Replace opening tags
+    (goto-char (point-min))
+    (while (search-forward "<t>" nil t)
+      (replace-match "<thining> " t t))
+
+    ;; Replace closing tags and add newlines
+    (goto-char (point-min))
+    (while (search-forward "</t>" nil t)
+      (replace-match "</thinking>\n\n\n" t t)))
+
+  ;; Highlight the thinking tags
+  (when (fboundp 'highlight-symbol)
+    (when (not (highlight-symbol-symbol-highlighted-p "<thinking>"))
+      (highlight-symbol-add-symbol "<thinking>"))
+    (when (not (highlight-symbol-symbol-highlighted-p "</thinking>"))
+      (highlight-symbol-add-symbol "</thinking>"))
+    )
+  )
+
+(defun eval-current-buffer-and-message ()
+  "Evaluate the entire buffer and display a message indicating success."
+  (interactive)
+  (eval-buffer)
+  (message "whole buffer evaled"))
