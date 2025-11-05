@@ -1,3 +1,5 @@
+;;; ...  -*- lexical-binding: nil -*-
+
 (defvar my-symbol-map
   '(
     ("pickle" . "import pickle")
@@ -25,7 +27,7 @@
     ("setup_django" . "import os
 os.environ['SENTRY_IS_ENABLED'] = 'False'
 from service_common.util.framework_util import setup_django
-setup_django('pythia_service', force=True, load_env=True)")
+setup_django('ontology_service', force=True, load_env=True)")
     ("Text" . "from pythia_service.document.models import Text")
     ("Segment" . "from pythia_service.document.models import Segment")
     ("Document" . "from pythia_service.document.models import Document")

@@ -1,3 +1,5 @@
+;;; ...  -*- lexical-binding: nil -*-
+
 ;; Ensure native-comp variables are defined
 (when (and (fboundp 'native-comp-available-p)
            (native-comp-available-p))
@@ -27,11 +29,13 @@
 ;;              '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
 
 
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (setq package-archives '(
                          ("melpa" . "https://melpa.org/packages/")
                          ("gnu" . "https://elpa.gnu.org/packages/")
+                         ("nongnu" . "https://elpa.nongnu.org/nongnu/")
 ;;                         ("marmalade" . "https://marmalade-repo.org/packages/")
                          ))
 (package-initialize)
@@ -275,6 +279,8 @@
   ;; (centaur-tabs-mode 1)
   )
 
+(global-visual-line-mode 1)
+
 ;;;;;;;;;;;;;;;
 ;;; GENERAL ;;;
 ;;;;;;;;;;;;;;;
@@ -398,6 +404,24 @@ interactively call `gptel-send' with a prefix argument."
 
   (setq gptel-log-level 'debug)
   )
+
+;; (quelpa '(eat :fetcher git
+;;               :url "https://codeberg.org/akib/emacs-eat"
+;;               :files ("*.el" ("term" "term/*.el") "*.texi"
+;;                       "*.ti" ("terminfo/e" "terminfo/e/*")
+;;                       ("terminfo/65" "terminfo/65/*")
+;;                       ("integration" "integration/*")
+;;                       (:exclude ".dir-locals.el" "*-tests.el"))))
+
+;; (use-package claude-code
+;;   :straight (:type git :host github :repo "stevemolitor/claude-code.el" :branch "main" :depth 1
+;;                    :files ("*.el" (:exclude "images/*")))
+;;   :bind-keymap
+;;   ("C-c c" . claude-code-command-map) ;; or your preferred key
+;;   :config
+;;   (setq claude-code-terminal-backend 'eat)
+;;   (setq claude-code-program "~/.nvm/versions/node/v18.20.5/bin/claude")
+;;   (claude-code-mode))
  
 
 ;; (require 'gptel-curl)
@@ -849,6 +873,33 @@ interactively call `gptel-send' with a prefix argument."
 
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
+
+
+
+;; some copy-pasted stuff, sus
+(setq remote-file-name-inhibit-locks t
+      tramp-use-scp-direct-remote-copying t
+      remote-file-name-inhibit-auto-save-visited t)
+
+(setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
+      tramp-verbose 2)
+
+(connection-local-set-profile-variables
+ 'remote-direct-async-process
+ '((tramp-direct-async-process . t)))
+
+(connection-local-set-profiles
+ '(:application tramp :machine "server")
+ 'remote-direct-async-process)
+
+(setq magit-tramp-pipe-stty-settings 'pty)
+
+(with-eval-after-load 'tramp
+  (with-eval-after-load 'compile
+    (remove-hook 'compilation-mode-hook #'tramp-compile-disable-ssh-controlmaster-options)))
+;; some copy-pasted stuff, sus
+
+
 ;; (use-package kubernetes-tramp
 ;;   :ensure t)
 ;; (use-package kubernetes-helm
@@ -903,6 +954,15 @@ interactively call `gptel-send' with a prefix argument."
   (add-hook 'python-ts-mode-hook 'blacken-mode)
   ;; (remove-hook 'python-mode-hook 'blacken-mode)
   )
+
+;; Fix for Emacs 31 development version compatibility with minor modes
+;; These variables are expected by minor modes but not defined in Emacs 31 dev
+(defvar company-mode--suppress-set-explicitly nil
+  "Compatibility variable for company-mode with Emacs 31+")
+(defvar yas-minor-mode--suppress-set-explicitly nil
+  "Compatibility variable for yasnippet with Emacs 31+")
+(defvar flycheck-mode--suppress-set-explicitly nil
+  "Compatibility variable for flycheck with Emacs 31+")
 
 (use-package company
   :ensure t
@@ -1121,7 +1181,8 @@ interactively call `gptel-send' with a prefix argument."
   (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
   (setq projectile-indexing-method 'hybrid)
-  (setq projectile-globally-ignored-file-suffixes '("j2" "json" "llamafile" "pdf" "docx"))
+  ;; (setq projectile-globally-ignored-file-suffixes '("j2" "json" "llamafile" "pdf" "docx"))
+  (setq projectile-globally-ignored-file-suffixes '("j2" "llamafile" "pdf" "docx"))
   )
 
 (use-package python-pytest
@@ -1247,7 +1308,15 @@ interactively call `gptel-send' with a prefix argument."
   :ensure t)
 (use-package typescript-mode
   :mode (("\\.ts$" . typescript-mode))
-  :ensure t)
+  :ensure t
+  :config
+
+  (add-hook 'typescript-mode-hook 
+            (lambda () (setq-local create-lockfiles nil)))
+  (add-hook 'web-mode-hook 
+            (lambda () (setq-local create-lockfiles nil)))
+  (setq create-lockfiles nil)
+  )
 
 (use-package json-mode
   :ensure t
@@ -1591,6 +1660,7 @@ j -- next
          ("a" comment-line)
          ;; ("s" helm-projectile-rg)
          ("s" counsel-projectile-ag)
+         ("S" copy-buffer-useful-path)
          ("d" copy-full-path-to-kill-ring)
          ("D" copy-folder-path-to-kill-ring)
          ("G" gptel-menu) 
@@ -1635,7 +1705,10 @@ j -- next
 
          ("ga" remove-thinking)
          ("gg" gptel-really-abort)
-         
+
+         ("gj" gptel-send-to-sonnet--short)
+         ("gk" gptel-send-to-sonnet--general)
+         ("gK" gptel-send-to-opus--general-thinking)
          ("g;" gptel-send-to-claude--conversation)
 
          ("gu" gptel-send-to-gemini--general)
@@ -1827,4 +1900,3 @@ j -- next
    ("<end>" org-present-end)
    )
   )
-

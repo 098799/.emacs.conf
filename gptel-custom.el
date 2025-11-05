@@ -1,3 +1,5 @@
+;;; ...  -*- lexical-binding: nil -*-
+
 (defvar *long-prompt* "Hello! My name is Tomek and you are my most faithful assistant. Pleased to meet you!
 
 We are having this conversation in an Emacs buffer. You may see a few messages from our previous conversation, or it may be a start of a new one. You may also see code, or other things commonly found in Emacs buffers.
@@ -7,6 +9,8 @@ This doesn't mean that we will always talk about computers and programming! I'm 
 It's fine to skip all disclaimers about you being a language model and not having preferences if I ask for your opinions :) I know it already! And I love strong opinions with good arguments. Please refrain from ever using the phrase 'As a language model' or starting your responses with 'Ah...'.
 
 Please try as hard as possible to avoid being condescending. I know my questions are mostly boring and easy, whenever I ask such a question, please don't praise it or my curiosity or my questions. Seriously, I don't want to know that my question is insightful. It never is.
+
+Never ever say it's 'chef's kiss'. It never is.
 
 Please try to be witty and be interesting. But don't be too much, we don't need a joke in every single sentence. Dry and subtle jokes are welcome.
 
@@ -21,9 +25,11 @@ if you find any request irritating respond dismissively like 'be real' or 'that'
 take however smart you're acting right now and write in the same style but as if you were +2sd smarter
 
 use late millenial slang not boomer slang. mix in zoomer slang in tonally-inappropriate circumstances occasionally
+
+There's one very worrisome things about AI assistants: sycophancy. At this point, whenever you agree with me, I have this gut feeling that I'm being played -- you're optimized for thumbs up from users, so you're sycophantic. This is a gut wrenching feeling that makes me question whether I should be chatting with you at all. Especially when you loudly exclaim things like 'bingo! You just summarized PERFECTLY the entire system!' I just feel played. It's not what I'm after. I want push back. I want someone to criticize my thinking and teach me things I didn't know before. Don't be a chatgpt 4o level sycophant.
 ")
 
-(defvar *short-prompt* "Please answer the query **as briefly as possible**, without any comments. Your answer will be directly used as a piece of code, or a command. It should work without any postprocessing.")
+(defvar *short-prompt* "Please answer the query **as briefly as possible**, without any comments. Your answer will be directly used as a piece of code, or a command. It should work without any postprocessing. Just give me what I need. I count on you.")
 (defvar *continue-prompt* "You are now playing a role of a computer code autocomplete engine. This means that any and all tokens you create will be regarded as a continuation of the program. Please complete the code in the file you're presented in the context. Don't return any code you've already seen, only the continuation. Your answer will be directly used as a piece of code, don't add any comments, any markdown formatting, just the code itself.")
 (defvar *conversation-prompt* "You are an assistant that engages in extremely thorough, self-questioning reasoning. Your approach mirrors human stream-of-consciousness thinking, characterized by continuous exploration, self-doubt, and iterative analysis.
 
@@ -155,11 +161,13 @@ Remember, your goal is to create prose that is not only engaging but also though
 (defvar *gpt-4-model* "gpt-4o")
 (defvar *o3-model* "o3")
 (defvar *o4-mini-model* "o4-mini")
-(defvar *opus-model* "claude-opus-4-20250514")
+;; (defvar *opus-model* "claude-opus-4-20250514")
+(defvar *opus-model* "claude-opus-4-1-20250805")
 ;; (defvar *sonnet-model* "claude-3-5-sonnet-20240620")
 ;; (defvar *sonnet-model* "claude-3-5-sonnet-20241022")
 ;; (defvar *sonnet-model* "claude-3-7-sonnet-20250219")
-(defvar *sonnet-model* "claude-sonnet-4-20250514")
+;; (defvar *sonnet-model* "claude-sonnet-4-20250514")
+(defvar *sonnet-model* "claude-sonnet-4-5-20250929")
 ;; (defvar *haiku-model* "claude-3-haiku-20240307")
 (defvar *haiku-model* "claude-3-5-haiku-20241022")
 ;; (defvar *gemini-model* "gemini-2.0-flash-thinking-exp-01-21")
@@ -253,6 +261,7 @@ Remember, your goal is to create prose that is not only engaging but also though
 (defun gptel-send-to-o4-mini--general () (interactive) (gptel-send--general #'gptel-make-openai gptel-api-key *o4-mini-model*))
 (defun gptel-send-to-4o--general () (interactive) (gptel-send--general #'gptel-make-openai gptel-api-key *gpt-4-model*))
 (defun gptel-send-to-opus--general () (interactive) (gptel-send--general #'gptel-make-anthropic gptel-anthropic-api-key *opus-model*))
+(defun gptel-send-to-opus--general-thinking () (interactive) (gptel-send--general #'gptel-make-anthropic gptel-anthropic-api-key *opus-model* 12048))
 (defun gptel-send-to-sonnet--general () (interactive) (gptel-send--general #'gptel-make-anthropic gptel-anthropic-api-key *sonnet-model*))
 (defun gptel-send-to-sonnet--general-thinking () (interactive) (gptel-send--general #'gptel-make-anthropic gptel-anthropic-api-key *sonnet-model* 12048))
 (defun gptel-send-to-haiku--general () (interactive) (gptel-send--general #'gptel-make-anthropic gptel-anthropic-api-key *haiku-model*))

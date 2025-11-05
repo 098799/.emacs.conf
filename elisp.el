@@ -1,3 +1,5 @@
+;;; ...  -*- lexical-binding: nil -*-
+
 (defun beginning-of-line-or-indentation ()
   (interactive)
   (let ((previous-point (point)))
@@ -1488,6 +1490,17 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (helm-rg nil)
   )
+
+(defun copy-buffer-useful-path ()
+  "Copy all path since git root"
+  (interactive)
+  (if-let* ((file (buffer-file-name))
+            (root (vc-git-root file))
+            (rel-path (file-relative-name file root)))
+      (progn
+        (kill-new rel-path)
+        (message "Copied: %s" rel-path))
+    (user-error "Not in a git repo or buffer has no file")))
 
 (defun copy-full-path-to-kill-ring ()
   "copy buffer's full path to kill ring"
