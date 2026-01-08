@@ -1222,9 +1222,9 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
-  ;; Use pyright as the Python language server (faster, better types)
+  ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
   (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio"))))
+               '((python-mode python-ts-mode) . ("ty" "server"))))
 
 ;; Move lines up/down (replacement for elpy-nav-move-line-or-region)
 (use-package move-text
