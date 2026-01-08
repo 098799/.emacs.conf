@@ -366,6 +366,27 @@
 (use-package counsel-tramp
   :after counsel
   :ensure t
+  :config
+  ;; Add kubectl pods to counsel-tramp candidates
+  (defun counsel-tramp-kubernetes-pods ()
+    "Get list of kubernetes pods for current context/namespace."
+    (when (executable-find "kubectl")
+      (let ((pods '()))
+        (cl-loop for line in (cdr (ignore-errors
+                                     (apply #'process-lines "kubectl"
+                                            (list "get" "pods" "--no-headers" "-o" "custom-columns=:metadata.name"))))
+                 do (when (and line (not (string-empty-p line)))
+                      (push (concat "/kubectl:" line ":/") pods)))
+        pods)))
+
+  ;; Advice to add kubectl pods to the candidate list
+  (defun counsel-tramp--add-kubectl-pods (orig-fun &optional file)
+    "Advice to add kubectl pods to counsel-tramp candidates."
+    (let ((base-candidates (funcall orig-fun file))
+          (kubectl-candidates (counsel-tramp-kubernetes-pods)))
+      (append base-candidates kubectl-candidates)))
+
+  (advice-add 'counsel-tramp--candidates :around #'counsel-tramp--add-kubectl-pods)
   )
 
 ;; (require 'quelpa-use-package)
@@ -650,7 +671,7 @@ interactively call `gptel-send' with a prefix argument."
   (setq ivy-fixed-height-minibuffer t)
   ;; (setq ivy-use-virtual-buffers t)
   (setq enable-recursive-minibuffers t)
-  (ivy-prescient-mode)
+  ;; (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
   ;; (add-to-list 'ivy-ignore-buffers "\\*helm")
   )
@@ -900,9 +921,9 @@ interactively call `gptel-send' with a prefix argument."
 ;; some copy-pasted stuff, sus
 
 
-;; (use-package kubernetes-tramp
-;;   :ensure t)
-;; (use-package kubernetes-helm
+(use-package kubernetes-tramp
+  :ensure t)
+;; (use-packagekubernetes-helm
 ;;   :ensure t)
 ;; (use-package kubernetes
 ;;   :ensure t)
@@ -943,17 +964,81 @@ interactively call `gptel-send' with a prefix argument."
 ;;; PYTHON AND PROJECTS ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package blacken
-  :ensure t
-  :config
-  (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
-  (setq blacken-skip-string-normalization nil)
-  (setq blacken-line-length 160)
-  (setq blacken-allow-py36 nil)
-  (add-hook 'python-mode-hook 'blacken-mode)
-  (add-hook 'python-ts-mode-hook 'blacken-mode)
-  ;; (remove-hook 'python-mode-hook 'blacken-mode)
-  )
+;; (use-package blacken
+;;   :ensure t
+;;   :config
+;;   (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
+;;   (setq blacken-skip-string-normalization nil)
+;;   (setq blacken-line-length 160)
+;;   (setq blacken-allow-py36 nil)
+;;   (add-hook 'python-mode-hook 'blacken-mode)
+;;   (add-hook 'python-ts-mode-hook 'blacken-mode)
+;;   )
+
+;; Ruff formatting (replaces black)
+(defun ruff-format-buffer ()
+  "Format current buffer with ruff."
+  (interactive)
+  (let* ((point (point))
+         (file-name (or (buffer-file-name) "buffer.py"))
+         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
+         (temp-buffer (generate-new-buffer " *ruff-format-temp*"))
+         (exit-code)
+         (interactive-p (called-interactively-p 'any)))
+    (unwind-protect
+        (progn
+          (with-current-buffer temp-buffer
+            (insert buffer-text))
+          (setq exit-code
+                (with-current-buffer temp-buffer
+                  (call-process-region (point-min) (point-max) "ruff"
+                                       t t nil
+                                       "format" "--stdin-filename" file-name "-")))
+          (if (zerop exit-code)
+              (let ((formatted-text (with-current-buffer temp-buffer
+                                      (buffer-substring-no-properties (point-min) (point-max)))))
+                (if (string= buffer-text formatted-text)
+                    (when interactive-p (message "Buffer already formatted"))
+                  (erase-buffer)
+                  (insert formatted-text)
+                  (goto-char (min point (point-max)))
+                  (when interactive-p (message "Formatted with ruff"))))
+            (when interactive-p
+              (message "ruff format failed with exit code %d" exit-code))))
+      (kill-buffer temp-buffer))))
+
+(defun ruff-fix-buffer ()
+  "Fix current buffer with ruff (auto-fix linting issues)."
+  (interactive)
+  (let* ((point (point))
+         (file-name (or (buffer-file-name) "buffer.py"))
+         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
+         (temp-buffer (generate-new-buffer " *ruff-fix-temp*"))
+         (exit-code))
+    (unwind-protect
+        (progn
+          (with-current-buffer temp-buffer
+            (insert buffer-text))
+          (setq exit-code
+                (with-current-buffer temp-buffer
+                  (call-process-region (point-min) (point-max) "ruff"
+                                       t t nil
+                                       "check" "--fix" "--stdin-filename" file-name "-")))
+          (when (zerop exit-code)
+            (let ((fixed-text (with-current-buffer temp-buffer
+                                (buffer-substring-no-properties (point-min) (point-max)))))
+              (unless (string= buffer-text fixed-text)
+                (erase-buffer)
+                (insert fixed-text)
+                (goto-char (min point (point-max)))))))
+      (kill-buffer temp-buffer))))
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
+(add-hook 'python-ts-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
 
 ;; Fix for Emacs 31 development version compatibility with minor modes
 ;; These variables are expected by minor modes but not defined in Emacs 31 dev
@@ -1086,6 +1171,25 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (global-flycheck-mode nil)
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
+
+  ;; Use ruff instead of flake8/pylint
+  (setq flycheck-python-ruff-executable "ruff")
+  (setq-default flycheck-disabled-checkers '(python-flake8 python-pylint python-pycompile python-mypy))
+
+  ;; Custom ty type checker (using concise output format)
+  ;; Format: file:line:col: error[rule-id] message
+  (flycheck-define-checker python-ty
+    "A Python type checker using ty."
+    :command ("ty" "check" "--output-format" "concise" source-original)
+    :error-patterns
+    ((error line-start (file-name) ":" line ":" column ": error[" (id (one-or-more (not "]"))) "] " (message) line-end)
+     (warning line-start (file-name) ":" line ":" column ": warning[" (id (one-or-more (not "]"))) "] " (message) line-end))
+    :modes (python-mode python-ts-mode)
+    :predicate (lambda () (executable-find "ty")))
+
+  ;; Add ty to the checker list and chain it after ruff
+  (add-to-list 'flycheck-checkers 'python-ty)
+  (flycheck-add-next-checker 'python-ruff '(t . python-ty))
   )
 
 ;; (use-package importmagic
@@ -1098,14 +1202,13 @@ interactively call `gptel-send' with a prefix argument."
 ;;     (setq importmagic-be-quiet t)
 ;;     )
 
-;; isort
-(use-package py-isort
-  :ensure t
-  :config
-  (add-hook 'before-save-hook 'py-isort-before-save)
-  ;; (remove-hook 'before-save-hook 'py-isort-before-save)
-  ;; (setq py-isort-options '("--line-length=160 --profile=black"))
-  )
+;; isort (disabled - ruff handles import sorting)
+;; (use-package py-isort
+;;   :ensure t
+;;   :config
+;;   (add-hook 'before-save-hook 'py-isort-before-save)
+;;   ;; (setq py-isort-options '("--line-length=160 --profile=black"))
+;;   )
 
 (use-package jedi
   :ensure t
@@ -1651,7 +1754,7 @@ j -- next
          ("q" my-change-word-or-region)
          ("w" my-backward-change-word-or-region)
          ("e" highlight-symbol)
-         ("r" blacken-buffer)
+         ("r" ruff-format-buffer)
          ;; ("t")
 
          ("Q" my-substitute-word-or-region)
@@ -1706,16 +1809,11 @@ j -- next
          ("ga" remove-thinking)
          ("gg" gptel-really-abort)
 
-         ("gj" gptel-send-to-sonnet--short)
-         ("gk" gptel-send-to-sonnet--general)
+         ("gk" gptel-send-to-opus--general)
          ("gK" gptel-send-to-opus--general-thinking)
-         ("g;" gptel-send-to-claude--conversation)
 
-         ("gu" gptel-send-to-gemini--general)
          ("gi" gptel-send-to-sonnet--general)
          ("gI" gptel-send-to-sonnet--general-thinking)
-         ("go" gptel-send-to-o4-mini--general)
-         ("gp" gptel-send-to-o3--general)         
          )
    )
 

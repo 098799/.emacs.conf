@@ -26,6 +26,7 @@
     ("Provision" . "from pythia_service.ontology.models import Provision")
     ("setup_django" . "import os
 os.environ['SENTRY_IS_ENABLED'] = 'False'
+os.environ['PYTHONBREAKPOINT'] = 'ipdb.set_trace'
 from service_common.util.framework_util import setup_django
 setup_django('ontology_service', force=True, load_env=True)")
     ("Text" . "from pythia_service.document.models import Text")
