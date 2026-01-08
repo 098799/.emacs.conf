@@ -1190,25 +1190,42 @@ interactively call `gptel-send' with a prefix argument."
 ;;   :ensure t
 ;;   )
 
-(use-package elpy
-  :ensure t
-  :defer 1  ;; load after 2 seconds idle (async-ish startup)
-  :commands (elpy-multiedit-python-symbol-at-point
-             elpy-nav-forward-block
-             elpy-nav-backward-block
-             elpy-nav-move-line-or-region-up
-             elpy-nav-move-line-or-region-down
-             elpy-goto-definition)
+;; Elpy - commented out in favor of eglot
+;; (use-package elpy
+;;   :ensure t
+;;   :defer 1
+;;   :commands (elpy-multiedit-python-symbol-at-point
+;;              elpy-nav-forward-block
+;;              elpy-nav-backward-block
+;;              elpy-nav-move-line-or-region-up
+;;              elpy-nav-move-line-or-region-down
+;;              elpy-goto-definition)
+;;   :config
+;;   (elpy-enable)
+;;   (add-hook 'python-mode-hook 'hs-minor-mode)
+;;   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
+;;   (when (load "flycheck" t t)
+;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
+
+;; Eglot - built-in LSP client (faster, simpler than elpy)
+(use-package eglot
+  :ensure nil  ;; built-in since Emacs 29
+  :defer t
+  :hook ((python-mode . eglot-ensure)
+         (python-ts-mode . eglot-ensure))
   :config
-  (elpy-enable)
-  ;; (setq elpy-rpc-timeout 10)
-  ;; (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
-  (when (load "flycheck" t t)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode))
-  )
+  ;; Use pyright as the Python language server (faster, better types)
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) . ("pyright-langserver" "--stdio"))))
+
+;; Move lines up/down (replacement for elpy-nav-move-line-or-region)
+(use-package move-text
+  :ensure t
+  :defer t
+  :commands (move-text-up move-text-down))
 
 (use-package flycheck
   :ensure t
@@ -1617,8 +1634,8 @@ interactively call `gptel-send' with a prefix argument."
 (define-key ivy-minibuffer-map (kbd "C-;") 'ivy-alt-done)
 (define-key ivy-minibuffer-map (kbd "<RET>") 'ivy-alt-done)
 
-(global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
-(global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
+(global-set-key (kbd "M-<up>") 'move-text-up)
+(global-set-key (kbd "M-<down>") 'move-text-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
 
 (global-set-key (kbd "'") 'quote-up-or-replace)
@@ -1961,7 +1978,7 @@ j -- next
          ("w" my-backward-mark-word)
          ("e" magit-diff-develop)
          ("r" avy-goto-line)
-         ("t" elpy-multiedit-python-symbol-at-point)
+         ("t" eglot-rename)
 
          ("y" mark-inside-string-or-not)
          ("u" mark-inside-or-not)
@@ -2020,8 +2037,8 @@ j -- next
 
    ("\\" er/mark-python-statement)  ;; use me
 
-   ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
-   ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
+   ("M-o" move-text-up)
+   ("M-i" move-text-down)
 
    ("at" python-add-return)
    ("se" python-add-breakpoint)
@@ -2031,7 +2048,7 @@ j -- next
    ("dz" get-test-string)
    ("dx" get-class-string)
 
-   ("f;" elpy-goto-definition)
+   ("f;" xref-find-definitions)
    ("f:" xref-find-references-at-point)
    )
 
