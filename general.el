@@ -205,8 +205,9 @@
     :config
     (global-auto-highlight-symbol-mode t)
     (setq ahs-idle-interval 0.0)
-    )
-  )
+    ;; Use only background color, no bold (prevents font jiggle with flycheck)
+    (set-face-attribute 'ahs-face nil :weight 'normal :underline nil)
+    (set-face-attribute 'ahs-plugin-whole-buffer-face nil :weight 'normal :underline nil)))
 
 (use-package highlight-indentation
   :ensure t
@@ -1227,6 +1228,12 @@ interactively call `gptel-send' with a prefix argument."
   ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ty" "server"))))
+
+;; Show eldoc in tooltip popup near cursor (hover docs)
+(use-package eldoc-box
+  :ensure t
+  :defer t
+  :hook ((eglot-managed-mode . eldoc-box-hover-mode)))
 
 ;; Move lines up/down (replacement for elpy-nav-move-line-or-region)
 (use-package move-text
