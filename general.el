@@ -1222,6 +1222,8 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
+  ;; Disable document highlight (causes font shift with flycheck underlines)
+  (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
   ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ty" "server"))))
