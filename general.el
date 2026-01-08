@@ -1212,6 +1212,7 @@ interactively call `gptel-send' with a prefix argument."
 (use-package eglot
   :ensure nil  ;; built-in since Emacs 29
   :defer t
+  :commands (eglot-rename eglot-code-actions eglot-format-buffer)
   :hook ((python-mode . eglot-ensure)
          (python-ts-mode . eglot-ensure))
   :config
