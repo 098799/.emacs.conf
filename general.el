@@ -973,14 +973,14 @@ interactively call `gptel-send' with a prefix argument."
 ;; (use-package vimish-fold
 ;;   :ensure t)
 
-;; (use-package which-key
-;;   :ensure t
-;;   :init
-;;   (setq which-key-separator " ")
-;;   (setq which-key-prefix-prefix "+")
-;;   :config
-;;   (which-key-mode 1)
-;;   )
+(use-package which-key
+  :ensure t
+  :defer 1
+  :init
+  (setq which-key-separator " ")
+  (setq which-key-prefix-prefix "+")
+  :config
+  (which-key-mode 1))
 
 ;; (use-package wgrep
 ;;   :ensure t
