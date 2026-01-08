@@ -1369,7 +1369,7 @@ Repeated invocations toggle between the two most recently open buffers."
         )
   (let ((service-list (split-string (my-put-file-name-on-clipboard) "_service/")))
     (let (
-          (path (s-replace ".py" "" (s-replace "/" "." (car (last service-list)))))
+          (path (string-replace ".py" "" (string-replace "/" "." (car (last service-list)))))
           (service (nth 1 service-list))
           (class-name (get-class-name))
           )

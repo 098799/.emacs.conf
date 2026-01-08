@@ -962,7 +962,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package undo-tree
   :ensure t
-  :defer 1
+  :commands (undo-tree-undo undo-tree-redo undo-tree-visualize)
   :config
   (global-undo-tree-mode)
   (setq undo-tree-auto-save-history 1)
