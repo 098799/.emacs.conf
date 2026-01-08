@@ -1220,6 +1220,9 @@ interactively call `gptel-send' with a prefix argument."
   ;; Use completing-read (ivy) for xref results instead of popup buffer
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
   (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  ;; Disable auto-import (often imports from wrong package)
+  (setq-default eglot-workspace-configuration
+                '(:ty (:completions (:autoImport :json-false))))
   :config
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
