@@ -1322,9 +1322,11 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package projectile
   :ensure t
-  :defer 1
-  :commands (projectile-find-file projectile-switch-project)
+  :commands (projectile-find-file projectile-switch-project projectile-switch-to-buffer
+             counsel-projectile counsel-projectile-find-file counsel-projectile-switch-project
+             counsel-projectile-ag counsel-projectile-switch-to-buffer)
   :init
+  (setq projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
