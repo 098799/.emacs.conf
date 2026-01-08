@@ -1,4 +1,7 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; general.el --- Main Emacs configuration -*- lexical-binding: t -*-
+
+;; Suppress lexical-binding warnings for auto-generated files
+(setq warning-suppress-types '((files)))
 
 ;; Ensure native-comp variables are defined
 (when (and (fboundp 'native-comp-available-p)
@@ -46,16 +49,25 @@
 (eval-when-compile
   (require 'use-package))
 
+;; Enable use-package statistics for profiling startup
+;; Run M-x use-package-report after startup to see timing
+(setq use-package-compute-statistics t)
+
+;; Don't check MELPA on every startup - huge time saver
+(setq quelpa-update-melpa-p nil)
+
 (unless (package-installed-p 'quelpa)
   (with-temp-buffer
     (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
     (eval-buffer)
     (quelpa-self-upgrade)))
 
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
+;; Only fetch quelpa-use-package if not installed
+(unless (package-installed-p 'quelpa-use-package)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git")))
 
 (require 'quelpa-use-package)
 
@@ -93,10 +105,12 @@
 (setq recenter-positions '(middle top bottom))
 
 (use-package all-the-icons
+  :defer 1
   :ensure t)
 
 (use-package beacon
   :ensure t
+  :defer 1
   :config
   (beacon-mode 1)
   ;; (set-face-background hl-line "gray13")
@@ -104,19 +118,23 @@
   )
 
 (use-package command-log-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package default-text-scale
   :ensure t
+  :defer 1
   :config
   (default-text-scale-mode t)
   )
 
 (use-package emojify
-  :hook (after-init . global-emojify-mode))
+  :ensure t
+  :defer 1)
 
 (use-package doom-modeline
   :ensure t
+  :defer 1
   :init
   (doom-modeline-mode 1)
   :config
@@ -132,7 +150,8 @@
 
 
 (use-package nerd-icons
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 
 (setq echo-keystrokes 0.5)
@@ -178,6 +197,7 @@
 
 (use-package highlight-symbol
   :ensure t
+  :defer 1
   :config
   (use-package auto-highlight-symbol
     :ensure t
@@ -193,6 +213,7 @@
 
 (use-package nav-flash
   :ensure t
+  :defer 1
   :config
   (nav-flash-show))
 
@@ -242,6 +263,7 @@
 
 (use-package rainbow-delimiters
   :ensure t
+  :defer 1
   :config
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'python-ts-mode-hook #'rainbow-delimiters-mode)
@@ -266,6 +288,7 @@
 
 (use-package centaur-tabs
   :ensure t
+  :defer 1
   :config
   (centaur-tabs-mode 0)
   (setq centaur-tabs-set-modified-marker t)
@@ -300,14 +323,16 @@
 ;;   )
 
 (use-package avy
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package avy-zap
   :ensure t
   )
 
 (use-package better-defaults
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (setq bookmark-save-flag t)
 
@@ -366,6 +391,7 @@
 (use-package counsel-tramp
   :after counsel
   :ensure t
+  :defer 1
   :config
   ;; Add kubectl pods to counsel-tramp candidates
   (defun counsel-tramp-kubernetes-pods ()
@@ -515,6 +541,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package dumb-jump
   :ensure t
+  :defer 1
   :config
   (setq dumb-jump-force-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)  ;; is this making things work?
@@ -529,7 +556,8 @@ interactively call `gptel-send' with a prefix argument."
 ;; (straight-use-package '(empv :type git :host github :repo "isamert/empv.el"))
 
 (use-package eshell-toggle
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package expand-region
   :ensure t
@@ -751,9 +779,10 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (use-package ace-mc
-  :ensure t) ;; please review this
+  :ensure t
+  :defer 1)
 
-(require 'org)
+;; (require 'org)  ;; defer org loading - it's slow
 
 ;; (use-package org-modern
 ;;   :ensure t
@@ -856,7 +885,8 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (use-package rg
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (setq recentf-max-saved-items 300)
 (recentf-mode 1)
@@ -921,8 +951,10 @@ interactively call `gptel-send' with a prefix argument."
 ;; some copy-pasted stuff, sus
 
 
-(use-package kubernetes-tramp
-  :ensure t)
+;; kubernetes-tramp is obsolete - use built-in tramp-container instead
+;; (use-package kubernetes-tramp
+;;   :ensure t)
+(require 'tramp-container)
 ;; (use-packagekubernetes-helm
 ;;   :ensure t)
 ;; (use-package kubernetes
@@ -930,6 +962,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package undo-tree
   :ensure t
+  :defer 1
   :config
   (global-undo-tree-mode)
   (setq undo-tree-auto-save-history 1)
@@ -954,6 +987,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package whitespace-cleanup-mode
   :ensure t
+  :defer 1
   :config (global-whitespace-cleanup-mode)
   )
 
@@ -1051,6 +1085,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package company
   :ensure t
+  :defer 1
   :config
   (setq company-backends '((company-capf company-files)))
   (global-company-mode 1)
@@ -1079,6 +1114,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package company-jedi
   :ensure t
+  :defer 1
   ;; (defun my/python-mode-hook ()
   ;;   (add-to-list 'company-backends 'company-jedi))
 
@@ -1155,6 +1191,13 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package elpy
   :ensure t
+  :defer 1  ;; load after 2 seconds idle (async-ish startup)
+  :commands (elpy-multiedit-python-symbol-at-point
+             elpy-nav-forward-block
+             elpy-nav-backward-block
+             elpy-nav-move-line-or-region-up
+             elpy-nav-move-line-or-region-down
+             elpy-goto-definition)
   :config
   (elpy-enable)
   ;; (setq elpy-rpc-timeout 10)
@@ -1168,6 +1211,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package flycheck
   :ensure t
+  :defer 1
   :config
   (global-flycheck-mode nil)
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
@@ -1212,6 +1256,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package jedi
   :ensure t
+  :defer 1
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -1264,7 +1309,8 @@ interactively call `gptel-send' with a prefix argument."
   ;; )
 
 (use-package jupyter
-  :ensure t)
+  :ensure t
+  :defer t)
 ;;(use-package ob-ipython
 ;;  :ensure t)
 
@@ -1276,6 +1322,8 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package projectile
   :ensure t
+  :defer 1
+  :commands (projectile-find-file projectile-switch-project)
   :init
   :config
   (projectile-mode)
@@ -1289,13 +1337,16 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (use-package python-pytest
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package pyvenv
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package virtualenvwrapper
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (venv-initialize-interactive-shells)
 (defvar python-environment-directory)
@@ -1315,6 +1366,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package yasnippet-snippets
   :ensure t
+  :defer 1
   :config
   (setq yas-snippet-dirs '("~/.emacs.conf/snippets"))
   (yas-reload-all)
@@ -1368,21 +1420,23 @@ interactively call `gptel-send' with a prefix argument."
 ;;   (setq kubernetes-poll-frequency 3600
 ;;         kubernetes-redraw-frequency 3600))
 (use-package kubectx-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package haskell-mode
   :ensure t
-  )
+  :defer t)
 
 (use-package poly-ansible
   :ensure t
-  )
+  :defer 1)
 (use-package js2-mode
   :ensure t
   :mode (("\\.js$" . js2-mode))
   )
 (use-package tide
   :ensure t
+  :defer t
   :config
   (defun setup-tide-mode ()
     (interactive)
@@ -1408,7 +1462,8 @@ interactively call `gptel-send' with a prefix argument."
   (add-hook 'typescript-mode-hook #'setup-tide-mode)
   )
 (use-package xref-js2
-  :ensure t)
+  :ensure t
+  :defer 1)
 (use-package typescript-mode
   :mode (("\\.ts$" . typescript-mode))
   :ensure t
@@ -1423,6 +1478,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package json-mode
   :ensure t
+  :defer t  ;; load when opening .json files
   :config
   (setq json-reformat:indent-width 2)
   (setq js-indent-level 2))
@@ -1634,7 +1690,8 @@ j -- next
   )
 
 (use-package ivy-hydra
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 
 (load "~/.emacs.conf/gptel-custom.el" t)

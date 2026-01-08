@@ -1,4 +1,4 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; elisp.el --- Custom functions and utilities -*- lexical-binding: t -*-
 
 (defun beginning-of-line-or-indentation ()
   (interactive)

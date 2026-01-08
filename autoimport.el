@@ -1,4 +1,4 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; autoimport.el --- Python auto-import utility -*- lexical-binding: t -*-
 
 (defvar my-symbol-map
   '(
@@ -62,24 +62,6 @@ setup_django('ontology_service', force=True, load_env=True)")
     ("Provision" . "from pythia_service.ontology.models import Provision")
     )
   )
-
-(defun autoimport ()
-  "Auto-import a symbol at point by finding the suitable place to insert the import statement in a Python buffer.
-If no existing 'import' or 'from' statement is found, insert at the top of the file."
-  (interactive)
-  (let* ((sym (thing-at-point 'symbol))
-         (import-stmt (cdr (assoc sym my-symbol-map))))
-    (when import-stmt
-      (save-excursion
-        (goto-char (point-max)) ; Start from the end of the buffer
-        ;; Search backward for the import or from patterns. If not found, go to the buffer's start.
-        (unless (re-search-backward "^\\(import \\|from \\)" nil t)
-          (goto-char (point-min)))
-        ;; If found, move to the next line; if not found, we're already at the top.
-        (when (looking-at "^\\(import \\|from \\)")
-          (forward-line 1))
-        ;; Insert the import statement. 
-	(insert import-stmt "\n")))))
 
 (defun autoimport ()
   "Auto-import a symbol at point by first looking up in my-symbol-map.

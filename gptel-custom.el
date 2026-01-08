@@ -1,4 +1,4 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; gptel-custom.el --- LLM integration configuration -*- lexical-binding: t -*-
 
 (defvar *long-prompt* "Hello! My name is Tomek and you are my most faithful assistant. Pleased to meet you!
 
