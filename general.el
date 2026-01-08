@@ -51,9 +51,8 @@
 (eval-when-compile
   (require 'use-package))
 
-;; Enable use-package statistics for profiling startup
-;; Run M-x use-package-report after startup to see timing
-(setq use-package-compute-statistics t)
+;; Uncomment to profile startup: M-x use-package-report after startup
+;; (setq use-package-compute-statistics t)
 
 ;; Don't check MELPA on every startup - huge time saver
 (setq quelpa-update-melpa-p nil)

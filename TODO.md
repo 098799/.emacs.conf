@@ -21,30 +21,18 @@
   - Created `check.sh` - run `./check.sh` to check all files
   - Run `./check.sh --verbose` to see warnings
 
-- [ ] **Clean up hardcoded paths**
-  - `/home/tgrining/.virtualenvs/legartis/...` appears in multiple places
-  - Make configurable via `defcustom` or environment variables
-  - Locations:
-    - `general.el`: autoflake path, blacken-executable (commented)
-    - `elisp.el`: cdsitepackages function, autoflake function
-
 ## Low Priority (Cleanup)
 
-- [ ] **Remove dead/commented code**
-  - ~500+ lines of commented helm config
-  - Old copilot config
-  - Commented theme configs
-  - Old forge/gitlab config
-  - Makes the config harder to read/maintain
+- [x] **Fix deprecated patterns** _(done)_
+  - Replaced `defvar` + `setq-local` with proper `let` bindings
+  - Fixed: `my-backward-word`, `my-forward-word`, `find-string-delimiter`, `count-initial-spaces`, `how-many-lines-with-same-indent`
 
-- [ ] **Fix deprecated patterns**
-  - Using `defvar` inside functions (e.g., `elisp.el` lines 283, 310, 1043, 1085, 1093)
-  - Should use `defvar` at top level or use `let` for local variables
-
-- [ ] **Add basic ERT tests for critical functions**
-  - Test `my-forward-word`, `my-backward-word` boundary behavior
-  - Test `autoimport` lookup and insertion
-  - Test text manipulation functions (mark-inside-or-not, etc.)
+- [x] **Add basic ERT tests for critical functions** _(done)_
+  - Created `test-elisp.el` with 12 tests
+  - Tests for `my-forward-word`, `my-backward-word` boundary behavior
+  - Tests for `is-beginning-of-word`, `is-end-of-word`
+  - Tests for `autoimport` lookup and insertion
+  - Run: `emacs -batch -l ert -l elisp.el -l autoimport.el -l test-elisp.el -f ert-run-tests-batch-and-exit`
 
 ## Future Considerations
 

@@ -268,57 +268,43 @@
   "Go backward by word unless doing so would put you in another line.
   Then, move to the beginning of the line."
   (interactive "P")
-  (let ((wrong-flag 0))
-    (let ((line-before-move (line-number-at-pos)))
-      (save-excursion
-        (backward-word)
-        (when (/= line-before-move (line-number-at-pos))
-          (setq-local wrong-flag 1)
-          )
-        )
-      (if (= wrong-flag 1)
-          (progn
-            (let ((column-before-move (current-column)))
-              (defvar column-after-back-to-indentation)
-              (setq-local column-after-back-to-indentation
-                          (save-excursion
-                            (back-to-indentation)
-                            (current-column)
-                            )
-                          )
-              (if (= column-before-move column-after-back-to-indentation)
-                  (backward-word)
-                (back-to-indentation))))
-        (backward-word))))
-  )
+  (let ((line-before-move (line-number-at-pos))
+        (would-cross-line nil))
+    (save-excursion
+      (backward-word)
+      (when (/= line-before-move (line-number-at-pos))
+        (setq would-cross-line t)))
+    (if would-cross-line
+        (let ((column-before-move (current-column))
+              (column-after-back-to-indentation
+               (save-excursion
+                 (back-to-indentation)
+                 (current-column))))
+          (if (= column-before-move column-after-back-to-indentation)
+              (backward-word)
+            (back-to-indentation)))
+      (backward-word))))
 
 (defun my-forward-word (arg)
   "Go forward by word unless doing so would put you in another line.
   Then, move to the end of the line."
   (interactive "P")
-  (let ((wrong-flag 0))
-    (let ((line-before-move (line-number-at-pos)))
-      (save-excursion
-        (forward-word)
-        (when (/= line-before-move (line-number-at-pos))
-          (setq-local wrong-flag 1)
-          )
-        )
-      (if (= wrong-flag 1)
-          (progn
-            (let ((column-before-move (current-column)))
-              (defvar column-after-end-of-line)
-              (setq-local column-after-end-of-line
-                          (save-excursion
-                            (move-end-of-line arg)
-                            (current-column)
-                            )
-                          )
-              (if (= column-before-move column-after-end-of-line)
-                  (forward-word)
-                (move-end-of-line arg))))
-        (forward-word))))
-  )
+  (let ((line-before-move (line-number-at-pos))
+        (would-cross-line nil))
+    (save-excursion
+      (forward-word)
+      (when (/= line-before-move (line-number-at-pos))
+        (setq would-cross-line t)))
+    (if would-cross-line
+        (let ((column-before-move (current-column))
+              (column-after-end-of-line
+               (save-excursion
+                 (move-end-of-line arg)
+                 (current-column))))
+          (if (= column-before-move column-after-end-of-line)
+              (forward-word)
+            (move-end-of-line arg)))
+      (forward-word))))
 
 (defun is-beginning-of-word ()
   (save-excursion
@@ -1040,20 +1026,15 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun find-string-delimiter ()
   (interactive)
-  (defvar return-column)
-  (let ((found-flag nil))
+  (let ((found-flag nil)
+        (result nil))
     (while (not found-flag)
       (if (= ?' (char-after))
           (progn
             (setq found-flag t)
-            (setq return-column (char-after))
-            )
-        (right-char)
-        )
-      )
-    )
-  return-column
-  )
+            (setq result (char-after)))
+        (right-char)))
+    result))
 
 (defun split-string-if-over-120 (arg)
   (interactive "P")
@@ -1080,30 +1061,21 @@ Repeated invocations toggle between the two most recently open buffers."
   (save-excursion
     (move-beginning-of-line 1)
     (while (eq ?\s (char-after))
-      (right-char)
-      )
-    (defvar col)
-    (setq col (current-column))
-    col
-    )
-  )
+      (right-char))
+    (current-column)))
 
 (defun how-many-lines-with-same-indent ()
   (interactive)
-  (defvar how-many)
   (save-excursion
     (let ((current-line (what-line))
-          (current-indent (count-initial-spaces)))
+          (current-indent (count-initial-spaces))
+          (result nil))
       (forward-line)
       (while (eq current-indent (count-initial-spaces))
-        (forward-line)
-        )
-      (setq how-many (- (what-line) (+ current-line 1)))
-      )
-    (message "%s" how-many)
-    how-many
-    )
-  )
+        (forward-line))
+      (setq result (- (what-line) (+ current-line 1)))
+      (message "%s" result)
+      result)))
 
 (defun sort-indentation (arg)
   "I use it for sorting dictionaries in python tests."
