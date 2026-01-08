@@ -1215,6 +1215,10 @@ interactively call `gptel-send' with a prefix argument."
   :commands (eglot-rename eglot-code-actions eglot-format-buffer)
   :hook ((python-mode . eglot-ensure)
          (python-ts-mode . eglot-ensure))
+  :init
+  ;; Use completing-read (ivy) for xref results instead of popup buffer
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
   :config
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
