@@ -1228,6 +1228,8 @@ interactively call `gptel-send' with a prefix argument."
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
   ;; Disable document highlight (causes font shift with flycheck underlines)
   (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
+  ;; Enable inlay hints (show inferred types inline)
+  (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
   ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
   (add-to-list 'eglot-server-programs
                '((python-mode python-ts-mode) . ("ty" "server"))))
@@ -2067,6 +2069,7 @@ j -- next
 
    ("f;" xref-find-definitions)
    ("f:" xref-find-references-at-point)
+   ("fc" eglot-code-actions)
    )
 
   (ryo-modal-major-mode-keys
