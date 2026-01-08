@@ -2042,7 +2042,7 @@ j -- next
 
    ("\\" er/mark-python-statement)  ;; use me
 
-   ("M-o" move-text-up)
+   ;; M-o is ace-window globally, use M-up/M-down for moving lines
    ("M-i" move-text-down)
 
    ("at" python-add-return)
