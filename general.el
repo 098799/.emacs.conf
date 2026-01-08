@@ -1,7 +1,9 @@
 ;;; general.el --- Main Emacs configuration -*- lexical-binding: t -*-
 
-;; Suppress lexical-binding warnings for auto-generated files
-(setq warning-suppress-types '((files)))
+;; Suppress annoying warnings for auto-generated files
+(setq warning-suppress-types '((files) (defvaralias)))
+(setq warning-suppress-log-types '((files) (defvaralias)))
+(setq warning-minimum-level :error)
 
 ;; Ensure native-comp variables are defined
 (when (and (fboundp 'native-comp-available-p)
