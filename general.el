@@ -277,32 +277,6 @@
 (use-package rainbow-mode
   :ensure t)
 
-;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
-
-;; (use-package awesome-tab
-;;   :load-path "~/.emacs.d/awesome-tab/"
-;;   :config
-;;   (setq awesome-tab-background-color "#fbf8ef")
-;;   (awesome-tab-mode t)
-;;   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-;;   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
-;;   )
-
-(use-package centaur-tabs
-  :ensure t
-  :defer 1
-  :config
-  (centaur-tabs-mode 0)
-  (setq centaur-tabs-set-modified-marker t)
-  (setq centaur-tabs-height 28)
-  (setq centaur-tabs-set-bar 'under)
-  (setq centaur-tabs-cycle-scope 'tabs)
-  (setq centaur-tabs-style "bar")
-  (setq centaur-tabs-label-fixed-length 14)
-  (global-set-key (kbd "<C-tab>") 'centaur-tabs-forward)
-  (global-set-key (kbd "<C-iso-lefttab>") 'centaur-tabs-backward)
-  ;; (centaur-tabs-mode 1)
-  )
 
 (global-visual-line-mode 1)
 
@@ -610,71 +584,10 @@ interactively call `gptel-send' with a prefix argument."
 (use-package goto-last-change
   :ensure t)
 
-;; (use-package helm-config
-;;   :config
-;;   (helm-mode 1)
-;;   :ensure t
-;;   ;; :straight nil
-;;   )
 
 (use-package harpoon
   :ensure t)
 
-;; (use-package helm
-;;   :ensure t
-;;   :init
-;;   (setq
-;;    helm-M-x-fuzzy-match t
-;;    helm-mode-fuzzy-match t
-;;    helm-buffers-fuzzy-matching t
-;;    helm-recentf-fuzzy-match t
-;;    helm-locate-fuzzy-match t
-;;    helm-semantic-fuzzy-match t
-;;    helm-imenu-fuzzy-match t
-;;    helm-completion-in-region-fuzzy-match t
-;;   )
-;;   :config
-;;   (helm-mode 1)
-;;   (helm-adaptive-mode t)
-;;   :bind
-;;   ("C-c p s g" . helm-do-ag-project-root)
-;;   ("M-x" . helm-M-x)
-;;   ("C-x C-f" . helm-find-files)
-;;   ("C-x b" . helm-mini)
-;;   ("C-x C-r" . helm-recentf)
-;;   )
-
-;; (use-package helm-ag
-;;   :ensure t)
-
-;; (use-package helm-rg
-;;   :ensure t)
-
-;; (use-package helm-flycheck
-;;   :ensure t)
-
-;; (use-package helm-projectile
-;;   :ensure t
-;;   :config
-
-;; (use-package helm-smex
-;;   :ensure t)
-
-;;   (defun helm-projectile-ag-with-defaults (&optional additional-options)
-;;     "Wrapper for `helm-projectile-ag' with default options."
-;;     (interactive (if current-prefix-arg
-;;                      (list (helm-read-string "Additional options: " "" 'helm-ag--extra-options-history))
-;;                    nil))
-;;     (let ((default-options "--ignore *.mar --ignore *.sql --ignore *.pt --ignore *openapi_sdk* --ignore *.txt --ignore *.json"))
-;;       (helm-projectile-ag (concat default-options " " additional-options))))
-
-;;   (defun helm-projectile-ag-thing-at-point ()
-;;     (interactive)
-;;     (mark-inside-or-not nil)
-;;     (helm-projectile-ag-with-defaults)
-;;     (deactivate-mark)
-;;     )
-;;   )
 
 (use-package hideshow
   :ensure t)
@@ -699,7 +612,7 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
-  ;; (setq ivy-use-virtual-buffers t)
+  (setq ivy-use-virtual-buffers t)  ;; show recent files in buffer switch
   (setq enable-recursive-minibuffers t)
   ;; (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
@@ -723,6 +636,12 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (setq ivy-rich-parse-remote-buffer nil)
   )
+
+(use-package marginalia
+  :ensure t
+  :defer 1
+  :config
+  (marginalia-mode 1))
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -891,6 +810,7 @@ interactively call `gptel-send' with a prefix argument."
   :defer 1)
 
 (setq recentf-max-saved-items 300)
+(setq recentf-auto-cleanup 'mode)  ;; clean up stale entries on mode change
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
@@ -903,8 +823,8 @@ interactively call `gptel-send' with a prefix argument."
 (setq savehist-file "~/.emacs.d/savehist"
       history-length 300)
 
-(setq-default save-place t)
 (setq save-place-file "~/.emacs.d/saveplace")
+(save-place-mode 1)
 
 (use-package string-inflection
   :ensure t
@@ -919,23 +839,16 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (require 'tramp)
-(setq tramp-verbose 6)
+(setq tramp-verbose 1)  ;; errors only (use 2+ for debugging)
 (setq tramp-default-method "ssh")
-
-
 
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
 
-
-
-;; some copy-pasted stuff, sus
 (setq remote-file-name-inhibit-locks t
       tramp-use-scp-direct-remote-copying t
-      remote-file-name-inhibit-auto-save-visited t)
-
-(setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
-      tramp-verbose 2)
+      remote-file-name-inhibit-auto-save-visited t
+      tramp-copy-size-limit (* 1024 1024))
 
 (connection-local-set-profile-variables
  'remote-direct-async-process
@@ -967,8 +880,10 @@ interactively call `gptel-send' with a prefix argument."
   :commands (undo-tree-undo undo-tree-redo undo-tree-visualize)
   :config
   (global-undo-tree-mode)
-  (setq undo-tree-auto-save-history 1)
-  (setq undo-tree-visualizer-timestamps 1)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-visualizer-timestamps t)
+  ;; Store undo history in a central location instead of next to files
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree-history/")))
   )
 
 ;; (use-package vimish-fold
@@ -981,7 +896,16 @@ interactively call `gptel-send' with a prefix argument."
   (setq which-key-separator " ")
   (setq which-key-prefix-prefix "+")
   :config
-  (which-key-mode 1))
+  (which-key-mode 1)
+  ;; Descriptions for ryo-modal prefix keys
+  (which-key-add-key-based-replacements
+    "a" "change/substitute"
+    "a g" "gptel"
+    "a f" "substitute w/kill-ring"
+    "s" "copy/search"
+    "d" "cut/project"
+    "f" "file/find/mark"
+    "f 5" "rectangle"))
 
 ;; (use-package wgrep
 ;;   :ensure t
@@ -1084,6 +1008,8 @@ interactively call `gptel-send' with a prefix argument."
   "Compatibility variable for yasnippet with Emacs 31+")
 (defvar flycheck-mode--suppress-set-explicitly nil
   "Compatibility variable for flycheck with Emacs 31+")
+(defvar auto-highlight-symbol-mode--suppress-set-explicitly nil
+  "Compatibility variable for auto-highlight-symbol with Emacs 31+")
 
 (use-package company
   :ensure t
@@ -1092,7 +1018,7 @@ interactively call `gptel-send' with a prefix argument."
   (setq company-backends '((company-capf company-files)))
   (global-company-mode 1)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay 0.01)
+  (setq company-idle-delay 0.15)  ;; fast but not CPU-intensive
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
@@ -1228,6 +1154,8 @@ interactively call `gptel-send' with a prefix argument."
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
   ;; Disable document highlight (causes font shift with flycheck underlines)
   (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
+  ;; Disable eglot diagnostics - use flycheck with custom python-ty checker instead
+  (add-to-list 'eglot-ignored-server-capabilities :textDocument/publishDiagnostics)
   ;; Inlay hints (show inferred types inline) - disabled, ty may not fully support yet
   ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
   ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
@@ -1367,12 +1295,12 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
-  ;; (setq projectile-completion-system 'helm)
   (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
   (setq projectile-indexing-method 'hybrid)
-  ;; (setq projectile-globally-ignored-file-suffixes '("j2" "json" "llamafile" "pdf" "docx"))
   (setq projectile-globally-ignored-file-suffixes '("j2" "llamafile" "pdf" "docx"))
+  ;; Periodically refresh cache when idle (5 min)
+  (run-with-idle-timer 300 t (lambda () (projectile-invalidate-cache nil)))
   )
 
 (use-package python-pytest
@@ -1562,63 +1490,6 @@ interactively call `gptel-send' with a prefix argument."
   (setq yaml-indent-offset 2)
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EXPERIMENTAL TABBAR TWEAKS ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; https://gist.github.com/3demax/1264635#file-tabbar-tweak-el
-;; Tabbar settings
-;; (set-face-attribute
-;;  'tabbar-default nil
-;;  :background "#002b36"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-unselected nil
-;;  :background "#002b36"
-;;  :foreground "#aaaaaa"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-selected nil
-;;  :background "#aaaaaa"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-highlight nil
-;;  :background "#aaaaaa"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-button nil
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-separator nil
-;;  :underline nil
-;;  :background "#002b36em"
-;;  :height 0.6)
-;; ;; adding spaces
-;; (defun tabbar-buffer-tab-label (tab)
-;;   "Return a label for TAB.
-;; That is, a string used to represent it on the tab bar."
-;;   (let ((label  (if tabbar--buffer-show-groups
-;;                     (format "[%s]  " (tabbar-tab-tabset tab))
-;;                   (format "%s  " (tabbar-tab-value tab)))))
-;;     ;; Unless the tab bar auto scrolls to keep the selected tab
-;;     ;; visible, shorten the tab label to keep as many tabs as possible
-;;     ;; in the visible area of the tab bar.
-;;     (if tabbar-auto-scroll-flag
-;;         label
-;;       (tabbar-shorten
-;;        label (max 1 (/ (window-width)
-;;                        (length (tabbar-view
-;;                                 (tabbar-current-tabset)))))))))
-;; (tabbar-mode 1)
-
-
 ;;;;;;;;;;;;;;;;;
 ;;; SHORTCUTS ;;;
 ;;;;;;;;;;;;;;;;;
@@ -1627,20 +1498,6 @@ interactively call `gptel-send' with a prefix argument."
  ("M-o" . ace-window)
  )
 
-;; (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
-;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
-;; (define-key helm-read-file-map (kbd "C-u") 'helm-find-files-up-one-level)
-;; (define-key helm-read-file-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-read-file-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-read-file-map (kbd "C-p") 'helm-execute-persistent-action)
-;; (define-key helm-read-file-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key ivy-minibuffer-map (kbd "C-i") 'ivy-next-line)
 (define-key ivy-minibuffer-map (kbd "C-o") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
@@ -1755,6 +1612,17 @@ j -- next
   (setq ryo-modal-cursor-type 'box)
   (ryo-modal-mode)
 
+  ;; Visual mode indicator - change modeline color
+  (defvar ryo-modal-mode-line-background nil "Original mode-line background.")
+  (add-hook 'ryo-modal-mode-hook
+            (lambda ()
+              (if ryo-modal-mode
+                  (progn
+                    (unless ryo-modal-mode-line-background
+                      (setq ryo-modal-mode-line-background (face-background 'mode-line)))
+                    (set-face-background 'mode-line "#504945"))  ;; gruvbox darker
+                (set-face-background 'mode-line (or ryo-modal-mode-line-background "#3c3836")))))
+
   (ryo-modal-keys
    ("q" my-change-word-or-region)
    ("w" my-backward-change-word-or-region)
@@ -1806,11 +1674,9 @@ j -- next
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
    ;; ("n" reposition-window)
-   ("m" ryo-modal-repeat)  ;; use it as well!
-   ;; ("," awesome-tab-backward-tab)
-   ;; ("," awesome-tab-backward-tab)
-   ("." centaur-tabs-forward)
-   ("," centaur-tabs-backward)
+   ("m" ryo-modal-repeat)
+   ("." next-buffer)
+   ("," previous-buffer)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" move-end-of-line)
@@ -1971,7 +1837,7 @@ j -- next
          ("h" counsel-projectile)
          ("j" counsel-projectile-switch-to-buffer)
          ("k" projectile-kill-buffers)
-         ("l" awesome-tab-switch-group)
+         ("l" projectile-ibuffer)
          (";" xref-pop-marker-stack)
          ("'" string-inflection-camelcase)
 

@@ -862,24 +862,6 @@
   (interactive)
   (change-outer-with-fixed-arg* "{" t nil))
 
-(defun awesome-tab-switch-group (&optional groupname)
-  "Fork of awesome-tab's function to use ivy, not ido"
-  (interactive)
-  (let* ((tab-buffer-list (mapcar
-                           #'(lambda (b)
-                               (with-current-buffer b
-                                 (list (current-buffer)
-                                       (buffer-name)
-                                       (funcall awesome-tab-buffer-groups-function) )))
-                           (funcall awesome-tab-buffer-list-function)))
-         (groups (awesome-tab-get-groups))
-         (group-name (or groupname (completing-read "Groups: " groups))) )
-    (catch 'done
-      (mapc
-       #'(lambda (group)
-           (when (equal group-name (car (car (cdr (cdr group)))))
-             (throw 'done (switch-to-buffer (car (cdr group))))))
-       tab-buffer-list) )))
 
 (defun delete-file-and-buffer ()
   "Kill the current buffer and deletes the file it is visiting.
@@ -1313,13 +1295,11 @@ Repeated invocations toggle between the two most recently open buffers."
   "Get the name of the python class in which you're currently."
   (interactive)
   (save-excursion
-    (re-search-backward "class [A-Z][a-z]+")
+    (unless (re-search-backward "class [A-Z][a-z]+" nil t)
+      (user-error "Not inside a Python class"))
     (right-char 6)
     (superword-mode t)
-    (setq class-name (thing-at-point 'word))
-    )
-  class-name
-  )
+    (thing-at-point 'word)))
 
 (defun test-class-string ()
   (interactive)
@@ -1362,13 +1342,11 @@ Repeated invocations toggle between the two most recently open buffers."
   "Get the name of the unittest test function you're currently in."
   (interactive)
   (save-excursion
-    (re-search-backward "def test_[a-z]+")
+    (unless (re-search-backward "def test_[a-z]+" nil t)
+      (user-error "Not inside a test function"))
     (right-char 4)
     (superword-mode t)
-    (setq test-name (thing-at-point 'word))
-    )
-  test-name
-  )
+    (thing-at-point 'word)))
 
 (defun get-test-string ()
   "Create an appropriate testing string for legartis unittest"
@@ -1398,9 +1376,18 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun cdsitepackages ()
+  "Open site-packages directory of the active virtualenv in dired."
   (interactive)
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.13/site-packages")
-  )
+  (let* ((venv-dir (or (bound-and-true-p pyvenv-virtual-env)
+                       (getenv "VIRTUAL_ENV")))
+         (lib-dir (when venv-dir (expand-file-name "lib" venv-dir)))
+         (python-dir (when lib-dir
+                       (car (directory-files lib-dir t "python[0-9.]+"))))
+         (site-packages (when python-dir
+                          (expand-file-name "site-packages" python-dir))))
+    (if (and site-packages (file-directory-p site-packages))
+        (dired site-packages)
+      (user-error "No virtualenv active or site-packages not found"))))
 
 (defun get-buffer-path ()
   (nth 1 (split-string (concat (pwd) (buffer-name))))
@@ -1450,16 +1437,16 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun magit-diff-develop ()
+  "Show diff against develop/main/master branch."
   (interactive)
-  (magit-diff-range "develop")
-  (delete-other-windows)
-  (ryo-modal-off)
-  )
+  (let ((branch (cond ((magit-rev-verify "develop") "develop")
+                      ((magit-rev-verify "main") "main")
+                      ((magit-rev-verify "master") "master")
+                      (t (user-error "No develop/main/master branch found")))))
+    (magit-diff-range branch)
+    (delete-other-windows)
+    (ryo-modal-off)))
 
-(defun helm-rg-not-at-point ()
-  (interactive)
-  (helm-rg nil)
-  )
 
 (defun copy-buffer-useful-path ()
   "Copy all path since git root"
@@ -1525,11 +1512,22 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun autoflake ()
+  "Remove unused imports using autoflake from the active virtualenv."
   (interactive)
-  (when (eq major-mode 'python-mode)
-    (let ((buffer-name (file-truename buffer-file-name)))
-      (shell-command (concat "/home/tgrining/.virtualenvs/legartis/bin/autoflake " buffer-name " --remove-all-unused-imports " "--in-place"))))
-  )
+  (when (and (memq major-mode '(python-mode python-ts-mode))
+             buffer-file-name)
+    (let* ((venv-dir (or (bound-and-true-p pyvenv-virtual-env)
+                         (getenv "VIRTUAL_ENV")))
+           (autoflake-bin (if venv-dir
+                              (expand-file-name "bin/autoflake" venv-dir)
+                            "autoflake"))
+           (buffer-path (file-truename buffer-file-name)))
+      (if (executable-find autoflake-bin)
+          (progn
+            (shell-command (concat autoflake-bin " " buffer-path
+                                   " --remove-all-unused-imports --in-place"))
+            (revert-buffer-no-confirm))
+        (user-error "autoflake not found in %s" (or venv-dir "PATH"))))))
 
 ;; (defun ivy-call-second-action ()
 ;;   (interactive)
@@ -1538,11 +1536,6 @@ Repeated invocations toggle between the two most recently open buffers."
 
 ;; (define-key ivy-minibuffer-map (kbd "<C-return>") 'ivy-call-second-action)
 
-(defun centaur-restart ()
-  (interactive)
-  (centaur-tabs-mode 0)
-  (centaur-tabs-mode 1)
-  )
 
 (defun xref-find-references-at-point ()
   (interactive)
