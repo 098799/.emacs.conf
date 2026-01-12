@@ -608,6 +608,26 @@
 
 (require 'cl-lib)
 
+;; TODO: Refactor inner/outer functions
+;; Pattern: For each bracket type (paren, square, curly), we have 5 operations
+;; (mark, cut, change, substitute, copy) for both inner and outer = 30 functions.
+;; These could be generated with a macro like:
+;;
+;; (defmacro define-bracket-operations (name char)
+;;   `(progn
+;;      (defun ,(intern (format "mark-inner-with-%s" name)) ()
+;;        (interactive)
+;;        (mark-inner-with-fixed-arg* ,char nil))
+;;      (defun ,(intern (format "cut-inner-with-%s" name)) (arg)
+;;        (interactive "P")
+;;        (change-inner-with-fixed-arg* ,char arg nil))
+;;      ;; ... etc for change, substitute, copy, and outer variants
+;;      ))
+;;
+;; Then use: (define-bracket-operations "paren" "(")
+;;           (define-bracket-operations "square" "[")
+;;           (define-bracket-operations "curly" "{")
+
 (defun change-inner-with-fixed-arg* (argument yank? search-forward-char)
   "My fork for change-inner. Will be used for parens."
   (let* ((expand-region-fast-keys-enabled nil)

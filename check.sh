@@ -50,12 +50,28 @@ done
 
 echo ""
 if [ $ERRORS -gt 0 ]; then
-    echo "=== FAILED: $ERRORS file(s) with errors ==="
+    echo "=== BYTE-COMPILE FAILED: $ERRORS file(s) with errors ==="
     exit 1
 else
-    echo "=== PASSED: All files OK ==="
-    echo ""
-    echo "To test fully, load your config in Emacs:"
-    echo "  emacs -q -l general.el"
+    echo "=== Byte-compile: PASSED ==="
+fi
+
+echo ""
+echo "=== Running ERT tests ==="
+echo ""
+
+TEST_OUTPUT=$(emacs -batch -l ert -l elisp.el -l autoimport.el -l test-elisp.el -f ert-run-tests-batch-and-exit 2>&1)
+TEST_EXIT=$?
+
+# Show test summary
+echo "$TEST_OUTPUT" | grep -E "^(Ran |   passed|   FAILED|Running )"
+
+echo ""
+if [ $TEST_EXIT -eq 0 ]; then
+    echo "=== ALL CHECKS PASSED ==="
     exit 0
+else
+    echo "=== TESTS FAILED ==="
+    echo "$TEST_OUTPUT" | grep -A5 "FAILED"
+    exit 1
 fi

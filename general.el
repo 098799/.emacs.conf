@@ -133,9 +133,13 @@
   :ensure t
   :defer 1)
 
+;; nerd-icons must load before doom-modeline
+(use-package nerd-icons
+  :ensure t)
+
 (use-package doom-modeline
   :ensure t
-  :defer 1
+  :after nerd-icons
   :init
   (doom-modeline-mode 1)
   :config
@@ -146,13 +150,7 @@
   (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 5)
-  (setq doom-modeline-project-detection 'auto)
-  )
-
-
-(use-package nerd-icons
-  :ensure t
-  :defer 1)
+  (setq doom-modeline-project-detection 'auto))
 
 
 (setq echo-keystrokes 0.5)
@@ -498,6 +496,13 @@ interactively call `gptel-send' with a prefix argument."
 (use-package dired-ranger
   :ensure t)
 
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :bind (:map dired-mode-map
+              ("<tab>" . dired-subtree-toggle)
+              ("<backtab>" . dired-subtree-cycle)))
+
 (use-package dired-toggle
   :after dired
   :ensure t
@@ -637,11 +642,50 @@ interactively call `gptel-send' with a prefix argument."
   (setq ivy-rich-parse-remote-buffer nil)
   )
 
+;; Consult - modern search commands (works with ivy too, not just vertico)
+(use-package consult
+  :ensure t
+  :defer t
+  :commands (consult-line consult-ripgrep consult-imenu consult-buffer consult-outline)
+  :config
+  (setq consult-preview-key "M-.")  ;; preview with M-.
+  (setq consult-async-min-input 1)  ;; start searching after 1 char
+  ;; Use projectile for project root detection (not project.el)
+  (setq consult-project-function
+        (lambda (_)
+          (when (fboundp 'projectile-project-root)
+            (projectile-project-root))))
+  )
+
 (use-package marginalia
   :ensure t
   :defer 1
   :config
   (marginalia-mode 1))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; context menu on current target
+   ("C-;" . embark-dwim)        ;; "do what I mean" on target
+   ("C-h B" . embark-bindings)) ;; show bindings for current context
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t
+  :after embark
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package wgrep
+  :ensure t
+  :config
+  (setq wgrep-auto-save-buffer t)  ;; auto-save after applying changes
+  (setq wgrep-change-readonly-file t))
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -905,7 +949,24 @@ interactively call `gptel-send' with a prefix argument."
     "s" "copy/search"
     "d" "cut/project"
     "f" "file/find/mark"
-    "f 5" "rectangle"))
+    "f 5" "rectangle"
+    "\\" "toggle modes"
+    "`" "pop mark"
+    "@" "call macro"))
+
+(use-package helpful
+  :ensure t
+  :bind
+  (("C-h f" . helpful-callable)
+   ("C-h v" . helpful-variable)
+   ("C-h k" . helpful-key)
+   ("C-h x" . helpful-command)
+   ("C-h F" . helpful-function))
+  :config
+  (add-to-list 'ivy-ignore-buffers "\\*helpful"))
+
+;; Show current function in modeline
+(which-function-mode 1)
 
 ;; (use-package wgrep
 ;;   :ensure t
@@ -1008,8 +1069,12 @@ interactively call `gptel-send' with a prefix argument."
   "Compatibility variable for yasnippet with Emacs 31+")
 (defvar flycheck-mode--suppress-set-explicitly nil
   "Compatibility variable for flycheck with Emacs 31+")
+(defvar flycheck-mode--set-explicitly nil
+  "Compatibility variable for flycheck with Emacs 31+")
 (defvar auto-highlight-symbol-mode--suppress-set-explicitly nil
   "Compatibility variable for auto-highlight-symbol with Emacs 31+")
+(defvar git-gutter-mode--set-explicitly nil
+  "Compatibility variable for git-gutter with Emacs 31+")
 
 (use-package company
   :ensure t
@@ -1156,6 +1221,8 @@ interactively call `gptel-send' with a prefix argument."
   (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
   ;; Disable eglot diagnostics - use flycheck with custom python-ty checker instead
   (add-to-list 'eglot-ignored-server-capabilities :textDocument/publishDiagnostics)
+  ;; Disable signature help to prevent duplicate eldoc (hover already shows this)
+  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider)
   ;; Inlay hints (show inferred types inline) - disabled, ty may not fully support yet
   ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
   ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
@@ -1246,6 +1313,16 @@ interactively call `gptel-send' with a prefix argument."
   (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
   (setq projectile-switch-project-action 'magit-status)
   )
+
+(use-package git-gutter-fringe
+  :ensure t
+  :defer 1
+  :config
+  (global-git-gutter-mode 1)
+  ;; Subtle indicators
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;; (use-package forge
 ;;   :ensure t
@@ -1457,6 +1534,16 @@ interactively call `gptel-send' with a prefix argument."
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+
+(use-package package-lint
+  :ensure t
+  :defer t
+  :commands package-lint-current-buffer)
+
+(use-package package-lint-flymake
+  :ensure t
+  :defer t
+  :hook (emacs-lisp-mode . package-lint-flymake-setup))
 (use-package web-mode
   :ensure t
   :mode ("\\.html\\'" "\\.jinja\\'")
@@ -1583,6 +1670,69 @@ j -- next
     (";" flymake-goto-next-error)
     ("q" nil "cancel" :color blue)
     )
+
+  (defhydra hydra-flycheck (:color pink :hint nil)
+    "
+^Navigation^      ^Actions^          ^Display^
+^^^^^^^^-------------------------------------------------
+_i_: next         _c_: clear         _l_: list errors
+_o_: previous     _v_: verify setup  _e_: explain error
+_f_: first        _x_: disable       _h_: help
+^ ^               _s_: select checker
+"
+    ("i" flycheck-next-error)
+    ("o" flycheck-previous-error)
+    ("f" flycheck-first-error)
+    ("l" flycheck-list-errors :color blue)
+    ("e" flycheck-explain-error-at-point)
+    ("h" flycheck-display-error-at-point)
+    ("c" flycheck-clear)
+    ("v" flycheck-verify-setup :color blue)
+    ("x" flycheck-disable-checker :color blue)
+    ("s" flycheck-select-checker :color blue)
+    ("q" nil "quit" :color blue))
+
+  (defhydra hydra-toggle (:color blue :hint nil)
+    "
+^Display^         ^Editing^          ^Modes^
+^^^^^^^^-------------------------------------------------
+_l_: line nums    _w_: whitespace    _f_: flycheck
+_t_: truncate     _h_: hl-line       _a_: auto-fill
+_v_: visual-line  _c_: column        _r_: read-only
+_g_: git-gutter   _i_: indent-guide
+"
+    ("l" display-line-numbers-mode)
+    ("t" toggle-truncate-lines)
+    ("v" visual-line-mode)
+    ("g" git-gutter-mode)
+    ("w" whitespace-mode)
+    ("h" hl-line-mode)
+    ("c" column-number-mode)
+    ("i" highlight-indent-guides-mode)
+    ("f" flycheck-mode)
+    ("a" auto-fill-mode)
+    ("r" read-only-mode)
+    ("q" nil "quit"))
+
+  (defhydra hydra-eglot (:color blue :hint nil)
+    "
+^Actions^         ^Navigate^         ^Info^
+^^^^^^^^-------------------------------------------------
+_a_: code action  _;_: definition    _h_: hover doc
+_r_: rename       _:_: references    _d_: declaration
+_f_: format       _i_: implementation
+_o_: organize imports
+"
+    ("a" eglot-code-actions)
+    ("r" eglot-rename)
+    ("f" eglot-format-buffer)
+    ("o" eglot-code-action-organize-imports)
+    (";" xref-find-definitions)
+    (":" xref-find-references)
+    ("i" eglot-find-implementation)
+    ("d" eglot-find-declaration)
+    ("h" eldoc-box-help-at-point)
+    ("q" nil "quit"))
   )
 
 (use-package ivy-hydra
@@ -1682,9 +1832,11 @@ j -- next
    ("/" move-end-of-line)
    ("?" dumb-jump-back)
 
-   ;; ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
+   ("`" pop-global-mark)  ;; jump back through mark ring
+   ("@" kmacro-call-macro)  ;; call last keyboard macro (vim-like)
+   ("\\" hydra-toggle/body)  ;; toggle various modes
    ("~" tild-up-or-replace)
-   ("!" flycheck-list-errors)
+   ("!" hydra-flycheck/body)
    ("#" highlight-symbol-query-replace)
    ("$" query-replace-thing-at-point-or-selection)
    ("%" query-replace)
@@ -1728,8 +1880,8 @@ j -- next
          ("S" copy-buffer-useful-path)
          ("d" copy-full-path-to-kill-ring)
          ("D" copy-folder-path-to-kill-ring)
-         ("G" gptel-menu) 
-         ;; ("h" ) unused!!!
+         ("G" gptel-menu)
+         ("h" query-replace-regexp)  ;; regex find & replace
          ("j" recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
@@ -1795,14 +1947,16 @@ j -- next
 
          ("s" swiper-region)
          ("d" hydra-smerge/body)
-         ;; ("g" ) unused!!!
-         ;; ("h" ) unused!!!
+         ("g" counsel-git-grep)  ;; search in git repo
+         ("h" consult-line)  ;; search in buffer (fast, async)
+         (";" counsel-rg)  ;; search project with ripgrep
+         ("n" consult-imenu)  ;; jump to function/class
+         ("b" consult-buffer)  ;; buffer switch with preview
          ("j" counsel-projectile)
          ;; ("j" projectile-switch-to-buffer)
          ("k" kill-all-buffers-but-scratch)
          ;; ("l" venv-workon)
          ("l" pyvenv-workon)
-         ;; ("'" ) unused!!!
          ("'" string-inflection-upcase)
 
          ("m" copy-outside-or-not)
@@ -1935,7 +2089,7 @@ j -- next
 
    ("f;" xref-find-definitions)
    ("f:" xref-find-references-at-point)
-   ("fc" eglot-code-actions)
+   ("fc" hydra-eglot/body)
    )
 
   (ryo-modal-major-mode-keys
