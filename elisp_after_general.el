@@ -1,3 +1,5 @@
+;;; elisp_after_general.el --- Post-config functions -*- lexical-binding: t -*-
+
 (defun ci--flash-region (start end)
   "This time with a different face"
   (let ((overlay (make-overlay start end)))

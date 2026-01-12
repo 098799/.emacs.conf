@@ -1,4 +1,4 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; gptel-custom.el --- LLM integration configuration -*- lexical-binding: t -*-
 
 (defvar *long-prompt* "Hello! My name is Tomek and you are my most faithful assistant. Pleased to meet you!
 
@@ -162,7 +162,8 @@ Remember, your goal is to create prose that is not only engaging but also though
 (defvar *o3-model* "o3")
 (defvar *o4-mini-model* "o4-mini")
 ;; (defvar *opus-model* "claude-opus-4-20250514")
-(defvar *opus-model* "claude-opus-4-1-20250805")
+;; (defvar *opus-model* "claude-opus-4-1-20250805")
+(defvar *opus-model* "claude-opus-4-5-20251101")
 ;; (defvar *sonnet-model* "claude-3-5-sonnet-20240620")
 ;; (defvar *sonnet-model* "claude-3-5-sonnet-20241022")
 ;; (defvar *sonnet-model* "claude-3-7-sonnet-20250219")

@@ -1,4 +1,4 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; elisp.el --- Custom functions and utilities -*- lexical-binding: t -*-
 
 (defun beginning-of-line-or-indentation ()
   (interactive)
@@ -268,57 +268,43 @@
   "Go backward by word unless doing so would put you in another line.
   Then, move to the beginning of the line."
   (interactive "P")
-  (let ((wrong-flag 0))
-    (let ((line-before-move (line-number-at-pos)))
-      (save-excursion
-        (backward-word)
-        (when (/= line-before-move (line-number-at-pos))
-          (setq-local wrong-flag 1)
-          )
-        )
-      (if (= wrong-flag 1)
-          (progn
-            (let ((column-before-move (current-column)))
-              (defvar column-after-back-to-indentation)
-              (setq-local column-after-back-to-indentation
-                          (save-excursion
-                            (back-to-indentation)
-                            (current-column)
-                            )
-                          )
-              (if (= column-before-move column-after-back-to-indentation)
-                  (backward-word)
-                (back-to-indentation))))
-        (backward-word))))
-  )
+  (let ((line-before-move (line-number-at-pos))
+        (would-cross-line nil))
+    (save-excursion
+      (backward-word)
+      (when (/= line-before-move (line-number-at-pos))
+        (setq would-cross-line t)))
+    (if would-cross-line
+        (let ((column-before-move (current-column))
+              (column-after-back-to-indentation
+               (save-excursion
+                 (back-to-indentation)
+                 (current-column))))
+          (if (= column-before-move column-after-back-to-indentation)
+              (backward-word)
+            (back-to-indentation)))
+      (backward-word))))
 
 (defun my-forward-word (arg)
   "Go forward by word unless doing so would put you in another line.
   Then, move to the end of the line."
   (interactive "P")
-  (let ((wrong-flag 0))
-    (let ((line-before-move (line-number-at-pos)))
-      (save-excursion
-        (forward-word)
-        (when (/= line-before-move (line-number-at-pos))
-          (setq-local wrong-flag 1)
-          )
-        )
-      (if (= wrong-flag 1)
-          (progn
-            (let ((column-before-move (current-column)))
-              (defvar column-after-end-of-line)
-              (setq-local column-after-end-of-line
-                          (save-excursion
-                            (move-end-of-line arg)
-                            (current-column)
-                            )
-                          )
-              (if (= column-before-move column-after-end-of-line)
-                  (forward-word)
-                (move-end-of-line arg))))
-        (forward-word))))
-  )
+  (let ((line-before-move (line-number-at-pos))
+        (would-cross-line nil))
+    (save-excursion
+      (forward-word)
+      (when (/= line-before-move (line-number-at-pos))
+        (setq would-cross-line t)))
+    (if would-cross-line
+        (let ((column-before-move (current-column))
+              (column-after-end-of-line
+               (save-excursion
+                 (move-end-of-line arg)
+                 (current-column))))
+          (if (= column-before-move column-after-end-of-line)
+              (forward-word)
+            (move-end-of-line arg)))
+      (forward-word))))
 
 (defun is-beginning-of-word ()
   (save-excursion
@@ -622,6 +608,26 @@
 
 (require 'cl-lib)
 
+;; TODO: Refactor inner/outer functions
+;; Pattern: For each bracket type (paren, square, curly), we have 5 operations
+;; (mark, cut, change, substitute, copy) for both inner and outer = 30 functions.
+;; These could be generated with a macro like:
+;;
+;; (defmacro define-bracket-operations (name char)
+;;   `(progn
+;;      (defun ,(intern (format "mark-inner-with-%s" name)) ()
+;;        (interactive)
+;;        (mark-inner-with-fixed-arg* ,char nil))
+;;      (defun ,(intern (format "cut-inner-with-%s" name)) (arg)
+;;        (interactive "P")
+;;        (change-inner-with-fixed-arg* ,char arg nil))
+;;      ;; ... etc for change, substitute, copy, and outer variants
+;;      ))
+;;
+;; Then use: (define-bracket-operations "paren" "(")
+;;           (define-bracket-operations "square" "[")
+;;           (define-bracket-operations "curly" "{")
+
 (defun change-inner-with-fixed-arg* (argument yank? search-forward-char)
   "My fork for change-inner. Will be used for parens."
   (let* ((expand-region-fast-keys-enabled nil)
@@ -876,24 +882,6 @@
   (interactive)
   (change-outer-with-fixed-arg* "{" t nil))
 
-(defun awesome-tab-switch-group (&optional groupname)
-  "Fork of awesome-tab's function to use ivy, not ido"
-  (interactive)
-  (let* ((tab-buffer-list (mapcar
-                           #'(lambda (b)
-                               (with-current-buffer b
-                                 (list (current-buffer)
-                                       (buffer-name)
-                                       (funcall awesome-tab-buffer-groups-function) )))
-                           (funcall awesome-tab-buffer-list-function)))
-         (groups (awesome-tab-get-groups))
-         (group-name (or groupname (completing-read "Groups: " groups))) )
-    (catch 'done
-      (mapc
-       #'(lambda (group)
-           (when (equal group-name (car (car (cdr (cdr group)))))
-             (throw 'done (switch-to-buffer (car (cdr group))))))
-       tab-buffer-list) )))
 
 (defun delete-file-and-buffer ()
   "Kill the current buffer and deletes the file it is visiting.
@@ -1040,20 +1028,15 @@ Repeated invocations toggle between the two most recently open buffers."
 
 (defun find-string-delimiter ()
   (interactive)
-  (defvar return-column)
-  (let ((found-flag nil))
+  (let ((found-flag nil)
+        (result nil))
     (while (not found-flag)
       (if (= ?' (char-after))
           (progn
             (setq found-flag t)
-            (setq return-column (char-after))
-            )
-        (right-char)
-        )
-      )
-    )
-  return-column
-  )
+            (setq result (char-after)))
+        (right-char)))
+    result))
 
 (defun split-string-if-over-120 (arg)
   (interactive "P")
@@ -1080,30 +1063,21 @@ Repeated invocations toggle between the two most recently open buffers."
   (save-excursion
     (move-beginning-of-line 1)
     (while (eq ?\s (char-after))
-      (right-char)
-      )
-    (defvar col)
-    (setq col (current-column))
-    col
-    )
-  )
+      (right-char))
+    (current-column)))
 
 (defun how-many-lines-with-same-indent ()
   (interactive)
-  (defvar how-many)
   (save-excursion
     (let ((current-line (what-line))
-          (current-indent (count-initial-spaces)))
+          (current-indent (count-initial-spaces))
+          (result nil))
       (forward-line)
       (while (eq current-indent (count-initial-spaces))
-        (forward-line)
-        )
-      (setq how-many (- (what-line) (+ current-line 1)))
-      )
-    (message "%s" how-many)
-    how-many
-    )
-  )
+        (forward-line))
+      (setq result (- (what-line) (+ current-line 1)))
+      (message "%s" result)
+      result)))
 
 (defun sort-indentation (arg)
   "I use it for sorting dictionaries in python tests."
@@ -1140,41 +1114,39 @@ Repeated invocations toggle between the two most recently open buffers."
   (switch-to-buffer "*scratch*")
   (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
 
-(defun magic-elpy-nav-forward-class ()
+(defun magic-python-nav-forward-class ()
   (interactive)
   (let ((current (current-column)))
     (move-beginning-of-line 1)
-    (elpy-nav-forward-block)
-    (move-to-column current t)
-    )
-  )
+    (python-nav-forward-block)
+    (move-to-column current t)))
 
-(defun magic-elpy-nav-backward-class ()
+(defun magic-python-nav-backward-class ()
   (interactive)
   (let ((current (current-column)))
     (move-beginning-of-line 1)
-    (elpy-nav-backward-block)
-    (move-to-column current t)
-    )
-  )
+    (python-nav-backward-block)
+    (move-to-column current t)))
 
-(defun magic-elpy-nav-forward-method ()
+(defun magic-python-nav-forward-method ()
   (interactive)
   (let ((current (current-column)))
     (move-to-column 4 t)
-    (elpy-nav-forward-block)
-    (move-to-column current t)
-    )
-  )
+    (python-nav-forward-block)
+    (move-to-column current t)))
 
-(defun magic-elpy-nav-backward-method ()
+(defun magic-python-nav-backward-method ()
   (interactive)
   (let ((current (current-column)))
     (move-to-column 4 t)
-    (elpy-nav-backward-block)
-    (move-to-column current t)
-    )
-  )
+    (python-nav-backward-block)
+    (move-to-column current t)))
+
+;; Aliases for backwards compatibility
+(defalias 'magic-elpy-nav-forward-class 'magic-python-nav-forward-class)
+(defalias 'magic-elpy-nav-backward-class 'magic-python-nav-backward-class)
+(defalias 'magic-elpy-nav-forward-method 'magic-python-nav-forward-method)
+(defalias 'magic-elpy-nav-backward-method 'magic-python-nav-backward-method)
 
 ;; Font?
 ;; FiraCode Nerd Font
@@ -1343,13 +1315,11 @@ Repeated invocations toggle between the two most recently open buffers."
   "Get the name of the python class in which you're currently."
   (interactive)
   (save-excursion
-    (re-search-backward "class [A-Z][a-z]+")
+    (unless (re-search-backward "class [A-Z][a-z]+" nil t)
+      (user-error "Not inside a Python class"))
     (right-char 6)
     (superword-mode t)
-    (setq class-name (thing-at-point 'word))
-    )
-  class-name
-  )
+    (thing-at-point 'word)))
 
 (defun test-class-string ()
   (interactive)
@@ -1369,7 +1339,7 @@ Repeated invocations toggle between the two most recently open buffers."
         )
   (let ((service-list (split-string (my-put-file-name-on-clipboard) "_service/")))
     (let (
-          (path (s-replace ".py" "" (s-replace "/" "." (car (last service-list)))))
+          (path (string-replace ".py" "" (string-replace "/" "." (car (last service-list)))))
           (service (nth 1 service-list))
           (class-name (get-class-name))
           )
@@ -1392,13 +1362,11 @@ Repeated invocations toggle between the two most recently open buffers."
   "Get the name of the unittest test function you're currently in."
   (interactive)
   (save-excursion
-    (re-search-backward "def test_[a-z]+")
+    (unless (re-search-backward "def test_[a-z]+" nil t)
+      (user-error "Not inside a test function"))
     (right-char 4)
     (superword-mode t)
-    (setq test-name (thing-at-point 'word))
-    )
-  test-name
-  )
+    (thing-at-point 'word)))
 
 (defun get-test-string ()
   "Create an appropriate testing string for legartis unittest"
@@ -1428,9 +1396,18 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun cdsitepackages ()
+  "Open site-packages directory of the active virtualenv in dired."
   (interactive)
-  (dired "/home/tgrining/.virtualenvs/legartis/lib/python3.13/site-packages")
-  )
+  (let* ((venv-dir (or (bound-and-true-p pyvenv-virtual-env)
+                       (getenv "VIRTUAL_ENV")))
+         (lib-dir (when venv-dir (expand-file-name "lib" venv-dir)))
+         (python-dir (when lib-dir
+                       (car (directory-files lib-dir t "python[0-9.]+"))))
+         (site-packages (when python-dir
+                          (expand-file-name "site-packages" python-dir))))
+    (if (and site-packages (file-directory-p site-packages))
+        (dired site-packages)
+      (user-error "No virtualenv active or site-packages not found"))))
 
 (defun get-buffer-path ()
   (nth 1 (split-string (concat (pwd) (buffer-name))))
@@ -1480,16 +1457,16 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun magit-diff-develop ()
+  "Show diff against develop/main/master branch."
   (interactive)
-  (magit-diff-range "develop")
-  (delete-other-windows)
-  (ryo-modal-off)
-  )
+  (let ((branch (cond ((magit-rev-verify "develop") "develop")
+                      ((magit-rev-verify "main") "main")
+                      ((magit-rev-verify "master") "master")
+                      (t (user-error "No develop/main/master branch found")))))
+    (magit-diff-range branch)
+    (delete-other-windows)
+    (ryo-modal-off)))
 
-(defun helm-rg-not-at-point ()
-  (interactive)
-  (helm-rg nil)
-  )
 
 (defun copy-buffer-useful-path ()
   "Copy all path since git root"
@@ -1555,11 +1532,22 @@ Repeated invocations toggle between the two most recently open buffers."
   )
 
 (defun autoflake ()
+  "Remove unused imports using autoflake from the active virtualenv."
   (interactive)
-  (when (eq major-mode 'python-mode)
-    (let ((buffer-name (file-truename buffer-file-name)))
-      (shell-command (concat "/home/tgrining/.virtualenvs/legartis/bin/autoflake " buffer-name " --remove-all-unused-imports " "--in-place"))))
-  )
+  (when (and (memq major-mode '(python-mode python-ts-mode))
+             buffer-file-name)
+    (let* ((venv-dir (or (bound-and-true-p pyvenv-virtual-env)
+                         (getenv "VIRTUAL_ENV")))
+           (autoflake-bin (if venv-dir
+                              (expand-file-name "bin/autoflake" venv-dir)
+                            "autoflake"))
+           (buffer-path (file-truename buffer-file-name)))
+      (if (executable-find autoflake-bin)
+          (progn
+            (shell-command (concat autoflake-bin " " buffer-path
+                                   " --remove-all-unused-imports --in-place"))
+            (revert-buffer-no-confirm))
+        (user-error "autoflake not found in %s" (or venv-dir "PATH"))))))
 
 ;; (defun ivy-call-second-action ()
 ;;   (interactive)
@@ -1568,11 +1556,6 @@ Repeated invocations toggle between the two most recently open buffers."
 
 ;; (define-key ivy-minibuffer-map (kbd "<C-return>") 'ivy-call-second-action)
 
-(defun centaur-restart ()
-  (interactive)
-  (centaur-tabs-mode 0)
-  (centaur-tabs-mode 1)
-  )
 
 (defun xref-find-references-at-point ()
   (interactive)

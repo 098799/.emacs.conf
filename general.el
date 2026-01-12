@@ -1,4 +1,9 @@
-;;; ...  -*- lexical-binding: nil -*-
+;;; general.el --- Main Emacs configuration -*- lexical-binding: t -*-
+
+;; Suppress annoying warnings for auto-generated files
+(setq warning-suppress-types '((files) (defvaralias)))
+(setq warning-suppress-log-types '((files) (defvaralias)))
+(setq warning-minimum-level :error)
 
 ;; Ensure native-comp variables are defined
 (when (and (fboundp 'native-comp-available-p)
@@ -46,16 +51,24 @@
 (eval-when-compile
   (require 'use-package))
 
+;; Uncomment to profile startup: M-x use-package-report after startup
+;; (setq use-package-compute-statistics t)
+
+;; Don't check MELPA on every startup - huge time saver
+(setq quelpa-update-melpa-p nil)
+
 (unless (package-installed-p 'quelpa)
   (with-temp-buffer
     (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
     (eval-buffer)
     (quelpa-self-upgrade)))
 
-(quelpa
- '(quelpa-use-package
-   :fetcher git
-   :url "https://github.com/quelpa/quelpa-use-package.git"))
+;; Only fetch quelpa-use-package if not installed
+(unless (package-installed-p 'quelpa-use-package)
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git")))
 
 (require 'quelpa-use-package)
 
@@ -93,10 +106,12 @@
 (setq recenter-positions '(middle top bottom))
 
 (use-package all-the-icons
+  :defer 1
   :ensure t)
 
 (use-package beacon
   :ensure t
+  :defer 1
   :config
   (beacon-mode 1)
   ;; (set-face-background hl-line "gray13")
@@ -104,19 +119,27 @@
   )
 
 (use-package command-log-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package default-text-scale
   :ensure t
+  :defer 1
   :config
   (default-text-scale-mode t)
   )
 
 (use-package emojify
-  :hook (after-init . global-emojify-mode))
+  :ensure t
+  :defer 1)
+
+;; nerd-icons must load before doom-modeline
+(use-package nerd-icons
+  :ensure t)
 
 (use-package doom-modeline
   :ensure t
+  :after nerd-icons
   :init
   (doom-modeline-mode 1)
   :config
@@ -127,12 +150,7 @@
   (setq doom-modeline-major-mode-color-icon t)
   (setq doom-modeline-env-enable-python t)
   (setq doom-modeline-vcs-max-length 5)
-  (setq doom-modeline-project-detection 'auto)
-  )
-
-
-(use-package nerd-icons
-  :ensure t)
+  (setq doom-modeline-project-detection 'auto))
 
 
 (setq echo-keystrokes 0.5)
@@ -178,14 +196,16 @@
 
 (use-package highlight-symbol
   :ensure t
+  :defer 1
   :config
   (use-package auto-highlight-symbol
     :ensure t
     :config
     (global-auto-highlight-symbol-mode t)
     (setq ahs-idle-interval 0.0)
-    )
-  )
+    ;; Use only background color, no bold (prevents font jiggle with flycheck)
+    (set-face-attribute 'ahs-face nil :weight 'normal :underline nil)
+    (set-face-attribute 'ahs-plugin-whole-buffer-face nil :weight 'normal :underline nil)))
 
 (use-package highlight-indentation
   :ensure t
@@ -193,6 +213,7 @@
 
 (use-package nav-flash
   :ensure t
+  :defer 1
   :config
   (nav-flash-show))
 
@@ -242,6 +263,7 @@
 
 (use-package rainbow-delimiters
   :ensure t
+  :defer 1
   :config
   (add-hook 'python-mode-hook #'rainbow-delimiters-mode)
   (add-hook 'python-ts-mode-hook #'rainbow-delimiters-mode)
@@ -253,31 +275,6 @@
 (use-package rainbow-mode
   :ensure t)
 
-;; (add-to-list 'load-path "~/.emacs.d/tabbar/")
-
-;; (use-package awesome-tab
-;;   :load-path "~/.emacs.d/awesome-tab/"
-;;   :config
-;;   (setq awesome-tab-background-color "#fbf8ef")
-;;   (awesome-tab-mode t)
-;;   (global-set-key (kbd "<C-tab>") 'awesome-tab-forward-tab)
-;;   (global-set-key (kbd "<C-iso-lefttab>") 'awesome-tab-backward-tab)
-;;   )
-
-(use-package centaur-tabs
-  :ensure t
-  :config
-  (centaur-tabs-mode 0)
-  (setq centaur-tabs-set-modified-marker t)
-  (setq centaur-tabs-height 28)
-  (setq centaur-tabs-set-bar 'under)
-  (setq centaur-tabs-cycle-scope 'tabs)
-  (setq centaur-tabs-style "bar")
-  (setq centaur-tabs-label-fixed-length 14)
-  (global-set-key (kbd "<C-tab>") 'centaur-tabs-forward)
-  (global-set-key (kbd "<C-iso-lefttab>") 'centaur-tabs-backward)
-  ;; (centaur-tabs-mode 1)
-  )
 
 (global-visual-line-mode 1)
 
@@ -300,14 +297,16 @@
 ;;   )
 
 (use-package avy
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package avy-zap
   :ensure t
   )
 
 (use-package better-defaults
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (setq bookmark-save-flag t)
 
@@ -366,6 +365,28 @@
 (use-package counsel-tramp
   :after counsel
   :ensure t
+  :defer 1
+  :config
+  ;; Add kubectl pods to counsel-tramp candidates
+  (defun counsel-tramp-kubernetes-pods ()
+    "Get list of kubernetes pods for current context/namespace."
+    (when (executable-find "kubectl")
+      (let ((pods '()))
+        (cl-loop for line in (cdr (ignore-errors
+                                     (apply #'process-lines "kubectl"
+                                            (list "get" "pods" "--no-headers" "-o" "custom-columns=:metadata.name"))))
+                 do (when (and line (not (string-empty-p line)))
+                      (push (concat "/kubectl:" line ":/") pods)))
+        pods)))
+
+  ;; Advice to add kubectl pods to the candidate list
+  (defun counsel-tramp--add-kubectl-pods (orig-fun &optional file)
+    "Advice to add kubectl pods to counsel-tramp candidates."
+    (let ((base-candidates (funcall orig-fun file))
+          (kubectl-candidates (counsel-tramp-kubernetes-pods)))
+      (append base-candidates kubectl-candidates)))
+
+  (advice-add 'counsel-tramp--candidates :around #'counsel-tramp--add-kubectl-pods)
   )
 
 ;; (require 'quelpa-use-package)
@@ -475,6 +496,13 @@ interactively call `gptel-send' with a prefix argument."
 (use-package dired-ranger
   :ensure t)
 
+(use-package dired-subtree
+  :ensure t
+  :after dired
+  :bind (:map dired-mode-map
+              ("<tab>" . dired-subtree-toggle)
+              ("<backtab>" . dired-subtree-cycle)))
+
 (use-package dired-toggle
   :after dired
   :ensure t
@@ -494,6 +522,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package dumb-jump
   :ensure t
+  :defer 1
   :config
   (setq dumb-jump-force-searcher 'rg)
   (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)  ;; is this making things work?
@@ -508,7 +537,8 @@ interactively call `gptel-send' with a prefix argument."
 ;; (straight-use-package '(empv :type git :host github :repo "isamert/empv.el"))
 
 (use-package eshell-toggle
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package expand-region
   :ensure t
@@ -559,71 +589,10 @@ interactively call `gptel-send' with a prefix argument."
 (use-package goto-last-change
   :ensure t)
 
-;; (use-package helm-config
-;;   :config
-;;   (helm-mode 1)
-;;   :ensure t
-;;   ;; :straight nil
-;;   )
 
 (use-package harpoon
   :ensure t)
 
-;; (use-package helm
-;;   :ensure t
-;;   :init
-;;   (setq
-;;    helm-M-x-fuzzy-match t
-;;    helm-mode-fuzzy-match t
-;;    helm-buffers-fuzzy-matching t
-;;    helm-recentf-fuzzy-match t
-;;    helm-locate-fuzzy-match t
-;;    helm-semantic-fuzzy-match t
-;;    helm-imenu-fuzzy-match t
-;;    helm-completion-in-region-fuzzy-match t
-;;   )
-;;   :config
-;;   (helm-mode 1)
-;;   (helm-adaptive-mode t)
-;;   :bind
-;;   ("C-c p s g" . helm-do-ag-project-root)
-;;   ("M-x" . helm-M-x)
-;;   ("C-x C-f" . helm-find-files)
-;;   ("C-x b" . helm-mini)
-;;   ("C-x C-r" . helm-recentf)
-;;   )
-
-;; (use-package helm-ag
-;;   :ensure t)
-
-;; (use-package helm-rg
-;;   :ensure t)
-
-;; (use-package helm-flycheck
-;;   :ensure t)
-
-;; (use-package helm-projectile
-;;   :ensure t
-;;   :config
-
-;; (use-package helm-smex
-;;   :ensure t)
-
-;;   (defun helm-projectile-ag-with-defaults (&optional additional-options)
-;;     "Wrapper for `helm-projectile-ag' with default options."
-;;     (interactive (if current-prefix-arg
-;;                      (list (helm-read-string "Additional options: " "" 'helm-ag--extra-options-history))
-;;                    nil))
-;;     (let ((default-options "--ignore *.mar --ignore *.sql --ignore *.pt --ignore *openapi_sdk* --ignore *.txt --ignore *.json"))
-;;       (helm-projectile-ag (concat default-options " " additional-options))))
-
-;;   (defun helm-projectile-ag-thing-at-point ()
-;;     (interactive)
-;;     (mark-inside-or-not nil)
-;;     (helm-projectile-ag-with-defaults)
-;;     (deactivate-mark)
-;;     )
-;;   )
 
 (use-package hideshow
   :ensure t)
@@ -648,9 +617,9 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (setq ivy-height 20)
   (setq ivy-fixed-height-minibuffer t)
-  ;; (setq ivy-use-virtual-buffers t)
+  (setq ivy-use-virtual-buffers t)  ;; show recent files in buffer switch
   (setq enable-recursive-minibuffers t)
-  (ivy-prescient-mode)
+  ;; (ivy-prescient-mode)
   (add-to-list 'ivy-ignore-buffers "\\*Help")
   ;; (add-to-list 'ivy-ignore-buffers "\\*helm")
   )
@@ -672,6 +641,51 @@ interactively call `gptel-send' with a prefix argument."
   :config
   (setq ivy-rich-parse-remote-buffer nil)
   )
+
+;; Consult - modern search commands (works with ivy too, not just vertico)
+(use-package consult
+  :ensure t
+  :defer t
+  :commands (consult-line consult-ripgrep consult-imenu consult-buffer consult-outline)
+  :config
+  (setq consult-preview-key "M-.")  ;; preview with M-.
+  (setq consult-async-min-input 1)  ;; start searching after 1 char
+  ;; Use projectile for project root detection (not project.el)
+  (setq consult-project-function
+        (lambda (_)
+          (when (fboundp 'projectile-project-root)
+            (projectile-project-root))))
+  )
+
+(use-package marginalia
+  :ensure t
+  :defer 1
+  :config
+  (marginalia-mode 1))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; context menu on current target
+   ("C-;" . embark-dwim)        ;; "do what I mean" on target
+   ("C-h B" . embark-bindings)) ;; show bindings for current context
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t
+  :after embark
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package wgrep
+  :ensure t
+  :config
+  (setq wgrep-auto-save-buffer t)  ;; auto-save after applying changes
+  (setq wgrep-change-readonly-file t))
 
 ;; (use-package ivy-rich
 ;;   :ensure t
@@ -730,9 +744,10 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (use-package ace-mc
-  :ensure t) ;; please review this
+  :ensure t
+  :defer 1)
 
-(require 'org)
+;; (require 'org)  ;; defer org loading - it's slow
 
 ;; (use-package org-modern
 ;;   :ensure t
@@ -835,9 +850,11 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (use-package rg
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (setq recentf-max-saved-items 300)
+(setq recentf-auto-cleanup 'mode)  ;; clean up stale entries on mode change
 (recentf-mode 1)
 (setq-default recent-save-file "~/.emacs.d/recentf")
 
@@ -850,8 +867,8 @@ interactively call `gptel-send' with a prefix argument."
 (setq savehist-file "~/.emacs.d/savehist"
       history-length 300)
 
-(setq-default save-place t)
 (setq save-place-file "~/.emacs.d/saveplace")
+(save-place-mode 1)
 
 (use-package string-inflection
   :ensure t
@@ -866,23 +883,16 @@ interactively call `gptel-send' with a prefix argument."
   )
 
 (require 'tramp)
-(setq tramp-verbose 6)
+(setq tramp-verbose 1)  ;; errors only (use 2+ for debugging)
 (setq tramp-default-method "ssh")
-
-
 
 (eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
 (setq tramp-chunksize 500)
 
-
-
-;; some copy-pasted stuff, sus
 (setq remote-file-name-inhibit-locks t
       tramp-use-scp-direct-remote-copying t
-      remote-file-name-inhibit-auto-save-visited t)
-
-(setq tramp-copy-size-limit (* 1024 1024) ;; 1MB
-      tramp-verbose 2)
+      remote-file-name-inhibit-auto-save-visited t
+      tramp-copy-size-limit (* 1024 1024))
 
 (connection-local-set-profile-variables
  'remote-direct-async-process
@@ -900,32 +910,63 @@ interactively call `gptel-send' with a prefix argument."
 ;; some copy-pasted stuff, sus
 
 
+;; kubernetes-tramp is obsolete - use built-in tramp-container instead
 ;; (use-package kubernetes-tramp
 ;;   :ensure t)
-;; (use-package kubernetes-helm
+(require 'tramp-container)
+;; (use-packagekubernetes-helm
 ;;   :ensure t)
 ;; (use-package kubernetes
 ;;   :ensure t)
 
 (use-package undo-tree
   :ensure t
+  :commands (undo-tree-undo undo-tree-redo undo-tree-visualize)
   :config
   (global-undo-tree-mode)
-  (setq undo-tree-auto-save-history 1)
-  (setq undo-tree-visualizer-timestamps 1)
+  (setq undo-tree-auto-save-history t)
+  (setq undo-tree-visualizer-timestamps t)
+  ;; Store undo history in a central location instead of next to files
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/undo-tree-history/")))
   )
 
 ;; (use-package vimish-fold
 ;;   :ensure t)
 
-;; (use-package which-key
-;;   :ensure t
-;;   :init
-;;   (setq which-key-separator " ")
-;;   (setq which-key-prefix-prefix "+")
-;;   :config
-;;   (which-key-mode 1)
-;;   )
+(use-package which-key
+  :ensure t
+  :defer 1
+  :init
+  (setq which-key-separator " ")
+  (setq which-key-prefix-prefix "+")
+  :config
+  (which-key-mode 1)
+  ;; Descriptions for ryo-modal prefix keys
+  (which-key-add-key-based-replacements
+    "a" "change/substitute"
+    "a g" "gptel"
+    "a f" "substitute w/kill-ring"
+    "s" "copy/search"
+    "d" "cut/project"
+    "f" "file/find/mark"
+    "f 5" "rectangle"
+    "\\" "toggle modes"
+    "`" "pop mark"
+    "@" "call macro"))
+
+(use-package helpful
+  :ensure t
+  :bind
+  (("C-h f" . helpful-callable)
+   ("C-h v" . helpful-variable)
+   ("C-h k" . helpful-key)
+   ("C-h x" . helpful-command)
+   ("C-h F" . helpful-function))
+  :config
+  (add-to-list 'ivy-ignore-buffers "\\*helpful"))
+
+;; Show current function in modeline
+(which-function-mode 1)
 
 ;; (use-package wgrep
 ;;   :ensure t
@@ -933,6 +974,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package whitespace-cleanup-mode
   :ensure t
+  :defer 1
   :config (global-whitespace-cleanup-mode)
   )
 
@@ -943,17 +985,81 @@ interactively call `gptel-send' with a prefix argument."
 ;;; PYTHON AND PROJECTS ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(use-package blacken
-  :ensure t
-  :config
-  (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
-  (setq blacken-skip-string-normalization nil)
-  (setq blacken-line-length 160)
-  (setq blacken-allow-py36 nil)
-  (add-hook 'python-mode-hook 'blacken-mode)
-  (add-hook 'python-ts-mode-hook 'blacken-mode)
-  ;; (remove-hook 'python-mode-hook 'blacken-mode)
-  )
+;; (use-package blacken
+;;   :ensure t
+;;   :config
+;;   (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
+;;   (setq blacken-skip-string-normalization nil)
+;;   (setq blacken-line-length 160)
+;;   (setq blacken-allow-py36 nil)
+;;   (add-hook 'python-mode-hook 'blacken-mode)
+;;   (add-hook 'python-ts-mode-hook 'blacken-mode)
+;;   )
+
+;; Ruff formatting (replaces black)
+(defun ruff-format-buffer ()
+  "Format current buffer with ruff."
+  (interactive)
+  (let* ((point (point))
+         (file-name (or (buffer-file-name) "buffer.py"))
+         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
+         (temp-buffer (generate-new-buffer " *ruff-format-temp*"))
+         (exit-code)
+         (interactive-p (called-interactively-p 'any)))
+    (unwind-protect
+        (progn
+          (with-current-buffer temp-buffer
+            (insert buffer-text))
+          (setq exit-code
+                (with-current-buffer temp-buffer
+                  (call-process-region (point-min) (point-max) "ruff"
+                                       t t nil
+                                       "format" "--stdin-filename" file-name "-")))
+          (if (zerop exit-code)
+              (let ((formatted-text (with-current-buffer temp-buffer
+                                      (buffer-substring-no-properties (point-min) (point-max)))))
+                (if (string= buffer-text formatted-text)
+                    (when interactive-p (message "Buffer already formatted"))
+                  (erase-buffer)
+                  (insert formatted-text)
+                  (goto-char (min point (point-max)))
+                  (when interactive-p (message "Formatted with ruff"))))
+            (when interactive-p
+              (message "ruff format failed with exit code %d" exit-code))))
+      (kill-buffer temp-buffer))))
+
+(defun ruff-fix-buffer ()
+  "Fix current buffer with ruff (auto-fix linting issues)."
+  (interactive)
+  (let* ((point (point))
+         (file-name (or (buffer-file-name) "buffer.py"))
+         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
+         (temp-buffer (generate-new-buffer " *ruff-fix-temp*"))
+         (exit-code))
+    (unwind-protect
+        (progn
+          (with-current-buffer temp-buffer
+            (insert buffer-text))
+          (setq exit-code
+                (with-current-buffer temp-buffer
+                  (call-process-region (point-min) (point-max) "ruff"
+                                       t t nil
+                                       "check" "--fix" "--stdin-filename" file-name "-")))
+          (when (zerop exit-code)
+            (let ((fixed-text (with-current-buffer temp-buffer
+                                (buffer-substring-no-properties (point-min) (point-max)))))
+              (unless (string= buffer-text fixed-text)
+                (erase-buffer)
+                (insert fixed-text)
+                (goto-char (min point (point-max)))))))
+      (kill-buffer temp-buffer))))
+
+(add-hook 'python-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
+(add-hook 'python-ts-mode-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
 
 ;; Fix for Emacs 31 development version compatibility with minor modes
 ;; These variables are expected by minor modes but not defined in Emacs 31 dev
@@ -963,14 +1069,21 @@ interactively call `gptel-send' with a prefix argument."
   "Compatibility variable for yasnippet with Emacs 31+")
 (defvar flycheck-mode--suppress-set-explicitly nil
   "Compatibility variable for flycheck with Emacs 31+")
+(defvar flycheck-mode--set-explicitly nil
+  "Compatibility variable for flycheck with Emacs 31+")
+(defvar auto-highlight-symbol-mode--suppress-set-explicitly nil
+  "Compatibility variable for auto-highlight-symbol with Emacs 31+")
+(defvar git-gutter-mode--set-explicitly nil
+  "Compatibility variable for git-gutter with Emacs 31+")
 
 (use-package company
   :ensure t
+  :defer 1
   :config
   (setq company-backends '((company-capf company-files)))
   (global-company-mode 1)
   (setq company-dabbrev-downcase nil)
-  (setq company-idle-delay 0.01)
+  (setq company-idle-delay 0.15)  ;; fast but not CPU-intensive
   (setq company-show-numbers t)
   (setq company-tooltip-align-annotations 't)
   (setq company-tooltip-limit 10)
@@ -994,6 +1107,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package company-jedi
   :ensure t
+  :defer 1
   ;; (defun my/python-mode-hook ()
   ;;   (add-to-list 'company-backends 'company-jedi))
 
@@ -1068,24 +1182,90 @@ interactively call `gptel-send' with a prefix argument."
 ;;   :ensure t
 ;;   )
 
-(use-package elpy
-  :ensure t
+;; Elpy - commented out in favor of eglot
+;; (use-package elpy
+;;   :ensure t
+;;   :defer 1
+;;   :commands (elpy-multiedit-python-symbol-at-point
+;;              elpy-nav-forward-block
+;;              elpy-nav-backward-block
+;;              elpy-nav-move-line-or-region-up
+;;              elpy-nav-move-line-or-region-down
+;;              elpy-goto-definition)
+;;   :config
+;;   (elpy-enable)
+;;   (add-hook 'python-mode-hook 'hs-minor-mode)
+;;   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
+;;   (when (load "flycheck" t t)
+;;     (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
+
+;; Eglot - built-in LSP client (faster, simpler than elpy)
+(use-package eglot
+  :ensure nil  ;; built-in since Emacs 29
+  :defer t
+  :commands (eglot-rename eglot-code-actions eglot-format-buffer)
+  :hook ((python-mode . eglot-ensure)
+         (python-ts-mode . eglot-ensure))
+  :init
+  ;; Use completing-read (ivy) for xref results instead of popup buffer
+  (setq xref-show-definitions-function #'xref-show-definitions-completing-read)
+  (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
+  ;; Disable auto-import (often imports from wrong package)
+  (setq-default eglot-workspace-configuration
+                '(:ty (:completions (:autoImport :json-false))))
   :config
-  (elpy-enable)
-  ;; (setq elpy-rpc-timeout 10)
-  ;; (setq elpy-rpc-backend "jedi")
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
-  (when (load "flycheck" t t)
-    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
-    (add-hook 'elpy-mode-hook 'flycheck-mode))
-  )
+  ;; Disable document highlight (causes font shift with flycheck underlines)
+  (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
+  ;; Disable eglot diagnostics - use flycheck with custom python-ty checker instead
+  (add-to-list 'eglot-ignored-server-capabilities :textDocument/publishDiagnostics)
+  ;; Disable signature help to prevent duplicate eldoc (hover already shows this)
+  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider)
+  ;; Inlay hints (show inferred types inline) - disabled, ty may not fully support yet
+  ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
+  ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) . ("ty" "server"))))
+
+;; Show eldoc in tooltip popup near cursor (hover docs)
+(use-package eldoc-box
+  :ensure t
+  :defer t
+  :hook ((eglot-managed-mode . eldoc-box-hover-mode)))
+
+;; Move lines up/down (replacement for elpy-nav-move-line-or-region)
+(use-package move-text
+  :ensure t
+  :defer t
+  :commands (move-text-up move-text-down))
 
 (use-package flycheck
   :ensure t
+  :defer 1
   :config
   (global-flycheck-mode nil)
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
+
+  ;; Use ruff instead of flake8/pylint
+  (setq flycheck-python-ruff-executable "ruff")
+  (setq-default flycheck-disabled-checkers '(python-flake8 python-pylint python-pycompile python-mypy))
+
+  ;; Custom ty type checker (using concise output format)
+  ;; Format: file:line:col: error[rule-id] message
+  (flycheck-define-checker python-ty
+    "A Python type checker using ty."
+    :command ("ty" "check" "--output-format" "concise" source-original)
+    :error-patterns
+    ((error line-start (file-name) ":" line ":" column ": error[" (id (one-or-more (not "]"))) "] " (message) line-end)
+     (warning line-start (file-name) ":" line ":" column ": warning[" (id (one-or-more (not "]"))) "] " (message) line-end))
+    :modes (python-mode python-ts-mode)
+    :predicate (lambda () (executable-find "ty")))
+
+  ;; Add ty to the checker list and chain it after ruff
+  (add-to-list 'flycheck-checkers 'python-ty)
+  (flycheck-add-next-checker 'python-ruff '(t . python-ty))
   )
 
 ;; (use-package importmagic
@@ -1098,17 +1278,17 @@ interactively call `gptel-send' with a prefix argument."
 ;;     (setq importmagic-be-quiet t)
 ;;     )
 
-;; isort
-(use-package py-isort
-  :ensure t
-  :config
-  (add-hook 'before-save-hook 'py-isort-before-save)
-  ;; (remove-hook 'before-save-hook 'py-isort-before-save)
-  ;; (setq py-isort-options '("--line-length=160 --profile=black"))
-  )
+;; isort (disabled - ruff handles import sorting)
+;; (use-package py-isort
+;;   :ensure t
+;;   :config
+;;   (add-hook 'before-save-hook 'py-isort-before-save)
+;;   ;; (setq py-isort-options '("--line-length=160 --profile=black"))
+;;   )
 
 (use-package jedi
   :ensure t
+  :defer 1
   :config
   ;; (add-hook 'python-mode-hook 'jedi:setup)
   (setq
@@ -1133,6 +1313,16 @@ interactively call `gptel-send' with a prefix argument."
   (setq magit-display-buffer-function #'magit-display-buffer-fullframe-status-v1)
   (setq projectile-switch-project-action 'magit-status)
   )
+
+(use-package git-gutter-fringe
+  :ensure t
+  :defer 1
+  :config
+  (global-git-gutter-mode 1)
+  ;; Subtle indicators
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 ;; (use-package forge
 ;;   :ensure t
@@ -1161,7 +1351,8 @@ interactively call `gptel-send' with a prefix argument."
   ;; )
 
 (use-package jupyter
-  :ensure t)
+  :ensure t
+  :defer t)
 ;;(use-package ob-ipython
 ;;  :ensure t)
 
@@ -1173,26 +1364,33 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package projectile
   :ensure t
+  :commands (projectile-find-file projectile-switch-project projectile-switch-to-buffer
+             counsel-projectile counsel-projectile-find-file counsel-projectile-switch-project
+             counsel-projectile-ag counsel-projectile-switch-to-buffer)
   :init
+  (setq projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
   :config
   (projectile-mode)
   (setq projectile-completion-system 'ivy)
-  ;; (setq projectile-completion-system 'helm)
   (setq projectile-dynamic-mode-line nil)
   (setq projectile-enable-caching t)
   (setq projectile-indexing-method 'hybrid)
-  ;; (setq projectile-globally-ignored-file-suffixes '("j2" "json" "llamafile" "pdf" "docx"))
   (setq projectile-globally-ignored-file-suffixes '("j2" "llamafile" "pdf" "docx"))
+  ;; Periodically refresh cache when idle (5 min)
+  (run-with-idle-timer 300 t (lambda () (projectile-invalidate-cache nil)))
   )
 
 (use-package python-pytest
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package pyvenv
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (use-package virtualenvwrapper
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 (venv-initialize-interactive-shells)
 (defvar python-environment-directory)
@@ -1212,6 +1410,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package yasnippet-snippets
   :ensure t
+  :defer 1
   :config
   (setq yas-snippet-dirs '("~/.emacs.conf/snippets"))
   (yas-reload-all)
@@ -1265,21 +1464,23 @@ interactively call `gptel-send' with a prefix argument."
 ;;   (setq kubernetes-poll-frequency 3600
 ;;         kubernetes-redraw-frequency 3600))
 (use-package kubectx-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package haskell-mode
   :ensure t
-  )
+  :defer t)
 
 (use-package poly-ansible
   :ensure t
-  )
+  :defer 1)
 (use-package js2-mode
   :ensure t
   :mode (("\\.js$" . js2-mode))
   )
 (use-package tide
   :ensure t
+  :defer t
   :config
   (defun setup-tide-mode ()
     (interactive)
@@ -1305,7 +1506,8 @@ interactively call `gptel-send' with a prefix argument."
   (add-hook 'typescript-mode-hook #'setup-tide-mode)
   )
 (use-package xref-js2
-  :ensure t)
+  :ensure t
+  :defer 1)
 (use-package typescript-mode
   :mode (("\\.ts$" . typescript-mode))
   :ensure t
@@ -1320,6 +1522,7 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package json-mode
   :ensure t
+  :defer t  ;; load when opening .json files
   :config
   (setq json-reformat:indent-width 2)
   (setq js-indent-level 2))
@@ -1331,6 +1534,16 @@ interactively call `gptel-send' with a prefix argument."
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
   (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+
+(use-package package-lint
+  :ensure t
+  :defer t
+  :commands package-lint-current-buffer)
+
+(use-package package-lint-flymake
+  :ensure t
+  :defer t
+  :hook (emacs-lisp-mode . package-lint-flymake-setup))
 (use-package web-mode
   :ensure t
   :mode ("\\.html\\'" "\\.jinja\\'")
@@ -1364,63 +1577,6 @@ interactively call `gptel-send' with a prefix argument."
   (setq yaml-indent-offset 2)
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; EXPERIMENTAL TABBAR TWEAKS ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; https://gist.github.com/3demax/1264635#file-tabbar-tweak-el
-;; Tabbar settings
-;; (set-face-attribute
-;;  'tabbar-default nil
-;;  :background "#002b36"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-unselected nil
-;;  :background "#002b36"
-;;  :foreground "#aaaaaa"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-selected nil
-;;  :background "#aaaaaa"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-highlight nil
-;;  :background "#aaaaaa"
-;;  :foreground "#002b36"
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-button nil
-;;  :underline nil
-;;  :box nil)
-;; (set-face-attribute
-;;  'tabbar-separator nil
-;;  :underline nil
-;;  :background "#002b36em"
-;;  :height 0.6)
-;; ;; adding spaces
-;; (defun tabbar-buffer-tab-label (tab)
-;;   "Return a label for TAB.
-;; That is, a string used to represent it on the tab bar."
-;;   (let ((label  (if tabbar--buffer-show-groups
-;;                     (format "[%s]  " (tabbar-tab-tabset tab))
-;;                   (format "%s  " (tabbar-tab-value tab)))))
-;;     ;; Unless the tab bar auto scrolls to keep the selected tab
-;;     ;; visible, shorten the tab label to keep as many tabs as possible
-;;     ;; in the visible area of the tab bar.
-;;     (if tabbar-auto-scroll-flag
-;;         label
-;;       (tabbar-shorten
-;;        label (max 1 (/ (window-width)
-;;                        (length (tabbar-view
-;;                                 (tabbar-current-tabset)))))))))
-;; (tabbar-mode 1)
-
-
 ;;;;;;;;;;;;;;;;;
 ;;; SHORTCUTS ;;;
 ;;;;;;;;;;;;;;;;;
@@ -1429,20 +1585,6 @@ interactively call `gptel-send' with a prefix argument."
  ("M-o" . ace-window)
  )
 
-;; (define-key helm-find-files-map (kbd "C-j") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-u") 'helm-find-files-up-one-level)
-;; (define-key helm-find-files-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-find-files-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-find-files-map (kbd "C-p") 'helm-execute-persistent-action)
-;; (define-key helm-find-files-map (kbd "C-;") 'helm-execute-persistent-action)
-;; (define-key helm-buffer-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-buffer-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-read-file-map (kbd "C-j") 'helm-find-files-up-one-level)
-;; (define-key helm-read-file-map (kbd "C-u") 'helm-find-files-up-one-level)
-;; (define-key helm-read-file-map (kbd "C-i") 'helm-next-line)
-;; (define-key helm-read-file-map (kbd "C-o") 'helm-previous-line)
-;; (define-key helm-read-file-map (kbd "C-p") 'helm-execute-persistent-action)
-;; (define-key helm-read-file-map (kbd "C-;") 'helm-execute-persistent-action)
 (define-key ivy-minibuffer-map (kbd "C-i") 'ivy-next-line)
 (define-key ivy-minibuffer-map (kbd "C-o") 'ivy-previous-line)
 (define-key ivy-minibuffer-map (kbd "<left>") 'counsel-up-directory)
@@ -1455,8 +1597,8 @@ interactively call `gptel-send' with a prefix argument."
 (define-key ivy-minibuffer-map (kbd "C-;") 'ivy-alt-done)
 (define-key ivy-minibuffer-map (kbd "<RET>") 'ivy-alt-done)
 
-(global-set-key (kbd "M-<up>") 'elpy-nav-move-line-or-region-up)
-(global-set-key (kbd "M-<down>") 'elpy-nav-move-line-or-region-down)
+(global-set-key (kbd "M-<up>") 'move-text-up)
+(global-set-key (kbd "M-<down>") 'move-text-down)
 (global-set-key (kbd "C-M-<return>") 'newline)
 
 (global-set-key (kbd "'") 'quote-up-or-replace)
@@ -1528,10 +1670,74 @@ j -- next
     (";" flymake-goto-next-error)
     ("q" nil "cancel" :color blue)
     )
+
+  (defhydra hydra-flycheck (:color pink :hint nil)
+    "
+^Navigation^      ^Actions^          ^Display^
+^^^^^^^^-------------------------------------------------
+_i_: next         _c_: clear         _l_: list errors
+_o_: previous     _v_: verify setup  _e_: explain error
+_f_: first        _x_: disable       _h_: help
+^ ^               _s_: select checker
+"
+    ("i" flycheck-next-error)
+    ("o" flycheck-previous-error)
+    ("f" flycheck-first-error)
+    ("l" flycheck-list-errors :color blue)
+    ("e" flycheck-explain-error-at-point)
+    ("h" flycheck-display-error-at-point)
+    ("c" flycheck-clear)
+    ("v" flycheck-verify-setup :color blue)
+    ("x" flycheck-disable-checker :color blue)
+    ("s" flycheck-select-checker :color blue)
+    ("q" nil "quit" :color blue))
+
+  (defhydra hydra-toggle (:color blue :hint nil)
+    "
+^Display^         ^Editing^          ^Modes^
+^^^^^^^^-------------------------------------------------
+_l_: line nums    _w_: whitespace    _f_: flycheck
+_t_: truncate     _h_: hl-line       _a_: auto-fill
+_v_: visual-line  _c_: column        _r_: read-only
+_g_: git-gutter   _i_: indent-guide
+"
+    ("l" display-line-numbers-mode)
+    ("t" toggle-truncate-lines)
+    ("v" visual-line-mode)
+    ("g" git-gutter-mode)
+    ("w" whitespace-mode)
+    ("h" hl-line-mode)
+    ("c" column-number-mode)
+    ("i" highlight-indent-guides-mode)
+    ("f" flycheck-mode)
+    ("a" auto-fill-mode)
+    ("r" read-only-mode)
+    ("q" nil "quit"))
+
+  (defhydra hydra-eglot (:color blue :hint nil)
+    "
+^Actions^         ^Navigate^         ^Info^
+^^^^^^^^-------------------------------------------------
+_a_: code action  _;_: definition    _h_: hover doc
+_r_: rename       _:_: references    _d_: declaration
+_f_: format       _i_: implementation
+_o_: organize imports
+"
+    ("a" eglot-code-actions)
+    ("r" eglot-rename)
+    ("f" eglot-format-buffer)
+    ("o" eglot-code-action-organize-imports)
+    (";" xref-find-definitions)
+    (":" xref-find-references)
+    ("i" eglot-find-implementation)
+    ("d" eglot-find-declaration)
+    ("h" eldoc-box-help-at-point)
+    ("q" nil "quit"))
   )
 
 (use-package ivy-hydra
-  :ensure t)
+  :ensure t
+  :defer 1)
 
 
 (load "~/.emacs.conf/gptel-custom.el" t)
@@ -1555,6 +1761,17 @@ j -- next
   (setq-default cursor-type 'bar)
   (setq ryo-modal-cursor-type 'box)
   (ryo-modal-mode)
+
+  ;; Visual mode indicator - change modeline color
+  (defvar ryo-modal-mode-line-background nil "Original mode-line background.")
+  (add-hook 'ryo-modal-mode-hook
+            (lambda ()
+              (if ryo-modal-mode
+                  (progn
+                    (unless ryo-modal-mode-line-background
+                      (setq ryo-modal-mode-line-background (face-background 'mode-line)))
+                    (set-face-background 'mode-line "#504945"))  ;; gruvbox darker
+                (set-face-background 'mode-line (or ryo-modal-mode-line-background "#3c3836")))))
 
   (ryo-modal-keys
    ("q" my-change-word-or-region)
@@ -1607,19 +1824,19 @@ j -- next
    ("b" er-switch-to-previous-buffer)  ;; use it
    ("n" recenter-top-bottom)
    ;; ("n" reposition-window)
-   ("m" ryo-modal-repeat)  ;; use it as well!
-   ;; ("," awesome-tab-backward-tab)
-   ;; ("," awesome-tab-backward-tab)
-   ("." centaur-tabs-forward)
-   ("," centaur-tabs-backward)
+   ("m" ryo-modal-repeat)
+   ("." next-buffer)
+   ("," previous-buffer)
    ("<" beginning-of-buffer)
    (">" end-of-buffer)
    ("/" move-end-of-line)
    ("?" dumb-jump-back)
 
-   ;; ("`" bookmark-jump) ;; useful but does it warrant 1-key sequence?
+   ("`" pop-global-mark)  ;; jump back through mark ring
+   ("@" kmacro-call-macro)  ;; call last keyboard macro (vim-like)
+   ("\\" hydra-toggle/body)  ;; toggle various modes
    ("~" tild-up-or-replace)
-   ("!" flycheck-list-errors)
+   ("!" hydra-flycheck/body)
    ("#" highlight-symbol-query-replace)
    ("$" query-replace-thing-at-point-or-selection)
    ("%" query-replace)
@@ -1651,7 +1868,7 @@ j -- next
          ("q" my-change-word-or-region)
          ("w" my-backward-change-word-or-region)
          ("e" highlight-symbol)
-         ("r" blacken-buffer)
+         ("r" ruff-format-buffer)
          ;; ("t")
 
          ("Q" my-substitute-word-or-region)
@@ -1663,8 +1880,8 @@ j -- next
          ("S" copy-buffer-useful-path)
          ("d" copy-full-path-to-kill-ring)
          ("D" copy-folder-path-to-kill-ring)
-         ("G" gptel-menu) 
-         ;; ("h" ) unused!!!
+         ("G" gptel-menu)
+         ("h" query-replace-regexp)  ;; regex find & replace
          ("j" recentf)
          ("k" save-buffers-kill-terminal)
          ("l" bookmark-jump)
@@ -1706,16 +1923,11 @@ j -- next
          ("ga" remove-thinking)
          ("gg" gptel-really-abort)
 
-         ("gj" gptel-send-to-sonnet--short)
-         ("gk" gptel-send-to-sonnet--general)
+         ("gk" gptel-send-to-opus--general)
          ("gK" gptel-send-to-opus--general-thinking)
-         ("g;" gptel-send-to-claude--conversation)
 
-         ("gu" gptel-send-to-gemini--general)
          ("gi" gptel-send-to-sonnet--general)
          ("gI" gptel-send-to-sonnet--general-thinking)
-         ("go" gptel-send-to-o4-mini--general)
-         ("gp" gptel-send-to-o3--general)         
          )
    )
 
@@ -1735,14 +1947,16 @@ j -- next
 
          ("s" swiper-region)
          ("d" hydra-smerge/body)
-         ;; ("g" ) unused!!!
-         ;; ("h" ) unused!!!
+         ("g" counsel-git-grep)  ;; search in git repo
+         ("h" consult-line)  ;; search in buffer (fast, async)
+         (";" counsel-rg)  ;; search project with ripgrep
+         ("n" consult-imenu)  ;; jump to function/class
+         ("b" consult-buffer)  ;; buffer switch with preview
          ("j" counsel-projectile)
          ;; ("j" projectile-switch-to-buffer)
          ("k" kill-all-buffers-but-scratch)
          ;; ("l" venv-workon)
          ("l" pyvenv-workon)
-         ;; ("'" ) unused!!!
          ("'" string-inflection-upcase)
 
          ("m" copy-outside-or-not)
@@ -1777,7 +1991,7 @@ j -- next
          ("h" counsel-projectile)
          ("j" counsel-projectile-switch-to-buffer)
          ("k" projectile-kill-buffers)
-         ("l" awesome-tab-switch-group)
+         ("l" projectile-ibuffer)
          (";" xref-pop-marker-stack)
          ("'" string-inflection-camelcase)
 
@@ -1803,7 +2017,7 @@ j -- next
          ("w" my-backward-mark-word)
          ("e" magit-diff-develop)
          ("r" avy-goto-line)
-         ("t" elpy-multiedit-python-symbol-at-point)
+         ("t" eglot-rename)
 
          ("y" mark-inside-string-or-not)
          ("u" mark-inside-or-not)
@@ -1862,8 +2076,8 @@ j -- next
 
    ("\\" er/mark-python-statement)  ;; use me
 
-   ("M-o" elpy-nav-move-line-or-region-up)  ;; this is not useful
-   ("M-i" elpy-nav-move-line-or-region-down)  ;; this is not useful
+   ;; M-o is ace-window globally, use M-up/M-down for moving lines
+   ("M-i" move-text-down)
 
    ("at" python-add-return)
    ("se" python-add-breakpoint)
@@ -1873,8 +2087,9 @@ j -- next
    ("dz" get-test-string)
    ("dx" get-class-string)
 
-   ("f;" elpy-goto-definition)
+   ("f;" xref-find-definitions)
    ("f:" xref-find-references-at-point)
+   ("fc" hydra-eglot/body)
    )
 
   (ryo-modal-major-mode-keys

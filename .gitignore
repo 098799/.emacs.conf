@@ -1,3 +1,17 @@
 secrets.el
 .aider*
 .env
+
+# Emacs autosave/backup
+\#*\#
+*~
+*.elc
+
+# Undo-tree history
+*~undo-tree~
+
+# Syncthing
+.stfolder/
+
+# Claude Code
+.claude/
