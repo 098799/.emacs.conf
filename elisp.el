@@ -357,28 +357,55 @@
     )
   )
 
+(defun mark-triple-quoted-string-inside ()
+  "Mark the content inside a triple-quoted string (excluding quotes). Returns t if found, nil otherwise."
+  ;; First check if we're actually inside a string using syntax parser
+  (let ((ppss (syntax-ppss)))
+    (when (nth 3 ppss)  ;; nth 3 is non-nil if inside a string
+      (let ((string-start (nth 8 ppss)))  ;; nth 8 is position of string delimiter
+        ;; Check if it's a triple-quoted string by looking at string-start and before
+        ;; Python's syntax parser points to the LAST char of """, so check back 2 chars
+        (when (and string-start
+                   (>= string-start 3)
+                   (save-excursion
+                     (goto-char (- string-start 2))
+                     (looking-at "\\(\"\"\"\\|'''\\)")))
+          (let* ((quote-start (- string-start 2))
+                 (quote-char (buffer-substring quote-start (+ quote-start 3)))
+                 (content-start (+ quote-start 3))
+                 (end nil))
+            ;; Find the closing quotes
+            (save-excursion
+              (goto-char content-start)
+              (when (search-forward quote-char nil t)
+                (setq end (match-beginning 0))))
+            (when end
+              (goto-char content-start)
+              (set-mark end)
+              (setq mark-active t)  ;; Explicitly activate region
+              (setq deactivate-mark nil)
+              t)))))))
+
 (defun mark-inside-or-not (arg)
   "Mark inside python string, but if not, just the word."
   (interactive "P")
-  (er/mark-inside-python-string)
-  (let ((current-superword-state (bound-and-true-p superword-mode)))
-    (unless (region-active-p)
-      (if (or (looking-at "'") (looking-at "\""))
-          (progn (forward-char)
-                 (er/mark-inside-python-string)
-                 (unless (region-active-p)
-                   (backward-char 2)
-                   (er/mark-inside-python-string)
-                   )
-                 )
-        (progn
-          (mark-inside-string-or-not arg)
-          (superword-mode current-superword-state)
-          )
-        )
-      )
-    )
-  )
+  ;; First try triple-quoted strings
+  (unless (mark-triple-quoted-string-inside)
+    (when (fboundp 'er/mark-inside-python-string)
+      (er/mark-inside-python-string))
+    (let ((current-superword-state (bound-and-true-p superword-mode)))
+      (unless (region-active-p)
+        (if (or (looking-at "'") (looking-at "\""))
+            (progn (forward-char)
+                   (when (fboundp 'er/mark-inside-python-string)
+                     (er/mark-inside-python-string))
+                   (unless (region-active-p)
+                     (backward-char 2)
+                     (when (fboundp 'er/mark-inside-python-string)
+                       (er/mark-inside-python-string))))
+          (progn
+            (mark-inside-string-or-not arg)
+            (superword-mode current-superword-state)))))))
 
 (defun copy-inside-string-or-not (arg)
   (interactive "P")
@@ -507,34 +534,65 @@
   (substitute-with-kill-ring 'cut-outer-with-curly)
   )
 
+(defun mark-triple-quoted-string-outside ()
+  "Mark a triple-quoted string including the quotes. Returns t if found, nil otherwise."
+  ;; First check if we're actually inside a string using syntax parser
+  (let ((ppss (syntax-ppss)))
+    (when (nth 3 ppss)  ;; nth 3 is non-nil if inside a string
+      (let ((string-start (nth 8 ppss)))  ;; nth 8 is position of string delimiter
+        ;; Check if it's a triple-quoted string by looking at string-start and before
+        ;; Python's syntax parser points to the LAST char of """, so check back 2 chars
+        (when (and string-start
+                   (>= string-start 3)
+                   (save-excursion
+                     (goto-char (- string-start 2))
+                     (looking-at "\\(\"\"\"\\|'''\\)")))
+          (let* ((quote-start (- string-start 2))
+                 (quote-char (buffer-substring quote-start (+ quote-start 3)))
+                 (content-start (+ quote-start 3))
+                 (end nil))
+            ;; Find the closing quotes
+            (save-excursion
+              (goto-char content-start)
+              (when (search-forward quote-char nil t)
+                (setq end (point))))  ;; end AFTER closing quotes
+            (when end
+              (goto-char quote-start)
+              (set-mark end)
+              (setq mark-active t)  ;; Explicitly activate region
+              (setq deactivate-mark nil)
+              t)))))))
+
 (defun mark-outside-or-not (arg)
   "Mark outside python string, but if not, just the word."
   (interactive "P")
-  (er/mark-outside-python-string)
-  (let ((current-superword-state (bound-and-true-p superword-mode)))
-    (unless (region-active-p)
-      (if (or (looking-at "'") (looking-at "\""))
-          (progn (forward-char)
-                 (er/mark-outside-python-string)
-                 (unless (region-active-p)
-                   (backward-char 2)
-                   (er/mark-outside-python-string)
-                   )
-                 )
-        (if (is-end-of-word)
+  ;; First try triple-quoted strings
+  (unless (mark-triple-quoted-string-outside)
+    (when (fboundp 'er/mark-outside-python-string)
+      (er/mark-outside-python-string))
+    (let ((current-superword-state (bound-and-true-p superword-mode)))
+      (unless (region-active-p)
+        (if (or (looking-at "'") (looking-at "\""))
+            (progn (forward-char)
+                   (when (fboundp 'er/mark-outside-python-string)
+                     (er/mark-outside-python-string))
+                   (unless (region-active-p)
+                     (backward-char 2)
+                     (when (fboundp 'er/mark-outside-python-string)
+                       (er/mark-outside-python-string))))
+          (if (is-end-of-word)
+              (progn
+                (superword-mode t)
+                (my-backward-word arg)
+                (cua-set-mark)
+                (my-forward-word arg)
+                (superword-mode current-superword-state))
             (progn
               (superword-mode t)
-              (my-backward-word arg)
-              (cua-set-mark)
               (my-forward-word arg)
-              (superword-mode current-superword-state)
-              )
-          (progn
-            (superword-mode t)
-            (my-forward-word arg)
-            (cua-set-mark)
-            (my-backward-word arg)
-            (superword-mode current-superword-state)
+              (cua-set-mark)
+              (my-backward-word arg)
+              (superword-mode current-superword-state))
             )
           )
         )
@@ -1637,3 +1695,164 @@ Repeated invocations toggle between the two most recently open buffers."
   (interactive)
   (eval-buffer)
   (message "whole buffer evaled"))
+
+;;; Magit Diff Syntax Highlighting
+;; Apply language-specific syntax highlighting to diff hunks in Magit buffers
+
+(defun tg/magit-diff--get-mode-for-file (filename)
+  "Return the major mode function for FILENAME, or nil if none found."
+  (when filename
+    (let ((mode (assoc-default filename auto-mode-alist 'string-match)))
+      (when (and mode (symbolp mode) (fboundp mode))
+        mode))))
+
+(defun tg/magit-diff--fontify-string (str mode)
+  "Fontify STR using MODE and return propertized string.
+Returns the string with face properties applied by the mode's font-lock."
+  (when (and str mode (> (length str) 0))
+    (with-temp-buffer
+      (insert str)
+      (delay-mode-hooks (funcall mode))
+      (font-lock-ensure)
+      (buffer-string))))
+
+(defun tg/magit-diff--extract-hunk-content (hunk-start hunk-end)
+  "Extract content lines from hunk between HUNK-START and HUNK-END.
+Returns a list of (position prefix content) for each line."
+  (let ((lines '()))
+    (save-excursion
+      (goto-char hunk-start)
+      (while (< (point) hunk-end)
+        (let* ((line-start (line-beginning-position))
+               (line-end (line-end-position))
+               (line-text (buffer-substring-no-properties line-start line-end)))
+          (when (and (> (length line-text) 0)
+                     (memq (aref line-text 0) '(?+ ?- ?\s)))
+            (push (list line-start
+                        (substring line-text 0 1)
+                        (substring line-text 1))
+                  lines)))
+        (forward-line 1)))
+    (nreverse lines)))
+
+(defun tg/magit-diff--apply-faces-to-region (start end fontified-str)
+  "Apply face properties from FONTIFIED-STR to region from START to END."
+  (let ((len (min (- end start) (length fontified-str)))
+        (pos 0))
+    (while (< pos len)
+      (let ((face (get-text-property pos 'face fontified-str)))
+        (when face
+          (let ((next-change (or (next-single-property-change pos 'face fontified-str)
+                                 len)))
+            (put-text-property (+ start pos)
+                               (min (+ start next-change) end)
+                               'font-lock-face
+                               face)
+            (setq pos next-change)))
+        (unless face
+          (setq pos (1+ pos)))))))
+
+(defun tg/magit-diff--fontify-hunk (hunk-start hunk-end filename)
+  "Apply syntax highlighting to hunk from HUNK-START to HUNK-END.
+FILENAME is used to determine the appropriate major mode."
+  (let ((mode (tg/magit-diff--get-mode-for-file filename)))
+    (when mode
+      (let* ((lines (tg/magit-diff--extract-hunk-content hunk-start hunk-end))
+             (content (mapconcat (lambda (l) (nth 2 l)) lines "\n"))
+             (fontified (tg/magit-diff--fontify-string content mode)))
+        (when fontified
+          (let ((fontified-lines (split-string fontified "\n"))
+                (inhibit-read-only t))
+            (cl-loop for line-info in lines
+                     for fontified-line in fontified-lines
+                     do (let* ((pos (nth 0 line-info))
+                               (content-start (1+ pos))
+                               (content-end (+ content-start (length (nth 2 line-info)))))
+                          (when (< content-start (point-max))
+                            (tg/magit-diff--apply-faces-to-region
+                             content-start
+                             (min content-end (line-end-position))
+                             fontified-line))))))))))
+
+(defun tg/magit-diff--current-file ()
+  "Get the filename for the current diff section."
+  (when (derived-mode-p 'magit-mode)
+    (let ((section (magit-current-section)))
+      (when section
+        (let ((parent section))
+          (while (and parent
+                      (not (memq (oref parent type) '(file))))
+            (setq parent (oref parent parent)))
+          (when (and parent (slot-boundp parent 'value))
+            (oref parent value)))))))
+
+(defun tg/magit-diff-fontify-buffer ()
+  "Apply syntax highlighting to all diff hunks in current buffer."
+  (interactive)
+  (when (derived-mode-p 'magit-mode)
+    (save-excursion
+      (goto-char (point-min))
+      (let ((inhibit-read-only t)
+            (current-file nil))
+        (while (not (eobp))
+          (let ((section (magit-current-section)))
+            (when section
+              (let ((type (oref section type)))
+                (cond
+                 ((eq type 'file)
+                  (setq current-file (oref section value)))
+                 ((eq type 'hunk)
+                  (when current-file
+                    (let ((start (oref section start))
+                          (end (oref section end)))
+                      (condition-case nil
+                          (tg/magit-diff--fontify-hunk start end current-file)
+                        (error nil))))))))
+            (forward-line 1)))))))
+
+(defun tg/magit-diff-fontify-visible ()
+  "Apply syntax highlighting to visible diff hunks only."
+  (interactive)
+  (when (derived-mode-p 'magit-mode)
+    (let ((start (window-start))
+          (end (window-end)))
+      (save-excursion
+        (goto-char start)
+        (let ((inhibit-read-only t)
+              (current-file nil))
+          (while (< (point) end)
+            (let ((section (magit-current-section)))
+              (when section
+                (let ((type (oref section type)))
+                  (cond
+                   ((eq type 'file)
+                    (setq current-file (oref section value)))
+                   ((eq type 'hunk)
+                    (when (and current-file
+                               (<= (oref section start) end)
+                               (>= (oref section end) start))
+                      (condition-case nil
+                          (tg/magit-diff--fontify-hunk
+                           (oref section start)
+                           (oref section end)
+                           current-file)
+                        (error nil))))))))
+            (forward-line 1)))))))
+
+;; Hook into Magit for automatic syntax highlighting (DISABLED - needs work)
+;; Issue: highlighting disappears when moving around buffer
+;; TODO: investigate magit-section-highlight overlay interference
+;;
+;; (defun tg/magit-diff-fontify-buffer-deferred ()
+;;   "Run fontification after a short delay to ensure buffer is populated."
+;;   (run-with-timer 0.1 nil #'tg/magit-diff-fontify-buffer))
+;;
+;; (add-hook 'magit-post-refresh-hook #'tg/magit-diff-fontify-buffer)
+;; (add-hook 'magit-diff-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-status-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-revision-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-stash-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-cherry-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-log-mode-hook #'tg/magit-diff-fontify-buffer-deferred)
+;; (advice-add 'magit-section-toggle :after #'tg/magit-diff-fontify-buffer-deferred)
+;; (add-hook 'magit-section-movement-hook #'tg/magit-diff-fontify-buffer-deferred)

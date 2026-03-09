@@ -13,5 +13,8 @@ secrets.el
 # Syncthing
 .stfolder/
 
+# Python virtual environment
+.venv/
+
 # Claude Code
 .claude/

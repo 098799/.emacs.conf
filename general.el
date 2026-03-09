@@ -1,15 +1,26 @@
 ;;; general.el --- Main Emacs configuration -*- lexical-binding: t -*-
 
-;; Suppress annoying warnings for auto-generated files
-(setq warning-suppress-types '((files) (defvaralias)))
-(setq warning-suppress-log-types '((files) (defvaralias)))
+;; Suppress annoying warnings
+(setq warning-suppress-types '((files) (defvaralias) (straight) (comp)))
+(setq warning-suppress-log-types '((files) (defvaralias) (straight) (comp)))
 (setq warning-minimum-level :error)
 
-;; Ensure native-comp variables are defined
+;; Silence native-comp warnings (e.g., obsolete macro warnings from packages)
 (when (and (fboundp 'native-comp-available-p)
            (native-comp-available-p))
-  (defvar native-comp-deferred-compilation-deny-list nil)
-  (defvar native-comp-async-report-warnings-errors nil))
+  (setq native-comp-async-report-warnings-errors 'silent))
+
+;; Tree-sitter configuration
+(when (treesit-available-p)
+  ;; Grammar sources for automatic installation
+  (setq treesit-language-source-alist
+        '((python "https://github.com/tree-sitter/tree-sitter-python")))
+  ;; Auto-install missing grammars
+  (dolist (lang '(python))
+    (unless (treesit-language-available-p lang)
+      (treesit-install-language-grammar lang)))
+  ;; Remap python-mode to python-ts-mode
+  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode)))
 
 ;; Straight
 (defvar bootstrap-version)
@@ -922,6 +933,9 @@ interactively call `gptel-send' with a prefix argument."
 (use-package undo-tree
   :ensure t
   :commands (undo-tree-undo undo-tree-redo undo-tree-visualize)
+  :init
+  (defvar global-undo-tree-mode-buffers nil
+    "List of buffers with undo-tree-mode enabled (fixes void-variable error).")
   :config
   (global-undo-tree-mode)
   (setq undo-tree-auto-save-history t)
@@ -1201,6 +1215,7 @@ interactively call `gptel-send' with a prefix argument."
 ;;     (add-hook 'elpy-mode-hook 'flycheck-mode)))
 
 ;; Eglot - built-in LSP client (faster, simpler than elpy)
+;; Using ty instead of pyright — pyright consumed 494k+ inotify watchers
 (use-package eglot
   :ensure nil  ;; built-in since Emacs 29
   :defer t
@@ -1213,27 +1228,27 @@ interactively call `gptel-send' with a prefix argument."
   (setq xref-show-xrefs-function #'xref-show-definitions-completing-read)
   ;; Disable auto-import (often imports from wrong package)
   (setq-default eglot-workspace-configuration
-                '(:ty (:completions (:autoImport :json-false))))
+                '(:completions (:autoImport :json-false)))
   :config
+  ;; Use ty (fast Python type checker) instead of pyright
+  (add-to-list 'eglot-server-programs
+               '((python-mode python-ts-mode) . ("ty" "server")))
   (add-hook 'python-mode-hook 'hs-minor-mode)
   (add-hook 'python-ts-mode-hook 'hs-minor-mode)
+  ;; Limit reconnection attempts to avoid crash loops
+  (setq eglot-autoreconnect 3)
   ;; Disable document highlight (causes font shift with flycheck underlines)
   (add-to-list 'eglot-ignored-server-capabilities :documentHighlightProvider)
-  ;; Disable eglot diagnostics - use flycheck with custom python-ty checker instead
+  ;; Disable eglot diagnostics - use flycheck instead
   (add-to-list 'eglot-ignored-server-capabilities :textDocument/publishDiagnostics)
   ;; Disable signature help to prevent duplicate eldoc (hover already shows this)
-  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider)
-  ;; Inlay hints (show inferred types inline) - disabled, ty may not fully support yet
-  ;; (add-hook 'eglot-managed-mode-hook #'eglot-inlay-hints-mode)
-  ;; Use ty (Rust-based, 80x faster than pyright for incremental updates)
-  (add-to-list 'eglot-server-programs
-               '((python-mode python-ts-mode) . ("ty" "server"))))
+  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider))
 
 ;; Show eldoc in tooltip popup near cursor (hover docs)
 (use-package eldoc-box
   :ensure t
   :defer t
-  :hook ((eglot-managed-mode . eldoc-box-hover-mode)))
+  :hook ((eglot-managed-mode . eldoc-box-hover-at-point-mode)))
 
 ;; Move lines up/down (replacement for elpy-nav-move-line-or-region)
 (use-package move-text
@@ -1252,20 +1267,6 @@ interactively call `gptel-send' with a prefix argument."
   (setq flycheck-python-ruff-executable "ruff")
   (setq-default flycheck-disabled-checkers '(python-flake8 python-pylint python-pycompile python-mypy))
 
-  ;; Custom ty type checker (using concise output format)
-  ;; Format: file:line:col: error[rule-id] message
-  (flycheck-define-checker python-ty
-    "A Python type checker using ty."
-    :command ("ty" "check" "--output-format" "concise" source-original)
-    :error-patterns
-    ((error line-start (file-name) ":" line ":" column ": error[" (id (one-or-more (not "]"))) "] " (message) line-end)
-     (warning line-start (file-name) ":" line ":" column ": warning[" (id (one-or-more (not "]"))) "] " (message) line-end))
-    :modes (python-mode python-ts-mode)
-    :predicate (lambda () (executable-find "ty")))
-
-  ;; Add ty to the checker list and chain it after ruff
-  (add-to-list 'flycheck-checkers 'python-ty)
-  (flycheck-add-next-checker 'python-ruff '(t . python-ty))
   )
 
 ;; (use-package importmagic
@@ -1386,7 +1387,14 @@ interactively call `gptel-send' with a prefix argument."
 
 (use-package pyvenv
   :ensure t
-  :defer 1)
+  :defer 1
+  :config
+  ;; Restart eglot when activating a venv so it picks up the new environment
+  (add-hook 'pyvenv-post-activate-hooks
+            (lambda ()
+              (when (and (derived-mode-p 'python-mode 'python-ts-mode)
+                         (eglot-current-server))
+                (eglot-reconnect (eglot-current-server))))))
 
 (use-package virtualenvwrapper
   :ensure t
@@ -1533,7 +1541,7 @@ interactively call `gptel-send' with a prefix argument."
   :ensure t
   :mode "\\Dockerfile\\'")
 (with-eval-after-load 'flycheck
-  (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc)))
+  (add-to-list 'flycheck-disabled-checkers 'emacs-lisp-checkdoc))
 
 (use-package package-lint
   :ensure t
@@ -1763,15 +1771,29 @@ _o_: organize imports
   (ryo-modal-mode)
 
   ;; Visual mode indicator - change modeline color
-  (defvar ryo-modal-mode-line-background nil "Original mode-line background.")
-  (add-hook 'ryo-modal-mode-hook
-            (lambda ()
-              (if ryo-modal-mode
-                  (progn
-                    (unless ryo-modal-mode-line-background
-                      (setq ryo-modal-mode-line-background (face-background 'mode-line)))
-                    (set-face-background 'mode-line "#504945"))  ;; gruvbox darker
-                (set-face-background 'mode-line (or ryo-modal-mode-line-background "#3c3836")))))
+  ;; Emacs 29+ uses mode-line-active for active window
+  (defvar ryo-modal-mode-line-bg-orig nil "Original mode-line background.")
+  (defvar ryo-modal-mode-line-active-bg-orig nil "Original mode-line-active background.")
+
+  (defun ryo-modal-update-modeline ()
+    "Update modeline and cursor color based on ryo-modal state."
+    (if ryo-modal-mode
+        (progn
+          ;; Save original colors once
+          (unless ryo-modal-mode-line-bg-orig
+            (setq ryo-modal-mode-line-bg-orig (face-background 'mode-line nil t)))
+          (unless ryo-modal-mode-line-active-bg-orig
+            (setq ryo-modal-mode-line-active-bg-orig (face-background 'mode-line-active nil t)))
+          ;; Modal ON - green modeline and cursor
+          (set-face-background 'mode-line "#3d4220")
+          (set-face-background 'mode-line-active "#3d4220")
+          (set-cursor-color "#859900"))
+      ;; Modal OFF - neutral modeline and cursor
+      (set-face-background 'mode-line "#3c3836")
+      (set-face-background 'mode-line-active "#3c3836")
+      (set-cursor-color "#a89984")))
+
+  (add-hook 'ryo-modal-mode-hook #'ryo-modal-update-modeline)
 
   (ryo-modal-keys
    ("q" my-change-word-or-region)

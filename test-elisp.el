@@ -4,7 +4,9 @@
 
 (require 'ert)
 (require 'cua-base)
+(require 'python)
 (cua-mode 1)
+(transient-mark-mode 1)
 
 ;; Mock ci--flash-region (from change-inner package, not available in batch)
 (unless (fboundp 'ci--flash-region)
@@ -258,6 +260,178 @@
   (with-temp-buffer
     (insert "hello")
     (should (= (count-initial-spaces) 0))))
+
+;;; ============================================================
+;;; Tests for triple-quoted string functions
+;;; ============================================================
+
+(ert-deftest test-mark-triple-quoted-string-inside-basic ()
+  "Mark inside triple-quoted string."
+  (with-temp-buffer
+    (python-mode)
+    (insert "\"\"\"Hello world\"\"\"")
+    (goto-char 8)  ;; inside "Hello"
+    (let ((result (mark-triple-quoted-string-inside)))
+      (should result)
+      (should (region-active-p))
+      (should (string= (buffer-substring (region-beginning) (region-end))
+                       "Hello world")))))
+
+(ert-deftest test-mark-triple-quoted-string-inside-single-quotes ()
+  "Mark inside triple single-quoted string."
+  (with-temp-buffer
+    (python-mode)
+    (insert "'''Hello world'''")
+    (goto-char 8)
+    (let ((result (mark-triple-quoted-string-inside)))
+      (should result)
+      (should (region-active-p))
+      (should (string= (buffer-substring (region-beginning) (region-end))
+                       "Hello world")))))
+
+(ert-deftest test-mark-triple-quoted-string-inside-multiline ()
+  "Mark inside multiline triple-quoted string."
+  (with-temp-buffer
+    (python-mode)
+    (insert "\"\"\"Line 1\nLine 2\nLine 3\"\"\"")
+    (goto-char 10)  ;; somewhere in the middle
+    (let ((result (mark-triple-quoted-string-inside)))
+      (should result)
+      (should (region-active-p))
+      (should (string= (buffer-substring (region-beginning) (region-end))
+                       "Line 1\nLine 2\nLine 3")))))
+
+(ert-deftest test-mark-triple-quoted-string-inside-not-in-string ()
+  "Returns nil when not inside triple-quoted string."
+  (with-temp-buffer
+    (python-mode)
+    (insert "regular text here")
+    (goto-char 8)
+    (should (null (mark-triple-quoted-string-inside)))
+    (should-not (region-active-p))))
+
+(ert-deftest test-mark-triple-quoted-string-outside-basic ()
+  "Mark outside triple-quoted string (including quotes)."
+  (with-temp-buffer
+    (python-mode)
+    (insert "\"\"\"Hello world\"\"\"")
+    (goto-char 8)
+    (let ((result (mark-triple-quoted-string-outside)))
+      (should result)
+      (should (region-active-p))
+      (should (string= (buffer-substring (region-beginning) (region-end))
+                       "\"\"\"Hello world\"\"\"")))))
+
+(ert-deftest test-mark-triple-quoted-string-outside-single-quotes ()
+  "Mark outside triple single-quoted string."
+  (with-temp-buffer
+    (python-mode)
+    (insert "'''Hello world'''")
+    (goto-char 8)
+    (let ((result (mark-triple-quoted-string-outside)))
+      (should result)
+      (should (region-active-p))
+      (should (string= (buffer-substring (region-beginning) (region-end))
+                       "'''Hello world'''")))))
+
+(ert-deftest test-mark-inside-or-not-triple-quoted ()
+  "mark-inside-or-not handles triple-quoted strings."
+  (with-temp-buffer
+    (python-mode)
+    (insert "x = \"\"\"docstring\"\"\"")
+    (goto-char 10)  ;; inside "docstring"
+    (mark-inside-or-not nil)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "docstring"))))
+
+(ert-deftest test-mark-outside-or-not-triple-quoted ()
+  "mark-outside-or-not handles triple-quoted strings."
+  (with-temp-buffer
+    (python-mode)
+    (insert "x = \"\"\"docstring\"\"\"")
+    (goto-char 10)
+    (mark-outside-or-not nil)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "\"\"\"docstring\"\"\""))))
+
+;;; ============================================================
+;;; Tests for bracket operations (inner/outer with paren/square/curly)
+;;; ============================================================
+
+(ert-deftest test-mark-inner-with-paren ()
+  "Mark inside parentheses."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(hello world)")
+    (goto-char 7)
+    (mark-inner-with-paren)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "hello world"))))
+
+(ert-deftest test-mark-inner-with-square ()
+  "Mark inside square brackets."
+  (with-temp-buffer
+    (python-mode)
+    (insert "[item1, item2]")
+    (goto-char 5)
+    (mark-inner-with-square)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "item1, item2"))))
+
+(ert-deftest test-mark-inner-with-curly ()
+  "Mark inside curly braces."
+  (with-temp-buffer
+    (python-mode)
+    (insert "{key: value}")
+    (goto-char 5)
+    (mark-inner-with-curly)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "key: value"))))
+
+(ert-deftest test-mark-outer-with-paren ()
+  "Mark outside parentheses (including parens)."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "func(hello world)")
+    (goto-char 10)
+    (mark-outer-with-paren)
+    (should (region-active-p))
+    (should (string= (buffer-substring (region-beginning) (region-end))
+                     "(hello world)"))))
+
+(ert-deftest test-copy-inner-with-paren ()
+  "Copy inside parentheses."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(hello world)")
+    (goto-char 7)
+    (copy-inner-with-paren)
+    (should (string= (car kill-ring) "hello world"))))
+
+(ert-deftest test-cut-inner-with-paren ()
+  "Cut inside parentheses."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(hello world)")
+    (goto-char 7)
+    (cut-inner-with-paren nil)
+    (should (string= (buffer-string) "()"))
+    (should (string= (car kill-ring) "hello world"))))
+
+(ert-deftest test-cut-outer-with-paren ()
+  "Cut outside parentheses."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "func(hello world)")
+    (goto-char 10)
+    (cut-outer-with-paren nil)
+    (should (string= (buffer-string) "func"))
+    (should (string= (car kill-ring) "(hello world)"))))
 
 (provide 'test-elisp)
 ;;; test-elisp.el ends here
