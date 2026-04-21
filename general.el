@@ -1087,6 +1087,8 @@ interactively call `gptel-send' with a prefix argument."
   "Compatibility variable for flycheck with Emacs 31+")
 (defvar auto-highlight-symbol-mode--suppress-set-explicitly nil
   "Compatibility variable for auto-highlight-symbol with Emacs 31+")
+(defvar auto-highlight-symbol-mode--set-explicitly nil
+  "Compatibility variable for auto-highlight-symbol with Emacs 31+")
 (defvar git-gutter-mode--set-explicitly nil
   "Compatibility variable for git-gutter with Emacs 31+")
 
@@ -1242,7 +1244,11 @@ interactively call `gptel-send' with a prefix argument."
   ;; Disable eglot diagnostics - use flycheck instead
   (add-to-list 'eglot-ignored-server-capabilities :textDocument/publishDiagnostics)
   ;; Disable signature help to prevent duplicate eldoc (hover already shows this)
-  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider))
+  (add-to-list 'eglot-ignored-server-capabilities :signatureHelpProvider)
+  ;; Ty asks eglot to watch ~/ with glob **, which triggers `find' over 500k+
+  ;; dirs in $HOME, hits `eglot-max-file-watches' (default 10000), and ends up
+  ;; with zero watches registered. Refuse watchers outside the project root.
+  (setq eglot-watch-files-outside-project-root nil))
 
 ;; Show eldoc in tooltip popup near cursor (hover docs)
 (use-package eldoc-box
@@ -1748,7 +1754,7 @@ _o_: organize imports
   :defer 1)
 
 
-(load "~/.emacs.conf/gptel-custom.el" t)
+(load "~/.emacs.conf/claudegel.el" t)
 
 
 (use-package ryo-modal
@@ -1942,14 +1948,27 @@ _o_: organize imports
          ("f." substitute-outer-with-square-with-kill-ring)
          ("f/" substitute-outer-with-curly-with-kill-ring)
 
-         ("ga" remove-thinking)
-         ("gg" gptel-really-abort)
-
-         ("gk" gptel-send-to-opus--general)
-         ("gK" gptel-send-to-opus--general-thinking)
-
-         ("gi" gptel-send-to-sonnet--general)
-         ("gI" gptel-send-to-sonnet--general-thinking)
+         ;; Claude Code (claudegel) — `ag*` prefix.
+         ;; Models, ordered weakest→strongest left→right on home row.
+         ;; C-u prefix on any of these enables --effort xhigh ("thinking").
+         ("gj" claudegel-send-haiku)              ; fast/cheap
+         ("gk" claudegel-send-sonnet)             ; default
+         ("gl" claudegel-send-opus)               ; heavy
+         ;; Same gradient, capitals = project tier (full tools, in repo root).
+         ("gJ" claudegel-send-haiku-project)
+         ("gK" claudegel-send-sonnet-project)
+         ("gL" claudegel-send-opus-project)
+         ;; Specialised prompts on top row.
+         ("gu" claudegel-send-short)              ; line-replace short answer
+         ("gi" claudegel-send-translate)          ; translate (line-replace)
+         ("go" claudegel-send-continue)           ; code autocomplete
+         ("gp" claudegel-send-prose)              ; prose / writing
+         ;; Session / control.
+         ("gg" claudegel-abort)                   ; preserve old muscle memory
+         ("g;" claudegel-abort)                   ; alt
+         ("gG" claudegel-reset-session)
+         ("ga" claudegel-toggle-fold-at-point)    ; fold tool call at point
+         ("gA" claudegel-scrub-tools)             ; nuke all tool calls
          )
    )
 
