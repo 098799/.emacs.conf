@@ -260,6 +260,13 @@
 ;;   :config
 ;;   (load-theme 'spacemacs-dark t))
 
+;; Hand-written themes live here: win95 and win311, the Emacs half of
+;; ~/dotfiles/win95-pkg. `theme`/`w95 on` load them by name, so the directory
+;; has to be searchable before either can run.
+(add-to-list 'custom-theme-load-path
+             (expand-file-name "themes/" (file-name-directory
+                                          (or load-file-name buffer-file-name "~/.emacs.conf/"))))
+
 (use-package doom-themes
   :ensure t
   :config
@@ -999,81 +1006,246 @@ interactively call `gptel-send' with a prefix argument."
 ;;; PYTHON AND PROJECTS ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; (use-package blacken
-;;   :ensure t
-;;   :config
-;;   (setq blacken-executable "/home/tgrining/.virtualenvs/legartis/bin/black")
-;;   (setq blacken-skip-string-normalization nil)
-;;   (setq blacken-line-length 160)
-;;   (setq blacken-allow-py36 nil)
-;;   (add-hook 'python-mode-hook 'blacken-mode)
-;;   (add-hook 'python-ts-mode-hook 'blacken-mode)
-;;   )
+;;; Ruff — the only python linter and formatter.
+;;
+;; The version is not a local choice.  It is whatever the astral-sh/ruff-pre-commit
+;; rev in the *nearest ancestor* .pre-commit-config.yaml says, which is the single
+;; source of truth the whole toolchain reads: the Legartis CI lint job
+;; (`_read_ruff_version' in .gitlab/ci-generator/pipelines/backend_pipeline.py),
+;; pre-commit itself, and the repo's agent edit hook (.claude/hooks/ruff-on-edit.sh).
+;; A bare `ruff' off $PATH floats to whatever version happens to be installed and
+;; reformats against a different style than CI enforces — which is precisely how a
+;; formatting-only save turns a pipeline red (DEV-4621).
+;;
+;; Invocation mirrors the hook: `uv tool run ruff@<version> ...' (uvx is not always
+;; on PATH; `uv tool run' is).  `--force-exclude' makes ruff honour its own excludes
+;; even for an explicitly named file, so generated *_oag SDKs, notebooks and
+;; tools/legartis-diag are left alone here exactly as they are everywhere else.
+;;
+;; Everything below is fail-safe by design: no resolvable version, no uv, a ruff
+;; that errors, a syntax error mid-edit — all leave the buffer untouched and let the
+;; save proceed.  A save must never be blocked by formatting.
 
-;; Ruff formatting (replaces black)
-(defun ruff-format-buffer ()
-  "Format current buffer with ruff."
+(defvar my-ruff-uv-executable
+  (or (and (file-executable-p "~/.local/bin/uv") (expand-file-name "~/.local/bin/uv"))
+      (executable-find "uv"))
+  "Path to the `uv' binary used to run the repo-pinned ruff, or nil if absent.")
+
+(defvar my-ruff-shim-directory
+  (expand-file-name "emacs-ruff" (or (getenv "XDG_CACHE_HOME") "~/.cache"))
+  "Directory holding the generated per-version ruff shims used by flycheck.")
+
+(defvar my-ruff--version-cache (make-hash-table :test 'equal)
+  "Maps a .pre-commit-config.yaml path to (MTIME . VERSION).
+Re-read whenever the file's mtime changes, so bumping the pin takes effect
+without restarting Emacs.")
+
+(defun my-ruff--directory ()
+  "Directory the ruff version is resolved from.
+The current file's directory, else `default-directory'."
+  (or (and buffer-file-name (file-name-directory buffer-file-name))
+      default-directory))
+
+(defun my-ruff--repo-root (dir)
+  "Nearest ancestor of DIR holding a .pre-commit-config.yaml, or nil.
+Remote (TRAMP) directories are refused — walking them is slow and there is no
+local ruff to run against them anyway."
+  (when (and dir (not (file-remote-p dir)))
+    (let ((root (locate-dominating-file dir ".pre-commit-config.yaml")))
+      (and root (expand-file-name root)))))
+
+(defun my-ruff--config-file (dir)
+  "Path of the .pre-commit-config.yaml governing DIR, or nil."
+  (let ((root (my-ruff--repo-root dir)))
+    (and root (expand-file-name ".pre-commit-config.yaml" root))))
+
+(defun my-ruff--parse-version (config)
+  "Read the astral-sh/ruff-pre-commit rev out of CONFIG, or nil.
+Same shape as the regex CI uses: the repo line, then the first `rev:' after it."
+  (with-temp-buffer
+    (insert-file-contents config)
+    (goto-char (point-min))
+    (when (and (re-search-forward "astral-sh/ruff-pre-commit" nil t)
+               (re-search-forward "rev:[ \t]*['\"]?v?\\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t))
+      (match-string 1))))
+
+(defun my-ruff-pinned-version (&optional dir)
+  "Ruff version pinned for DIR (default: the current buffer's), or nil.
+Interactively, report it — handy for confirming Emacs and CI agree."
   (interactive)
-  (let* ((point (point))
-         (file-name (or (buffer-file-name) "buffer.py"))
-         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
-         (temp-buffer (generate-new-buffer " *ruff-format-temp*"))
-         (exit-code)
-         (interactive-p (called-interactively-p 'any)))
-    (unwind-protect
-        (progn
-          (with-current-buffer temp-buffer
-            (insert buffer-text))
-          (setq exit-code
-                (with-current-buffer temp-buffer
-                  (call-process-region (point-min) (point-max) "ruff"
-                                       t t nil
-                                       "format" "--stdin-filename" file-name "-")))
-          (if (zerop exit-code)
-              (let ((formatted-text (with-current-buffer temp-buffer
-                                      (buffer-substring-no-properties (point-min) (point-max)))))
-                (if (string= buffer-text formatted-text)
-                    (when interactive-p (message "Buffer already formatted"))
-                  (erase-buffer)
-                  (insert formatted-text)
-                  (goto-char (min point (point-max)))
-                  (when interactive-p (message "Formatted with ruff"))))
-            (when interactive-p
-              (message "ruff format failed with exit code %d" exit-code))))
-      (kill-buffer temp-buffer))))
+  (let* ((dir (or dir (my-ruff--directory)))
+         (config (my-ruff--config-file dir))
+         (version
+          (when config
+            (let ((mtime (file-attribute-modification-time (file-attributes config)))
+                  (cached (gethash config my-ruff--version-cache)))
+              (if (and cached (equal (car cached) mtime))
+                  (cdr cached)
+                (let ((parsed (ignore-errors (my-ruff--parse-version config))))
+                  (puthash config (cons mtime parsed) my-ruff--version-cache)
+                  parsed))))))
+    (when (called-interactively-p 'any)
+      (message (if version
+                   (format "ruff %s (pinned in %s)" version config)
+                 "no pinned ruff for this buffer — falling back to `ruff' on PATH")))
+    version))
+
+(defun my-ruff--command (dir)
+  "Return (PROGRAM ARGS...) running the ruff pinned for DIR, or nil if none.
+Falls back to a plain `ruff' on PATH when the version cannot be resolved (a
+file outside any pre-commit repo) or when uv is missing."
+  (let ((version (my-ruff-pinned-version dir)))
+    (cond ((and version my-ruff-uv-executable)
+           (list my-ruff-uv-executable "tool" "run" (concat "ruff@" version)))
+          ((executable-find "ruff") (list (executable-find "ruff")))
+          (t nil))))
+
+(defun my-ruff--run (subcommand extra-args ok-codes)
+  "Pipe the current buffer through the pinned ruff SUBCOMMAND.
+EXTRA-ARGS go after SUBCOMMAND; OK-CODES are the exit codes whose stdout is
+trustworthy output.  Returns `changed', `unchanged', `skipped' or `failed', and
+never signals — the buffer is only touched on a clean, non-empty result."
+  (let* ((dir (my-ruff--directory))
+         (cmd (my-ruff--command dir)))
+    (if (not cmd)
+        'skipped
+      (let ((source (buffer-substring-no-properties (point-min) (point-max)))
+            ;; Captured here, not inside `stdout' below, where `buffer-file-name'
+            ;; would be nil — and ruff would then apply neither this file's config
+            ;; nor its excludes.
+            (stdin-name (or buffer-file-name "buffer.py"))
+            (stdout (generate-new-buffer " *ruff-output*"))
+            (exit-code nil))
+        (unwind-protect
+            (progn
+              (setq exit-code
+                    (with-current-buffer stdout
+                      (insert source)
+                      ;; Run from the repo root, as CI and pre-commit do.
+                      ;; For a saved file this is not what finds the config: ruff
+                      ;; resolves that by walking up from --stdin-filename, so an
+                      ;; absolute name picks up the root [tool.ruff] (line-length 160)
+                      ;; from any cwd — verified by piping a 111-char line, which stays
+                      ;; on one line at 160 and splits at 88, from services/backend, the
+                      ;; repo root and /tmp alike.
+                      ;; It *is* load-bearing for a python buffer with no file, where
+                      ;; the name below falls back to the relative "buffer.py": a
+                      ;; relative --stdin-filename does depend on cwd, and the same line
+                      ;; piped from services/backend gets split at 88.  Rooting the
+                      ;; process here means a scratch buffer in the repo is formatted
+                      ;; like the repo.
+                      (let ((default-directory
+                             (or (my-ruff--repo-root dir)
+                                 (and (file-directory-p dir) dir)
+                                 "~/")))
+                        ;; stdout replaces the region, stderr is discarded: ruff writes
+                        ;; the code to stdout and its diagnostics to stderr, and mixing
+                        ;; them would splice error text into the buffer.
+                        (condition-case nil
+                            (apply #'call-process-region (point-min) (point-max)
+                                   (car cmd) t (list t nil) nil
+                                   (append (cdr cmd)
+                                           (list subcommand)
+                                           extra-args
+                                           (list "--force-exclude" "--quiet"
+                                                 "--stdin-filename" stdin-name
+                                                 "-")))
+                          (error nil)))))
+              (let ((output (with-current-buffer stdout
+                              (buffer-substring-no-properties (point-min) (point-max)))))
+                (cond
+                 ;; Not a code we trust (syntax error, uv download failure, ...) or no
+                 ;; output at all: keep what the user typed.
+                 ((not (memq exit-code ok-codes)) 'failed)
+                 ((string-empty-p output) 'failed)
+                 ((string= source output) 'unchanged)
+                 (t
+                  ;; A non-destructive replacement keeps point, markers and undo
+                  ;; minimal instead of erase+insert.  The 0.5s limit degrades to a
+                  ;; plain replacement rather than hanging on a big diff.
+                  ;; `replace-region-contents' only takes a buffer as its source from
+                  ;; Emacs 31 on; before that it wanted a function, hence the split.
+                  (condition-case nil
+                      (if (and (fboundp 'replace-region-contents)
+                               (>= emacs-major-version 31))
+                          (replace-region-contents (point-min) (point-max) stdout nil 0.5)
+                        (with-no-warnings (replace-buffer-contents stdout 0.5)))
+                    (error (let ((point (point)))
+                             (erase-buffer)
+                             (insert output)
+                             (goto-char (min point (point-max))))))
+                  'changed))))
+          (kill-buffer stdout))))))
+
+(defun ruff-format-buffer ()
+  "Format the current buffer with the repo-pinned ruff.
+Safe on `before-save-hook': failures are reported, never signalled."
+  (interactive)
+  (let ((interactive-p (called-interactively-p 'any)))
+    (condition-case err
+        (pcase (my-ruff--run "format" nil '(0))
+          ('changed (when interactive-p (message "Formatted with ruff %s"
+                                                 (or (my-ruff-pinned-version) "(PATH)"))))
+          ('unchanged (when interactive-p (message "Buffer already formatted")))
+          ('skipped (when interactive-p (message "No ruff available — buffer left alone")))
+          ('failed (when interactive-p (message "ruff format declined this buffer — left alone"))))
+      (error (when interactive-p
+               (message "ruff format skipped: %s" (error-message-string err)))))))
 
 (defun ruff-fix-buffer ()
-  "Fix current buffer with ruff (auto-fix linting issues)."
+  "Apply ruff's auto-fixes to the current buffer, import sorting (I) included.
+Exit code 1 still carries usable output — it just means some violations are
+not auto-fixable — so it is accepted here."
   (interactive)
-  (let* ((point (point))
-         (file-name (or (buffer-file-name) "buffer.py"))
-         (buffer-text (buffer-substring-no-properties (point-min) (point-max)))
-         (temp-buffer (generate-new-buffer " *ruff-fix-temp*"))
-         (exit-code))
-    (unwind-protect
-        (progn
-          (with-current-buffer temp-buffer
-            (insert buffer-text))
-          (setq exit-code
-                (with-current-buffer temp-buffer
-                  (call-process-region (point-min) (point-max) "ruff"
-                                       t t nil
-                                       "check" "--fix" "--stdin-filename" file-name "-")))
-          (when (zerop exit-code)
-            (let ((fixed-text (with-current-buffer temp-buffer
-                                (buffer-substring-no-properties (point-min) (point-max)))))
-              (unless (string= buffer-text fixed-text)
-                (erase-buffer)
-                (insert fixed-text)
-                (goto-char (min point (point-max)))))))
-      (kill-buffer temp-buffer))))
+  (let ((interactive-p (called-interactively-p 'any)))
+    (condition-case err
+        (pcase (my-ruff--run "check" '("--fix") '(0 1))
+          ('changed (when interactive-p (message "Fixed with ruff %s"
+                                                 (or (my-ruff-pinned-version) "(PATH)"))))
+          ('unchanged (when interactive-p (message "Nothing for ruff to fix")))
+          ('skipped (when interactive-p (message "No ruff available — buffer left alone")))
+          ('failed (when interactive-p (message "ruff check declined this buffer — left alone"))))
+      (error (when interactive-p
+               (message "ruff check skipped: %s" (error-message-string err)))))))
 
-(add-hook 'python-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
-(add-hook 'python-ts-mode-hook
-          (lambda ()
-            (add-hook 'before-save-hook 'ruff-format-buffer nil t)))
+(defun my-ruff--flycheck-shim ()
+  "Path to an executable running the pinned ruff, or nil.
+`flycheck-python-ruff-executable' has to be a single program, so the
+`uv tool run' prefix (and `--force-exclude', which flycheck does not pass) lives
+in a tiny generated script, one per version."
+  (let ((version (my-ruff-pinned-version)))
+    (when (and version my-ruff-uv-executable)
+      (let ((shim (expand-file-name (format "ruff-%s" version) my-ruff-shim-directory))
+            (uv (shell-quote-argument my-ruff-uv-executable)))
+        (unless (file-executable-p shim)
+          (ignore-errors
+            (make-directory my-ruff-shim-directory t)
+            (with-temp-file shim
+              (insert "#!/bin/sh\n"
+                      "# Generated by ~/.emacs.conf/general.el — do not edit.\n"
+                      "# Runs the ruff version pinned in .pre-commit-config.yaml.\n"
+                      "case \"$1\" in\n"
+                      "  check|format)\n"
+                      "    sub=$1; shift\n"
+                      "    exec " uv " tool run \"ruff@" version "\" \"$sub\" --force-exclude \"$@\"\n"
+                      "    ;;\n"
+                      "esac\n"
+                      "exec " uv " tool run \"ruff@" version "\" \"$@\"\n"))
+            (set-file-modes shim #o755)))
+        (and (file-executable-p shim) shim)))))
+
+(defun my-python-ruff-setup ()
+  "Format with the repo-pinned ruff on save.
+Also points flycheck at that same version."
+  (add-hook 'before-save-hook #'ruff-format-buffer nil t)
+  (let ((shim (ignore-errors (my-ruff--flycheck-shim))))
+    ;; Set via `make-local-variable' rather than `setq-local' so this works whether
+    ;; or not flycheck has loaded yet (it is deferred).
+    (when shim
+      (set (make-local-variable 'flycheck-python-ruff-executable) shim))))
+
+(add-hook 'python-mode-hook #'my-python-ruff-setup)
+(add-hook 'python-ts-mode-hook #'my-python-ruff-setup)
 
 ;; Fix for Emacs 31 development version compatibility with minor modes
 ;; These variables are expected by minor modes but not defined in Emacs 31 dev
@@ -1269,8 +1441,9 @@ interactively call `gptel-send' with a prefix argument."
   (global-flycheck-mode nil)
   (add-to-list 'ivy-ignore-buffers "\\*Flycheck")
 
-  ;; Use ruff instead of flake8/pylint
-  (setq flycheck-python-ruff-executable "ruff")
+  ;; Ruff is the only python linter.  The executable is *not* set globally here:
+  ;; `my-python-ruff-setup' sets it buffer-locally to the version pinned by that
+  ;; buffer's repo, so flycheck flags exactly the rules CI does.
   (setq-default flycheck-disabled-checkers '(python-flake8 python-pylint python-pycompile python-mypy))
 
   )
@@ -1284,14 +1457,6 @@ interactively call `gptel-send' with a prefix argument."
 ;;     (add-to-list 'ivy-ignore-buffers "\\*epc con")
 ;;     (setq importmagic-be-quiet t)
 ;;     )
-
-;; isort (disabled - ruff handles import sorting)
-;; (use-package py-isort
-;;   :ensure t
-;;   :config
-;;   (add-hook 'before-save-hook 'py-isort-before-save)
-;;   ;; (setq py-isort-options '("--line-length=160 --profile=black"))
-;;   )
 
 (use-package jedi
   :ensure t
@@ -1755,6 +1920,22 @@ _o_: organize imports
 
 
 (load "~/.emacs.conf/claudegel.el" t)
+
+
+(use-package kkp
+  :ensure t
+  :config
+  (global-kkp-mode +1))
+
+;; tmux 3.6 does not proxy the kitty keyboard protocol, so kkp cannot
+;; activate inside tmux. Fall back to a sit-for disambiguation: a bare
+;; ESC byte with no follow-up within 30ms is translated to <escape>;
+;; ESC followed quickly by another byte (real escape sequences, M-x,
+;; etc.) falls through unchanged.
+(define-key input-decode-map [?\e]
+  `(menu-item "" [escape]
+              :filter ,(lambda (real-binding)
+                         (when (sit-for 0.03 t) real-binding))))
 
 
 (use-package ryo-modal
