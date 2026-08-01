@@ -1977,6 +1977,26 @@ _o_: organize imports
   (defvar ryo-modal-mode-line-bg-orig nil "Original mode-line background.")
   (defvar ryo-modal-mode-line-active-bg-orig nil "Original mode-line-active background.")
 
+  ;; These colours have to follow the theme. The gruvbox hexes used to be
+  ;; hardcoded in both branches, which meant the modeline stayed gruvbox under
+  ;; every other theme -- most visibly under win95, where the navy caption bar
+  ;; is most of what makes it look like Windows.
+  (defun ryo-modal--win-theme-p ()
+    (or (memq 'win95 custom-enabled-themes)
+        (memq 'win311 custom-enabled-themes)))
+
+  (defun ryo-modal--modal-bg ()
+    "Modeline background while modal mode is ON."
+    (if (ryo-modal--win-theme-p) "#008080" "#3d4220"))   ; teal reads as "armed"
+
+  (defun ryo-modal--normal-bg ()
+    "Modeline background while modal mode is OFF.
+Prefers the value saved before we first overrode it, so an unknown theme still
+gets its own colour back rather than gruvbox's."
+    (cond ((ryo-modal--win-theme-p) "#000080")           ; the Win95 caption
+          (ryo-modal-mode-line-bg-orig)
+          (t "#3c3836")))
+
   (defun ryo-modal-update-modeline ()
     "Update modeline and cursor color based on ryo-modal state."
     (if ryo-modal-mode
@@ -1986,14 +2006,14 @@ _o_: organize imports
             (setq ryo-modal-mode-line-bg-orig (face-background 'mode-line nil t)))
           (unless ryo-modal-mode-line-active-bg-orig
             (setq ryo-modal-mode-line-active-bg-orig (face-background 'mode-line-active nil t)))
-          ;; Modal ON - green modeline and cursor
-          (set-face-background 'mode-line "#3d4220")
-          (set-face-background 'mode-line-active "#3d4220")
-          (set-cursor-color "#859900"))
-      ;; Modal OFF - neutral modeline and cursor
-      (set-face-background 'mode-line "#3c3836")
-      (set-face-background 'mode-line-active "#3c3836")
-      (set-cursor-color "#a89984")))
+          (let ((bg (ryo-modal--modal-bg)))
+            (set-face-background 'mode-line bg)
+            (set-face-background 'mode-line-active bg))
+          (set-cursor-color (if (ryo-modal--win-theme-p) "#000080" "#859900")))
+      (let ((bg (ryo-modal--normal-bg)))
+        (set-face-background 'mode-line bg)
+        (set-face-background 'mode-line-active bg))
+      (set-cursor-color (if (ryo-modal--win-theme-p) "#000000" "#a89984"))))
 
   (add-hook 'ryo-modal-mode-hook #'ryo-modal-update-modeline)
 
