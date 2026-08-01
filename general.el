@@ -270,8 +270,23 @@
 (use-package doom-themes
   :ensure t
   :config
-  (load-theme 'doom-gruvbox t)
-  )
+  ;; `w95 on`/`off` records the desktop's theme in ~/.config/w95/emacs-theme,
+  ;; because unlike GTK or alacritty there is no file Emacs re-reads and
+  ;; `theme` only pokes a running server -- so without this an Emacs started
+  ;; after the switch would come up gruvbox on a Windows desktop. Absent or
+  ;; unloadable file means gruvbox, so nothing here can cost us a startup.
+  (let* ((f "~/.config/w95/emacs-theme")
+         (want (and (file-readable-p f)
+                    (with-temp-buffer
+                      (insert-file-contents f)
+                      (let ((s (string-trim (buffer-string))))
+                        (and (not (string-empty-p s)) (intern s)))))))
+    (unless (and want
+                 (condition-case err
+                     (progn (load-theme want t) t)
+                   (error (message "w95 theme %s failed (%S); using gruvbox" want err)
+                          nil)))
+      (load-theme 'doom-gruvbox t))))
 
 ;; (use-package modus-themes
 ;;   :ensure t
