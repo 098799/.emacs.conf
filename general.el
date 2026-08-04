@@ -270,6 +270,15 @@
 (use-package doom-themes
   :ensure t
   :config
+  ;; gnus (Emacs 30+) flipped its group faces: gnus-group-news-low now
+  ;; inherits gnus-group-news-low-empty. doom-themes-base still ships the
+  ;; -empty face inheriting the other way, and once both specs sit on the
+  ;; symbol EVERY load-theme dies with "Face inheritance results in
+  ;; inheritance cycle: gnus-group-news-low" -- which is what silently broke
+  ;; `theme`/w95-switch. Drop doom's entry; the gnus default takes over.
+  (require 'doom-themes-base)
+  (setq doom-themes-base-faces
+        (assq-delete-all 'gnus-group-news-low-empty doom-themes-base-faces))
   ;; `w95 on`/`off` records the desktop's theme in ~/.config/w95/emacs-theme,
   ;; because unlike GTK or alacritty there is no file Emacs re-reads and
   ;; `theme` only pokes a running server -- so without this an Emacs started
